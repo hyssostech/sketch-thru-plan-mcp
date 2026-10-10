@@ -1,6 +1,6 @@
 import type { Contract, ContractMethod, JsonSchema } from "./contract.js";
 
-export type SafetyClass = "read" | "write" | "destructive" | "unclassified";
+export type SafetyClass = "read" | "write" | "destructive";
 
 /** An MCP tool definition, ready for a tools/list response. */
 export interface GeneratedTool {
@@ -21,6 +21,8 @@ export interface GeneratedTool {
   };
   _meta: {
     "stp/safety": SafetyClass;
+    /** Present when the engine answers with events only, never a result. */
+    "stp/inform"?: true;
     "stp/descriptionStatus"?: string;
   };
 }
@@ -54,29 +56,28 @@ export function exclusionReason(method: ContractMethod): string | null {
   return null;
 }
 
+/**
+ * The method's safety class. Since contract 0.7.0 every method carries one, so a missing
+ * class is a contract defect: refuse it rather than generate a tool a client must guess about.
+ */
 export function safetyClass(method: ContractMethod): SafetyClass {
   const s = method["x-stpSafety"];
   if (s === "read" || s === "write" || s === "destructive") return s;
-  if (s !== undefined) {
-    throw new Error(`${method.name}: unknown x-stpSafety '${s}' (expected read | write | destructive)`);
+  if (s === undefined) {
+    throw new Error(`${method.name}: no x-stpSafety (every contract method must be read | write | destructive)`);
   }
-  return "unclassified";
+  throw new Error(`${method.name}: unknown x-stpSafety '${s}' (expected read | write | destructive)`);
 }
 
-/**
- * MCP annotations for a safety class. An unclassified method gets none, so a
- * client falls back to the spec's conservative defaults (not read-only, possibly destructive).
- */
-function annotationsFor(safety: SafetyClass): GeneratedTool["annotations"] {
+/** MCP annotations for a safety class; openWorld when the call reaches a system outside STP. */
+function annotationsFor(safety: SafetyClass, openWorld: boolean): GeneratedTool["annotations"] {
   switch (safety) {
     case "read":
-      return { readOnlyHint: true, openWorldHint: false };
+      return { readOnlyHint: true, openWorldHint: openWorld };
     case "write":
-      return { readOnlyHint: false, destructiveHint: false, openWorldHint: false };
+      return { readOnlyHint: false, destructiveHint: false, openWorldHint: openWorld };
     case "destructive":
-      return { readOnlyHint: false, destructiveHint: true, openWorldHint: false };
-    case "unclassified":
-      return {};
+      return { readOnlyHint: false, destructiveHint: true, openWorldHint: openWorld };
   }
 }
 
@@ -140,9 +141,10 @@ export function toolFromMethod(method: ContractMethod, contract: Contract): Gene
     name: method.name,
     description: method.description ?? "",
     inputSchema: { type: "object", properties, additionalProperties: false },
-    annotations: annotationsFor(safety),
+    annotations: annotationsFor(safety, method["x-stpOpenWorld"] === true),
     _meta: { "stp/safety": safety },
   };
+  if (method["x-stpInform"] === true) tool._meta["stp/inform"] = true;
   if (required.length > 0) tool.inputSchema.required = required;
   if (used.size > 0) tool.inputSchema.$defs = collectDefs(used, components, method.name);
   if (method["x-descriptionStatus"]) tool._meta["stp/descriptionStatus"] = method["x-descriptionStatus"];

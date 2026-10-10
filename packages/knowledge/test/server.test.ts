@@ -37,21 +37,24 @@ describe("knowledge server", () => {
     for (const t of tools) expect(t.annotations?.readOnlyHint).toBe(true);
   });
 
-  it("lists available methods, hiding the undispatched COA family by default", async () => {
+  it("lists available methods, hiding the transport layer by default", async () => {
     const { body } = await call("list_methods", {});
     const names = body.methods.map((m: { name: string }) => m.name);
     expect(names).toContain("AddSymbol");
-    expect(names).not.toContain("AddCoa");
-    expect(body.contract.version).toBe("0.4.0");
+    expect(names).toContain("AddCoa");
+    expect(names).not.toContain("Register");
+    const addSymbol = body.methods.find((m: { name: string }) => m.name === "AddSymbol");
+    expect(addSymbol).toMatchObject({ safety: "write", returns: "events only" });
+    expect(body.contract.version).toBe("0.7.0");
     expect(body.docs.repo).toBe("hyssostech/stp-docs");
     expect(body.docs.ref).toMatch(/^[0-9a-f]{40}$/);
   });
 
   it("explains why an unavailable method is unavailable", async () => {
-    const { body } = await call("get_method", { name: "addcoa" });
-    expect(body.method.name).toBe("AddCoa");
+    const { body } = await call("get_method", { name: "register" });
+    expect(body.method.name).toBe("Register");
     expect(body.available).toBe(false);
-    expect(body.unavailable_because).toMatch(/No handler/);
+    expect(body.unavailable_because).toMatch(/transport-layer/);
   });
 
   it("returns a callable input schema for an available method", async () => {
@@ -98,9 +101,9 @@ describe("resources", () => {
   });
 
   it("serves contract entries as JSON, explaining unavailable methods", async () => {
-    const res = await client.readResource({ uri: "stp-api://method/AddCoa" });
+    const res = await client.readResource({ uri: "stp-api://method/Request" });
     const body = JSON.parse((res.contents[0] as { text: string }).text);
-    expect(body.method.name).toBe("AddCoa");
+    expect(body.method.name).toBe("Request");
     expect(body.available).toBe(false);
     expect(body.docs.ref).toBe(loadDocsPin().ref);
     const ev = await client.readResource({ uri: "stp-api://event/SymbolAdded" });
@@ -117,7 +120,7 @@ describe("search_docs", () => {
     const { body, content, isError } = await call("search_docs", { query: "how do I load a scenario", k: 4 });
     expect(isError).toBe(false);
     expect(body.docs.ref).toBe(loadDocsPin().ref);
-    expect(body.contract.version).toBe("0.4.0");
+    expect(body.contract.version).toBe("0.7.0");
     expect(body.results.length).toBe(4);
     const top = body.results[0];
     expect(top.uri).toBe("stp-docs://guides/scenarios");

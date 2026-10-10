@@ -68,6 +68,7 @@ function methodEntry(method: ContractMethod, generated: GenerationResult) {
   return {
     method,
     safety: safetyClass(method),
+    returns: method["x-stpInform"] === true ? "events only" : "result",
     available: reason === null,
     ...(reason === null ? {} : { unavailable_because: reason }),
     ...(tool ? { input_schema: tool.inputSchema } : {}),
@@ -141,7 +142,8 @@ export function createKnowledgeServer(options: KnowledgeServerOptions = {}): Mcp
       title: "List STP API methods",
       description:
         "List the methods of the Sketch-thru-Plan JSON-RPC API (client -> STP), with a one-line summary, " +
-        "safety class (read / write / destructive / unclassified) and whether a running STP engine handles " +
+        "safety class (read / write / destructive), whether it answers with a result or only with events, and " +
+        "whether a running STP engine handles " +
         "the method. Use it to find the right call before reading its details with get_method.",
       inputSchema: {
         query: z.string().optional().describe("Case-insensitive text to match against method names and descriptions."),
@@ -162,6 +164,7 @@ export function createKnowledgeServer(options: KnowledgeServerOptions = {}): Mcp
             name: m.name,
             summary: firstSentence(m.description),
             safety: safetyClass(m),
+            returns: m["x-stpInform"] === true ? "events only" : "result",
             available: reason === null,
             ...(reason === null ? {} : { unavailable_because: reason }),
           };

@@ -2,12 +2,14 @@
   "openrpc": "2.0.0",
   "info": {
     "title": "Sketch-thru-Plan API",
-    "version": "0.4.0"
+    "version": "0.7.0"
   },
   "methods": [
     {
       "name": "SendPenDown",
       "description": "Notify STP that the user began a sketch gesture (pen down) at a map coordinate.",
+      "x-stpSafety": "write",
+      "x-stpInform": true,
       "params": [
         {
           "name": "location",
@@ -29,6 +31,8 @@
     {
       "name": "SendInk",
       "description": "Send a sketched gesture (stroke) to STP, including the window bounds, map extents, stroke points and intersection context.",
+      "x-stpSafety": "write",
+      "x-stpInform": true,
       "params": [
         {
           "name": "pixelBoundsWindow",
@@ -92,6 +96,8 @@
     {
       "name": "SendSpeechRecognition",
       "description": "Send transcribed speech recognition results to STP (or typed phrases).",
+      "x-stpSafety": "write",
+      "x-stpInform": true,
       "params": [
         {
           "name": "recoList",
@@ -124,6 +130,8 @@
     {
       "name": "SendSimulatedSpeechRecognition",
       "description": "Send typed text to STP that will be treated as simulated speech recognition. Numbers and letters are converted server-side to speech-like transcriptions (e.g. 'A 3 1' becomes 'alpha three one').",
+      "x-stpSafety": "write",
+      "x-stpInform": true,
       "params": [
         {
           "name": "text",
@@ -145,6 +153,7 @@
     {
       "name": "CreateNewScenario",
       "description": "Create and load a new scenario, replacing any previous content.",
+      "x-stpSafety": "destructive",
       "params": [
         {
           "name": "name",
@@ -164,6 +173,7 @@
     {
       "name": "LoadNewScenario",
       "description": "Load a scenario from a serialized content string (object_set([...])). Replaces previous content.",
+      "x-stpSafety": "destructive",
       "params": [
         {
           "name": "content",
@@ -182,7 +192,8 @@
     },
     {
       "name": "ImportPlanData",
-      "description": "Import additional content into the current scenario (object_set([...])).",
+      "description": "Import additional content into the current scenario (object_set([...])). An object in the content whose poid already exists in the scenario REPLACES the resident object (its previous version stays in the undo history); objects not in the content are left alone, and a content object carrying the deletion version (fsdb_version 0) deletes that poid. Afterwards the default friend and hostile task orgs are re-selected, preferring task orgs this content just loaded.",
+      "x-stpSafety": "destructive",
       "params": [
         {
           "name": "content",
@@ -202,6 +213,7 @@
     {
       "name": "GetScenarioContent",
       "description": "Return the current scenario as a serialized string (object_set([...])) suitable for persistence.",
+      "x-stpSafety": "read",
       "params": [],
       "result": {
         "name": "content",
@@ -212,7 +224,8 @@
     },
     {
       "name": "JoinScenarioSession",
-      "description": "Emit the current scenario objects as if they were received live, allowing a client to rebuild local state.",
+      "description": "Replay the current scenario to this client as if its objects had just arrived live (the usual Added events, deleted objects skipped), so a client can rebuild its local state. Changes nothing on the server.",
+      "x-stpSafety": "read",
       "params": [],
       "result": {
         "name": "ok",
@@ -223,7 +236,8 @@
     },
     {
       "name": "SyncScenarioSession",
-      "description": "Load a scenario and update the session state with detected differences.",
+      "description": "Merge a scenario into the active session and update the session state with the differences. Takes object-set text (object_set([...])); a blank string does nothing. It first joins the session (as JoinScenarioSession), then drops infrastructure objects (planning_scenario, system_state, edit, viewport, ink, parse_info, gesture, speech) from the content and imports the rest. An object in the content whose poid already exists in the scenario REPLACES the resident object (its previous version stays in the undo history); objects not in the content are left alone, and a content object carrying the deletion version (fsdb_version 0) deletes that poid. It does NOT discard the current contents first - use LoadNewScenario for that. Afterwards the default friend and hostile task orgs are re-selected, preferring task orgs this content just loaded.",
+      "x-stpSafety": "destructive",
       "params": [
         {
           "name": "content",
@@ -243,6 +257,7 @@
     {
       "name": "HasActiveScenario",
       "description": "Check whether STP currently has a loaded scenario.",
+      "x-stpSafety": "read",
       "params": [],
       "result": {
         "name": "active",
@@ -254,6 +269,8 @@
     {
       "name": "AddSymbol",
       "description": "Request addition of a symbol. STP will respond with a SymbolAdded event.",
+      "x-stpSafety": "write",
+      "x-stpInform": true,
       "params": [
         {
           "name": "symbol",
@@ -267,6 +284,8 @@
     {
       "name": "UpdateSymbol",
       "description": "Request update of a symbol. STP will respond with a SymbolModified event.",
+      "x-stpSafety": "write",
+      "x-stpInform": true,
       "params": [
         {
           "name": "poid",
@@ -287,6 +306,8 @@
     {
       "name": "DeleteSymbol",
       "description": "Request deletion of a symbol. STP will respond with a SymbolDeleted event.",
+      "x-stpSafety": "destructive",
+      "x-stpInform": true,
       "params": [
         {
           "name": "poid",
@@ -300,6 +321,8 @@
     {
       "name": "ChooseAlternate",
       "description": "Pick an alternate recognition for a symbol/task.",
+      "x-stpSafety": "write",
+      "x-stpInform": true,
       "params": [
         {
           "name": "poid",
@@ -319,7 +342,8 @@
     },
     {
       "name": "ImportTaskOrgContent",
-      "description": "Import a Task Organization (TO) from serialized content, using fresh unique IDs.",
+      "description": "Import a Task Organization (TO) from serialized content. Poids are kept exactly as they are in the content: the content is not used as a template and no new ids are generated. Returns the poid of the task_org object in the content. An object in the content whose poid already exists in the scenario REPLACES the resident object (its previous version stays in the undo history); objects not in the content are left alone, and a content object carrying the deletion version (fsdb_version 0) deletes that poid.",
+      "x-stpSafety": "destructive",
       "params": [
         {
           "name": "content",
@@ -339,6 +363,7 @@
     {
       "name": "GetTaskOrgContent",
       "description": "Return the serialized content of a Task Organization.",
+      "x-stpSafety": "read",
       "params": [
         {
           "name": "poid",
@@ -358,6 +383,7 @@
     {
       "name": "SetDefaultTaskOrg",
       "description": "Set a TO as the default for its affiliation (used when a COA is selected).",
+      "x-stpSafety": "write",
       "params": [
         {
           "name": "poid",
@@ -377,6 +403,7 @@
     {
       "name": "ResetDefaultTaskOrg",
       "description": "Unset the default TO for an affiliation.",
+      "x-stpSafety": "write",
       "params": [
         {
           "name": "affiliation",
@@ -396,6 +423,8 @@
     {
       "name": "AddTaskOrg",
       "description": "Add a Task Organization (ORBAT) definition.",
+      "x-stpSafety": "write",
+      "x-stpInform": true,
       "params": [
         {
           "name": "taskOrg",
@@ -409,6 +438,8 @@
     {
       "name": "UpdateTaskOrg",
       "description": "Update an existing TO definition.",
+      "x-stpSafety": "write",
+      "x-stpInform": true,
       "params": [
         {
           "name": "poid",
@@ -429,6 +460,8 @@
     {
       "name": "DeleteTaskOrg",
       "description": "Delete a Task Organization.",
+      "x-stpSafety": "destructive",
+      "x-stpInform": true,
       "params": [
         {
           "name": "poid",
@@ -442,6 +475,8 @@
     {
       "name": "AddTaskOrgUnit",
       "description": "Add a Task Org Unit (e.g., a military unit within the ORBAT).",
+      "x-stpSafety": "write",
+      "x-stpInform": true,
       "params": [
         {
           "name": "toUnit",
@@ -455,6 +490,8 @@
     {
       "name": "UpdateTaskOrgUnit",
       "description": "Update a Task Org Unit.",
+      "x-stpSafety": "write",
+      "x-stpInform": true,
       "params": [
         {
           "name": "poid",
@@ -475,6 +512,8 @@
     {
       "name": "DeleteTaskOrgUnit",
       "description": "Delete a Task Org Unit.",
+      "x-stpSafety": "destructive",
+      "x-stpInform": true,
       "params": [
         {
           "name": "poid",
@@ -488,6 +527,8 @@
     {
       "name": "AddTaskOrgRelationship",
       "description": "Add a relationship between TO units (e.g., command/attached).",
+      "x-stpSafety": "write",
+      "x-stpInform": true,
       "params": [
         {
           "name": "toRelationship",
@@ -501,6 +542,8 @@
     {
       "name": "UpdateTaskOrgRelationship",
       "description": "Update a relationship between TO units.",
+      "x-stpSafety": "write",
+      "x-stpInform": true,
       "params": [
         {
           "name": "poid",
@@ -521,6 +564,8 @@
     {
       "name": "DeleteTaskOrgRelationship",
       "description": "Delete a relationship between TO units.",
+      "x-stpSafety": "destructive",
+      "x-stpInform": true,
       "params": [
         {
           "name": "poid",
@@ -534,6 +579,8 @@
     {
       "name": "AddTask",
       "description": "Request addition of a task. STP will respond with TaskAdded.",
+      "x-stpSafety": "write",
+      "x-stpInform": true,
       "params": [
         {
           "name": "task",
@@ -547,6 +594,8 @@
     {
       "name": "UpdateTask",
       "description": "Request update of a task (usually one of the alternates). STP will respond with TaskModified.",
+      "x-stpSafety": "write",
+      "x-stpInform": true,
       "params": [
         {
           "name": "poid",
@@ -570,6 +619,8 @@
     {
       "name": "DeleteTask",
       "description": "Request deletion of a task. STP will respond with TaskDeleted.",
+      "x-stpSafety": "destructive",
+      "x-stpInform": true,
       "params": [
         {
           "name": "poid",
@@ -583,6 +634,8 @@
     {
       "name": "ConfirmTask",
       "description": "Confirm or unconfirm a task alternate, transitioning UI status between 'confirming' and 'confirmed'.",
+      "x-stpSafety": "write",
+      "x-stpInform": true,
       "params": [
         {
           "name": "poid",
@@ -609,18 +662,19 @@
     },
     {
       "name": "SetCoaTaskOrg",
-      "description": "NOT DISPATCHED by the engine's WebSocketsBridge (verified 2026-09-05 on main, release/5.10 and release/5.11): the message deserialises with null params and is answered by a RequestResponse with success=false ('No handler'). Retained because the JS SDK still exposes it; pending an engine ruling. Associate a TO with a specific COA or set as global default (if COA unspecified).",
+      "description": "Choose the Task Organization (TO) used for COAs. Without coaPoid: makes the TO (toPoid) the default for its affiliation - exactly the same as SetDefaultTaskOrg with poid = toPoid. With coaPoid: ties the TO to that one COA for the TO's affiliation - while that COA is current it uses this TO instead of the affiliation default, and a later SetCoaTaskOrg for the same COA and affiliation replaces the binding. An unknown coaPoid or toPoid, or a toPoid that is not a TO, is refused (success=false with the reason). Answers null on success. Engines before STP-1077 refuse coaPoid with success=false, \"per-COA task org is not supported yet\", and change nothing.",
+      "x-stpSafety": "write",
       "params": [
         {
           "name": "toPoid",
-          "description": "TO unique id to associate.",
+          "description": "Unique id of the TO to use.",
           "schema": {
             "type": "string"
           }
         },
         {
           "name": "coaPoid",
-          "description": "COA unique id (optional). If omitted, sets the global default for the TO's affiliation.",
+          "description": "Optional. The COA the TO is tied to. Omit it to set the default TO for the TO's affiliation instead.",
           "schema": {
             "type": "string"
           }
@@ -631,16 +685,23 @@
         "schema": {
           "type": "null"
         }
-      },
-      "x-engineDispatch": "none"
+      }
     },
     {
       "name": "ResetCoaTaskOrg",
-      "description": "NOT DISPATCHED by the engine's WebSocketsBridge (verified 2026-09-05 on main, release/5.10 and release/5.11): the message deserialises with null params and is answered by a RequestResponse with success=false ('No handler'). Retained because the JS SDK still exposes it; pending an engine ruling. Remove TO association from a COA (or global default if COA unspecified).",
+      "description": "Clear a Task Organization (TO) selection; the TO itself is not deleted. Without coaPoid: unsets the default TO for affiliation, which is then required - exactly the same as ResetDefaultTaskOrg. With coaPoid: removes the TO tied to that COA for affiliation, or for every affiliation when affiliation is omitted, so the COA falls back to the affiliation default; clearing a binding that does not exist succeeds. An unknown coaPoid is refused (success=false with the reason). Answers null on success. Engines before STP-1077 refuse coaPoid with success=false, \"per-COA task org is not supported yet\", and change nothing.",
+      "x-stpSafety": "write",
       "params": [
         {
+          "name": "affiliation",
+          "description": "Affiliation whose TO selection is cleared. Required when coaPoid is omitted; with coaPoid, omit it to clear the COA's TO for every affiliation.",
+          "schema": {
+            "$ref": "#/components/schemas/Affiliation"
+          }
+        },
+        {
           "name": "coaPoid",
-          "description": "COA unique id (optional) to reset.",
+          "description": "Optional. The COA whose TO is cleared. Omit it to reset the default TO for affiliation instead.",
           "schema": {
             "type": "string"
           }
@@ -651,16 +712,16 @@
         "schema": {
           "type": "null"
         }
-      },
-      "x-engineDispatch": "none"
+      }
     },
     {
       "name": "ImportCoaContent",
-      "description": "NOT DISPATCHED by the engine's WebSocketsBridge (verified 2026-09-05 on main, release/5.10 and release/5.11): the message deserialises with null params and is answered by a RequestResponse with success=false ('No handler'). Retained because the JS SDK still exposes it; pending an engine ruling. Import a new COA from serialized content, using fresh unique IDs.",
+      "description": "Load a COA and its units, graphics and tasks from STP object-set text, typically produced by GetCoaContent, into the active scenario. Poids are kept exactly as they are in the content: the content is not used as a template and no new ids are generated. Returns the imported COA's poid (the poid of the coa object in the content); use it with SetCurrentCoa to work on the COA. Task-organization data is not part of COA content; load it with ImportTaskOrgContent. An object in the content whose poid already exists in the scenario REPLACES the resident object (its previous version stays in the undo history); objects not in the content are left alone, and a content object carrying the deletion version (fsdb_version 0) deletes that poid.",
+      "x-stpSafety": "destructive",
       "params": [
         {
           "name": "content",
-          "description": "COA content string (object_set([...])).",
+          "description": "COA content as STP object-set text (object_set([...])), as returned by GetCoaContent.",
           "schema": {
             "type": "string"
           }
@@ -670,17 +731,18 @@
         "name": "coaPoid",
         "schema": {
           "type": "string"
-        }
-      },
-      "x-engineDispatch": "none"
+        },
+        "description": "Poid of the imported COA."
+      }
     },
     {
       "name": "GetCoaContent",
-      "description": "NOT DISPATCHED by the engine's WebSocketsBridge (verified 2026-09-05 on main, release/5.10 and release/5.11): the message deserialises with null params and is answered by a RequestResponse with success=false ('No handler'). Retained because the JS SDK still exposes it; pending an engine ruling. Return the serialized content of a COA.",
+      "description": "Return a COA and its units, graphics and tasks as STP object-set text (object_set([...])), ready to be saved and later loaded back with ImportCoaContent. The text does NOT include task-organization units or relationships; save those separately with GetTaskOrgContent. Read-only: nothing changes and no event follows.",
+      "x-stpSafety": "read",
       "params": [
         {
           "name": "poid",
-          "description": "COA unique id.",
+          "description": "Unique id of the COA to export.",
           "schema": {
             "type": "string"
           }
@@ -690,17 +752,18 @@
         "name": "content",
         "schema": {
           "type": "string"
-        }
-      },
-      "x-engineDispatch": "none"
+        },
+        "description": "The COA with its units, graphics and tasks as STP object-set text."
+      }
     },
     {
       "name": "SetCurrentCoa",
-      "description": "NOT DISPATCHED by the engine's WebSocketsBridge (verified 2026-09-05 on main, release/5.10 and release/5.11): the message deserialises with null params and is answered by a RequestResponse with success=false ('No handler'). Retained because the JS SDK still exposes it; pending an engine ruling. Select the current COA; subsequent edits and imports apply to this COA.",
+      "description": "Make a COA the current one. Sketch and speech recognition, edits and imports apply to the current COA from then on, so select the COA before working on it. Answers null on success. If the COA is already current the call succeeds immediately and nothing is emitted; otherwise the engine emits CoaSwitched with the newly current COA. A missing or blank poid is refused (success=false).",
+      "x-stpSafety": "write",
       "params": [
         {
           "name": "poid",
-          "description": "COA unique id.",
+          "description": "Unique id of the COA to make current. Required; blank is refused.",
           "schema": {
             "type": "string"
           }
@@ -711,61 +774,64 @@
         "schema": {
           "type": "null"
         }
-      },
-      "x-engineDispatch": "none"
+      }
     },
     {
       "name": "AddCoa",
-      "description": "NOT DISPATCHED by the engine's WebSocketsBridge (verified 2026-09-05 on main, release/5.10 and release/5.11): the message deserialises with null params and is answered by a RequestResponse with success=false ('No handler'). Retained because the JS SDK still exposes it; pending an engine ruling. Add a COA to the scenario.",
+      "description": "Add a Course of Action (COA) - an alternative plan for one affiliation - to the active scenario. Use it to create a new, empty COA; its units, graphics and tasks are then drawn or spoken while it is current (see SetCurrentCoa), or come in with ImportCoaContent instead of this call. Fire and forget: there is no result. On success the engine emits CoaAdded with the COA's poid and definition; treat that event, not this call, as the confirmation.",
+      "x-stpSafety": "write",
+      "x-stpInform": true,
       "params": [
         {
           "name": "coa",
-          "description": "COA to add.",
+          "description": "COA definition to add (name, affiliation, creatorRole).",
           "schema": {
             "$ref": "#/components/schemas/StpCoa"
           }
         }
-      ],
-      "x-engineDispatch": "none"
+      ]
     },
     {
       "name": "UpdateCoa",
-      "description": "NOT DISPATCHED by the engine's WebSocketsBridge (verified 2026-09-05 on main, release/5.10 and release/5.11): the message deserialises with null params and is answered by a RequestResponse with success=false ('No handler'). Retained because the JS SDK still exposes it; pending an engine ruling. Update an existing COA.",
+      "description": "Change the definition of an existing COA (for example its name), identified by poid. Use it to edit the COA object itself, not its units, graphics or tasks - those have their own Update* methods. Fire and forget: there is no result. On success the engine emits CoaModified with the COA's new state.",
+      "x-stpSafety": "write",
+      "x-stpInform": true,
       "params": [
         {
           "name": "poid",
-          "description": "COA unique id.",
+          "description": "Unique id of the COA to update.",
           "schema": {
             "type": "string"
           }
         },
         {
           "name": "coa",
-          "description": "Updated COA.",
+          "description": "New COA definition.",
           "schema": {
             "$ref": "#/components/schemas/StpCoa"
           }
         }
-      ],
-      "x-engineDispatch": "none"
+      ]
     },
     {
       "name": "DeleteCoa",
-      "description": "NOT DISPATCHED by the engine's WebSocketsBridge (verified 2026-09-05 on main, release/5.10 and release/5.11): the message deserialises with null params and is answered by a RequestResponse with success=false ('No handler'). Retained because the JS SDK still exposes it; pending an engine ruling. Delete a COA from the scenario.",
+      "description": "Delete a COA, identified by poid, from the active scenario. Fire and forget: there is no result. On success the engine emits CoaDeleted.",
+      "x-stpSafety": "destructive",
+      "x-stpInform": true,
       "params": [
         {
           "name": "poid",
-          "description": "COA unique id.",
+          "description": "Unique id of the COA to delete.",
           "schema": {
             "type": "string"
           }
         }
-      ],
-      "x-engineDispatch": "none"
+      ]
     },
     {
       "name": "SetRole",
       "description": "Switch the role associated with the current COA (e.g., S2, S3, S4, FSO, ENG). If no COA exists for the role and createIfNone is true, a default COA may be created.",
+      "x-stpSafety": "write",
       "params": [
         {
           "name": "role",
@@ -792,6 +858,7 @@
     {
       "name": "ConvertC2SIMContent",
       "description": "Convert C2SIM content (e.g. between BML/IBML formats) to STP's native object-set representation. The conversion happens entirely inside the engine's own SDK layer and never reaches the C2SIM bridge agent. Returns the converted objects as the multiline string ObjectSet.ToMultilineString() produces: \"object_set([\" followed by one STP object per line and a closing \"])\". Three things are worth knowing before you rely on the result. SYMBOLS ONLY: units and tactical graphics are extracted, but tasks are not created. This is a long-standing, deliberate limitation - STP tasks carry more detail than C2SIM captures, and the missing information cannot be filled in from an Order document. NOT IDEMPOTENT: the conversion mints a task org to hold the converted symbols (one per affiliation present, named \"Friendly TO\" and \"Hostile TO\") with a freshly generated identifier on every call, so converting the same document twice yields two different task orgs. NO PARENT COA: converted symbols are parented to that minted task org, but a purely local conversion mints no course of action, so nothing carries a parent COA - a caller that needs COA-parented objects, to load them into a scenario say, must mint the COAs and parent the objects itself. Input must be well-formed XML: a well-formed document with nothing convertible yields an empty \"object_set([])\" shell, but malformed content fails the call rather than returning an empty result.",
+      "x-stpSafety": "read",
       "params": [
         {
           "name": "content",
@@ -820,6 +887,7 @@
     {
       "name": "GetC2SIMContent",
       "description": "Return content for the scenario (or specified COAs) rendered in a C2SIM format (e.g. BML/IBML), selected by data type and affiliation.",
+      "x-stpSafety": "read",
       "params": [
         {
           "name": "name",
@@ -854,51 +922,51 @@
         },
         {
           "name": "options",
-          "description": "Generation options. Applied to THIS CALL ONLY - options no longer persist into the engine's shared configuration, so nothing one caller passes affects any later call or any other session (STP-687). The key set is definite and enumerated below, NOT implementation-defined. An unknown or misspelled key fails the call with success = false and nothing applied, rather than being silently ignored. Key names are compared CASE-INSENSITIVELY, so the camelCase spellings used by the JS SDK's StpC2SIMOptions (for example restUrl for resturl) are equivalent to the canonical names listed here. Three properties of the engine's configuration are deliberately NOT settable over the wire because they are not operator-settable either - stphost and stpport drive the engine's own long-lived connection, and backgroundmode is set by the host process.",
+          "description": "Generation options. Applied to THIS CALL ONLY - options no longer persist into the engine's shared configuration, so nothing one caller passes affects any later call or any other session (STP-687). The key set is definite and enumerated below, NOT implementation-defined. An unknown or misspelled key fails the call with success = false and nothing applied, rather than being silently ignored. Keys are listed in the camelCase spelling clients send - the field names of the JS SDK's StpC2SIMOptions (for example restUrl) - so a strict, case-sensitive JSON Schema validator accepts what the SDK sends (STP-694). The engine itself compares key names CASE-INSENSITIVELY and also accepts any other casing of a listed key (restUrl, resturl and RESTURL set the same option). Three properties of the engine's configuration are deliberately NOT settable over the wire because they are not operator-settable either - stphost and stpport drive the engine's own long-lived connection, and backgroundmode is set by the host process.",
           "schema": {
             "type": "object",
             "properties": {
-              "resturl": {
+              "restUrl": {
                 "type": "string",
                 "description": "C2SIM REST endpoint, host:port/path, e.g. http://10.2.10.30:8080/C2SIMServer."
               },
-              "restpassword": {
+              "restPassword": {
                 "type": "string",
                 "description": "C2SIM REST endpoint password. Applied to this call only; it is never stored."
               },
-              "stompurl": {
+              "stompUrl": {
                 "type": "string",
                 "description": "STOMP endpoint, host:port/destination. Used to build this call's REST client; it does NOT move the engine's long-lived notification subscription."
               },
-              "serverprotocol": {
+              "serverProtocol": {
                 "type": "string",
                 "description": "C2SIM server protocol version."
               },
-              "systemname": {
+              "systemName": {
                 "type": "string",
                 "description": "Value of SystemEntityList/SystemName in the generated Initialization document."
               },
-              "resetbeforeinitialize": {
+              "resetBeforeInitialize": {
                 "type": "boolean",
                 "description": "Force the C2SIM server to Uninitialized before pushing Initialization, so it is not merged with a previous one."
               },
-              "runafterinitialize": {
+              "runAfterInitialize": {
                 "type": "boolean",
                 "description": "Switch the C2SIM server to Running immediately after pushing Initialization."
               },
-              "fullto": {
+              "fullTO": {
                 "type": "boolean",
                 "description": "Include the full Task Org, including entities not placed on the map. When false, only placed elements and their subordinates."
               },
-              "schemaversion": {
+              "schemaVersion": {
                 "type": "string",
                 "description": "Schema version hint (1.0.0 / 1.0.1 / 1.0.2). All inputs generate 1.0.2 unified output."
               },
-              "addorphantgtoinitialization": {
+              "addOrphanTgToInitialization": {
                 "type": "boolean",
                 "description": "Include tactical graphics that are not part of any task in the Initialization document."
               },
-              "placealltgininitialization": {
+              "placeAllTgInInitialization": {
                 "type": "boolean",
                 "description": "Place tactical graphics in the Initialization document instead of the Order document."
               },
@@ -916,71 +984,71 @@
               },
               "rulesOfEngagement": {
                 "type": "string",
-                "description": "Default rules of engagement.",
+                "description": "Default rules of engagement. The value is matched CASE-SENSITIVELY against the engine's ROE members, unlike the key; any other value (for example the pre-0.6.17 SDK spellings ROEHold / ROEFree / ROETight) is not applied - the engine logs a warning and keeps its configured default.",
                 "enum": [
                   "Hold",
                   "Free",
                   "Tight"
                 ]
               },
-              "updateunitpositions": {
+              "updateUnitPositions": {
                 "type": "boolean",
                 "description": "Use Position Report information to update units. ACCEPTED BUT INERT for a single call: it is read only by the engine's inbound report handler, which has no per-call context."
               },
-              "exportfiledir": {
+              "exportFileDir": {
                 "type": "string",
                 "description": "Default document export folder."
               },
-              "validationschema": {
+              "validationSchema": {
                 "type": "string",
                 "description": "Path to a schema file to validate generated XML against; empty for no validation."
               },
-              "startdate": {
+              "startDate": {
                 "type": "string",
                 "description": "Mission start date. ACCEPTED BUT INERT: nothing in the C2SIM bridge reads it.",
                 "format": "date-time"
               },
-              "phaseduration": {
+              "phaseDuration": {
                 "type": "integer",
                 "description": "Duration of each STP phase, in minutes."
               },
-              "fromsenderuuid": {
+              "fromSenderUUID": {
                 "type": "string",
                 "description": "Sender unique id."
               },
-              "toreceiveruuid": {
+              "toReceiverUUID": {
                 "type": "string",
                 "description": "Receiver unique id."
               },
-              "friendfstname": {
+              "friendFstName": {
                 "type": "string",
                 "description": "Friendly forces name."
               },
-              "friendfstuuid": {
+              "friendFstUUID": {
                 "type": "string",
                 "description": "Friendly forces unique id."
               },
-              "hostilefstname": {
+              "hostileFstName": {
                 "type": "string",
                 "description": "Hostile forces name."
               },
-              "hostilefstuuid": {
+              "hostileFstUUID": {
                 "type": "string",
                 "description": "Hostile forces unique id."
               },
-              "neutralfstname": {
+              "neutralFstName": {
                 "type": "string",
                 "description": "Neutral forces name."
               },
-              "neutralfstuuid": {
+              "neutralFstUUID": {
                 "type": "string",
                 "description": "Neutral forces unique id."
               },
-              "unknownfstname": {
+              "unknownFstName": {
                 "type": "string",
                 "description": "Unknown forces name. ACCEPTED BUT INERT: nothing in the C2SIM bridge reads it."
               },
-              "unknownfstuuid": {
+              "unknownFstUUID": {
                 "type": "string",
                 "description": "Unknown forces unique id. ACCEPTED BUT INERT: nothing in the C2SIM bridge reads it."
               }
@@ -1000,6 +1068,7 @@
     {
       "name": "GetCoaObjectSet",
       "description": "Return the objects making up a COA as an in-memory object set. Object-set equivalent of GetCoaContent.",
+      "x-stpSafety": "read",
       "params": [
         {
           "name": "poid",
@@ -1024,6 +1093,7 @@
     {
       "name": "GetScenarioObjectSet",
       "description": "Return the current scenario as an in-memory object set (array of STP objects). Object-set equivalent of GetScenarioContent. Takes no parameters.",
+      "x-stpSafety": "read",
       "params": [],
       "x-descriptionStatus": "draft",
       "result": {
@@ -1040,6 +1110,7 @@
     {
       "name": "GetTaskOrgObjectSet",
       "description": "Return the objects making up a Task Organization as an in-memory object set. Object-set equivalent of GetTaskOrgContent.",
+      "x-stpSafety": "read",
       "params": [
         {
           "name": "poid",
@@ -1063,7 +1134,8 @@
     },
     {
       "name": "ImportCoaFromObjectSet",
-      "description": "Import a new COA from an in-memory object set (array of STP objects), using fresh unique IDs. Object-set equivalent of ImportCoaContent.",
+      "description": "Import a COA from an in-memory object set (array of STP objects). Poids are kept exactly as they are in the objects; no new ids are generated. Object-set equivalent of ImportCoaContent. An object in the content whose poid already exists in the scenario REPLACES the resident object (its previous version stays in the undo history); objects not in the content are left alone, and a content object carrying the deletion version (fsdb_version 0) deletes that poid.",
+      "x-stpSafety": "destructive",
       "params": [
         {
           "name": "objects",
@@ -1087,7 +1159,8 @@
     },
     {
       "name": "ImportPlanDataFromObjectSet",
-      "description": "Import additional content into the current scenario from an in-memory object set (array of STP objects). Object-set equivalent of ImportPlanData.",
+      "description": "Import additional content into the current scenario from an in-memory object set (array of STP objects). Object-set equivalent of ImportPlanData. An object in the content whose poid already exists in the scenario REPLACES the resident object (its previous version stays in the undo history); objects not in the content are left alone, and a content object carrying the deletion version (fsdb_version 0) deletes that poid. Afterwards the default friend and hostile task orgs are re-selected, preferring task orgs this content just loaded.",
+      "x-stpSafety": "destructive",
       "params": [
         {
           "name": "objects",
@@ -1111,7 +1184,8 @@
     },
     {
       "name": "ImportTaskOrgFromObjectSet",
-      "description": "Import a Task Organization from an in-memory object set (array of STP objects), using fresh unique IDs. Object-set equivalent of ImportTaskOrgContent.",
+      "description": "Import a Task Organization from an in-memory object set (array of STP objects). Poids are kept exactly as they are in the objects; no new ids are generated. Object-set equivalent of ImportTaskOrgContent. An object in the content whose poid already exists in the scenario REPLACES the resident object (its previous version stays in the undo history); objects not in the content are left alone, and a content object carrying the deletion version (fsdb_version 0) deletes that poid.",
+      "x-stpSafety": "destructive",
       "params": [
         {
           "name": "objects",
@@ -1136,6 +1210,7 @@
     {
       "name": "LoadNewScenarioFromObjectSet",
       "description": "Create and load a new scenario from an in-memory object set (array of STP objects), replacing any previous content. Object-set equivalent of LoadNewScenario.",
+      "x-stpSafety": "destructive",
       "params": [
         {
           "name": "objects",
@@ -1159,55 +1234,57 @@
     },
     {
       "name": "PullC2SIMInitialization",
-      "description": "Pull C2SIM initialization content (e.g. order of battle) from the connected C2SIM infrastructure.",
+      "description": "Fetch the C2SIM initialization (for example the order of battle) from the external C2SIM server named by options: the engine joins that server's session and reads its status. Returns the initialization XML and the server status; nothing is loaded into the STP scenario - convert or import the content separately if you want it there.",
+      "x-stpSafety": "write",
+      "x-stpOpenWorld": true,
       "params": [
         {
           "name": "options",
-          "description": "Pull options. Applied to THIS CALL ONLY - options no longer persist into the engine's shared configuration, so nothing one caller passes affects any later call or any other session (STP-687). The key set is definite and enumerated below, NOT implementation-defined. An unknown or misspelled key fails the call with success = false and nothing applied, rather than being silently ignored. Key names are compared CASE-INSENSITIVELY, so the camelCase spellings used by the JS SDK's StpC2SIMOptions (for example restUrl for resturl) are equivalent to the canonical names listed here. Three properties of the engine's configuration are deliberately NOT settable over the wire because they are not operator-settable either - stphost and stpport drive the engine's own long-lived connection, and backgroundmode is set by the host process.",
+          "description": "Pull options. Applied to THIS CALL ONLY - options no longer persist into the engine's shared configuration, so nothing one caller passes affects any later call or any other session (STP-687). The key set is definite and enumerated below, NOT implementation-defined. An unknown or misspelled key fails the call with success = false and nothing applied, rather than being silently ignored. Keys are listed in the camelCase spelling clients send - the field names of the JS SDK's StpC2SIMOptions (for example restUrl) - so a strict, case-sensitive JSON Schema validator accepts what the SDK sends (STP-694). The engine itself compares key names CASE-INSENSITIVELY and also accepts any other casing of a listed key (restUrl, resturl and RESTURL set the same option). Three properties of the engine's configuration are deliberately NOT settable over the wire because they are not operator-settable either - stphost and stpport drive the engine's own long-lived connection, and backgroundmode is set by the host process.",
           "schema": {
             "type": "object",
             "properties": {
-              "resturl": {
+              "restUrl": {
                 "type": "string",
                 "description": "C2SIM REST endpoint, host:port/path, e.g. http://10.2.10.30:8080/C2SIMServer."
               },
-              "restpassword": {
+              "restPassword": {
                 "type": "string",
                 "description": "C2SIM REST endpoint password. Applied to this call only; it is never stored."
               },
-              "stompurl": {
+              "stompUrl": {
                 "type": "string",
                 "description": "STOMP endpoint, host:port/destination. Used to build this call's REST client; it does NOT move the engine's long-lived notification subscription."
               },
-              "serverprotocol": {
+              "serverProtocol": {
                 "type": "string",
                 "description": "C2SIM server protocol version."
               },
-              "systemname": {
+              "systemName": {
                 "type": "string",
                 "description": "Value of SystemEntityList/SystemName in the generated Initialization document."
               },
-              "resetbeforeinitialize": {
+              "resetBeforeInitialize": {
                 "type": "boolean",
                 "description": "Force the C2SIM server to Uninitialized before pushing Initialization, so it is not merged with a previous one."
               },
-              "runafterinitialize": {
+              "runAfterInitialize": {
                 "type": "boolean",
                 "description": "Switch the C2SIM server to Running immediately after pushing Initialization."
               },
-              "fullto": {
+              "fullTO": {
                 "type": "boolean",
                 "description": "Include the full Task Org, including entities not placed on the map. When false, only placed elements and their subordinates."
               },
-              "schemaversion": {
+              "schemaVersion": {
                 "type": "string",
                 "description": "Schema version hint (1.0.0 / 1.0.1 / 1.0.2). All inputs generate 1.0.2 unified output."
               },
-              "addorphantgtoinitialization": {
+              "addOrphanTgToInitialization": {
                 "type": "boolean",
                 "description": "Include tactical graphics that are not part of any task in the Initialization document."
               },
-              "placealltgininitialization": {
+              "placeAllTgInInitialization": {
                 "type": "boolean",
                 "description": "Place tactical graphics in the Initialization document instead of the Order document."
               },
@@ -1225,71 +1302,71 @@
               },
               "rulesOfEngagement": {
                 "type": "string",
-                "description": "Default rules of engagement.",
+                "description": "Default rules of engagement. The value is matched CASE-SENSITIVELY against the engine's ROE members, unlike the key; any other value (for example the pre-0.6.17 SDK spellings ROEHold / ROEFree / ROETight) is not applied - the engine logs a warning and keeps its configured default.",
                 "enum": [
                   "Hold",
                   "Free",
                   "Tight"
                 ]
               },
-              "updateunitpositions": {
+              "updateUnitPositions": {
                 "type": "boolean",
                 "description": "Use Position Report information to update units. ACCEPTED BUT INERT for a single call: it is read only by the engine's inbound report handler, which has no per-call context."
               },
-              "exportfiledir": {
+              "exportFileDir": {
                 "type": "string",
                 "description": "Default document export folder."
               },
-              "validationschema": {
+              "validationSchema": {
                 "type": "string",
                 "description": "Path to a schema file to validate generated XML against; empty for no validation."
               },
-              "startdate": {
+              "startDate": {
                 "type": "string",
                 "description": "Mission start date. ACCEPTED BUT INERT: nothing in the C2SIM bridge reads it.",
                 "format": "date-time"
               },
-              "phaseduration": {
+              "phaseDuration": {
                 "type": "integer",
                 "description": "Duration of each STP phase, in minutes."
               },
-              "fromsenderuuid": {
+              "fromSenderUUID": {
                 "type": "string",
                 "description": "Sender unique id."
               },
-              "toreceiveruuid": {
+              "toReceiverUUID": {
                 "type": "string",
                 "description": "Receiver unique id."
               },
-              "friendfstname": {
+              "friendFstName": {
                 "type": "string",
                 "description": "Friendly forces name."
               },
-              "friendfstuuid": {
+              "friendFstUUID": {
                 "type": "string",
                 "description": "Friendly forces unique id."
               },
-              "hostilefstname": {
+              "hostileFstName": {
                 "type": "string",
                 "description": "Hostile forces name."
               },
-              "hostilefstuuid": {
+              "hostileFstUUID": {
                 "type": "string",
                 "description": "Hostile forces unique id."
               },
-              "neutralfstname": {
+              "neutralFstName": {
                 "type": "string",
                 "description": "Neutral forces name."
               },
-              "neutralfstuuid": {
+              "neutralFstUUID": {
                 "type": "string",
                 "description": "Neutral forces unique id."
               },
-              "unknownfstname": {
+              "unknownFstName": {
                 "type": "string",
                 "description": "Unknown forces name. ACCEPTED BUT INERT: nothing in the C2SIM bridge reads it."
               },
-              "unknownfstuuid": {
+              "unknownFstUUID": {
                 "type": "string",
                 "description": "Unknown forces unique id. ACCEPTED BUT INERT: nothing in the C2SIM bridge reads it."
               }
@@ -1308,7 +1385,9 @@
     },
     {
       "name": "PushC2SIMContent",
-      "description": "Submit C2SIM-formatted content to STP for processing/import.",
+      "description": "Send C2SIM-formatted content (an initialization or an order, per dataType) to the EXTERNAL C2SIM server named by options. Nothing is imported into the STP scenario. Depending on options the engine first resets the server to its initializing state (clearing what it holds) and afterwards switches it to running, so this changes shared state outside STP.",
+      "x-stpSafety": "destructive",
+      "x-stpOpenWorld": true,
       "params": [
         {
           "name": "content",
@@ -1326,51 +1405,51 @@
         },
         {
           "name": "options",
-          "description": "Push options. Applied to THIS CALL ONLY - options no longer persist into the engine's shared configuration, so nothing one caller passes affects any later call or any other session (STP-687). The key set is definite and enumerated below, NOT implementation-defined. An unknown or misspelled key fails the call with success = false and nothing applied, rather than being silently ignored. Key names are compared CASE-INSENSITIVELY, so the camelCase spellings used by the JS SDK's StpC2SIMOptions (for example restUrl for resturl) are equivalent to the canonical names listed here. Three properties of the engine's configuration are deliberately NOT settable over the wire because they are not operator-settable either - stphost and stpport drive the engine's own long-lived connection, and backgroundmode is set by the host process.",
+          "description": "Push options. Applied to THIS CALL ONLY - options no longer persist into the engine's shared configuration, so nothing one caller passes affects any later call or any other session (STP-687). The key set is definite and enumerated below, NOT implementation-defined. An unknown or misspelled key fails the call with success = false and nothing applied, rather than being silently ignored. Keys are listed in the camelCase spelling clients send - the field names of the JS SDK's StpC2SIMOptions (for example restUrl) - so a strict, case-sensitive JSON Schema validator accepts what the SDK sends (STP-694). The engine itself compares key names CASE-INSENSITIVELY and also accepts any other casing of a listed key (restUrl, resturl and RESTURL set the same option). Three properties of the engine's configuration are deliberately NOT settable over the wire because they are not operator-settable either - stphost and stpport drive the engine's own long-lived connection, and backgroundmode is set by the host process.",
           "schema": {
             "type": "object",
             "properties": {
-              "resturl": {
+              "restUrl": {
                 "type": "string",
                 "description": "C2SIM REST endpoint, host:port/path, e.g. http://10.2.10.30:8080/C2SIMServer."
               },
-              "restpassword": {
+              "restPassword": {
                 "type": "string",
                 "description": "C2SIM REST endpoint password. Applied to this call only; it is never stored."
               },
-              "stompurl": {
+              "stompUrl": {
                 "type": "string",
                 "description": "STOMP endpoint, host:port/destination. Used to build this call's REST client; it does NOT move the engine's long-lived notification subscription."
               },
-              "serverprotocol": {
+              "serverProtocol": {
                 "type": "string",
                 "description": "C2SIM server protocol version."
               },
-              "systemname": {
+              "systemName": {
                 "type": "string",
                 "description": "Value of SystemEntityList/SystemName in the generated Initialization document."
               },
-              "resetbeforeinitialize": {
+              "resetBeforeInitialize": {
                 "type": "boolean",
                 "description": "Force the C2SIM server to Uninitialized before pushing Initialization, so it is not merged with a previous one."
               },
-              "runafterinitialize": {
+              "runAfterInitialize": {
                 "type": "boolean",
                 "description": "Switch the C2SIM server to Running immediately after pushing Initialization."
               },
-              "fullto": {
+              "fullTO": {
                 "type": "boolean",
                 "description": "Include the full Task Org, including entities not placed on the map. When false, only placed elements and their subordinates."
               },
-              "schemaversion": {
+              "schemaVersion": {
                 "type": "string",
                 "description": "Schema version hint (1.0.0 / 1.0.1 / 1.0.2). All inputs generate 1.0.2 unified output."
               },
-              "addorphantgtoinitialization": {
+              "addOrphanTgToInitialization": {
                 "type": "boolean",
                 "description": "Include tactical graphics that are not part of any task in the Initialization document."
               },
-              "placealltgininitialization": {
+              "placeAllTgInInitialization": {
                 "type": "boolean",
                 "description": "Place tactical graphics in the Initialization document instead of the Order document."
               },
@@ -1388,71 +1467,71 @@
               },
               "rulesOfEngagement": {
                 "type": "string",
-                "description": "Default rules of engagement.",
+                "description": "Default rules of engagement. The value is matched CASE-SENSITIVELY against the engine's ROE members, unlike the key; any other value (for example the pre-0.6.17 SDK spellings ROEHold / ROEFree / ROETight) is not applied - the engine logs a warning and keeps its configured default.",
                 "enum": [
                   "Hold",
                   "Free",
                   "Tight"
                 ]
               },
-              "updateunitpositions": {
+              "updateUnitPositions": {
                 "type": "boolean",
                 "description": "Use Position Report information to update units. ACCEPTED BUT INERT for a single call: it is read only by the engine's inbound report handler, which has no per-call context."
               },
-              "exportfiledir": {
+              "exportFileDir": {
                 "type": "string",
                 "description": "Default document export folder."
               },
-              "validationschema": {
+              "validationSchema": {
                 "type": "string",
                 "description": "Path to a schema file to validate generated XML against; empty for no validation."
               },
-              "startdate": {
+              "startDate": {
                 "type": "string",
                 "description": "Mission start date. ACCEPTED BUT INERT: nothing in the C2SIM bridge reads it.",
                 "format": "date-time"
               },
-              "phaseduration": {
+              "phaseDuration": {
                 "type": "integer",
                 "description": "Duration of each STP phase, in minutes."
               },
-              "fromsenderuuid": {
+              "fromSenderUUID": {
                 "type": "string",
                 "description": "Sender unique id."
               },
-              "toreceiveruuid": {
+              "toReceiverUUID": {
                 "type": "string",
                 "description": "Receiver unique id."
               },
-              "friendfstname": {
+              "friendFstName": {
                 "type": "string",
                 "description": "Friendly forces name."
               },
-              "friendfstuuid": {
+              "friendFstUUID": {
                 "type": "string",
                 "description": "Friendly forces unique id."
               },
-              "hostilefstname": {
+              "hostileFstName": {
                 "type": "string",
                 "description": "Hostile forces name."
               },
-              "hostilefstuuid": {
+              "hostileFstUUID": {
                 "type": "string",
                 "description": "Hostile forces unique id."
               },
-              "neutralfstname": {
+              "neutralFstName": {
                 "type": "string",
                 "description": "Neutral forces name."
               },
-              "neutralfstuuid": {
+              "neutralFstUUID": {
                 "type": "string",
                 "description": "Neutral forces unique id."
               },
-              "unknownfstname": {
+              "unknownFstName": {
                 "type": "string",
                 "description": "Unknown forces name. ACCEPTED BUT INERT: nothing in the C2SIM bridge reads it."
               },
-              "unknownfstuuid": {
+              "unknownFstUUID": {
                 "type": "string",
                 "description": "Unknown forces unique id. ACCEPTED BUT INERT: nothing in the C2SIM bridge reads it."
               }
@@ -1472,6 +1551,7 @@
     {
       "name": "Register",
       "description": "Register a client service with STP, declaring the event types it can solve/handle and its machine/session identifiers. TRANSPORT: this message is built and consumed by the SDK connectors themselves; an application using an SDK never sends or sees it. It is documented here because a client written without an SDK must implement it.",
+      "x-stpSafety": "write",
       "params": [
         {
           "name": "serviceName",
@@ -1524,6 +1604,7 @@
     {
       "name": "Request",
       "description": "Meta-message that wraps another JSON-RPC request (as a serialized string) for STP to dispatch; the result is returned asynchronously as a RequestResponse event carrying the same cookie. TRANSPORT: this message is built and consumed by the SDK connectors themselves; an application using an SDK never sends or sees it. It is documented here because a client written without an SDK must implement it.",
+      "x-stpSafety": "write",
       "params": [
         {
           "name": "jsonRequest",
@@ -1558,7 +1639,8 @@
     },
     {
       "name": "SyncScenarioSessionFromObjectSet",
-      "description": "Load a scenario from an in-memory object set and update the session state with detected differences. Object-set equivalent of SyncScenarioSession.",
+      "description": "Merge a scenario into the active session from an in-memory object set and update the session state with the differences. Object-set equivalent of SyncScenarioSession, with the same merge rules. An object in the content whose poid already exists in the scenario REPLACES the resident object (its previous version stays in the undo history); objects not in the content are left alone, and a content object carrying the deletion version (fsdb_version 0) deletes that poid. Afterwards the default friend and hostile task orgs are re-selected, preferring task orgs this content just loaded.",
+      "x-stpSafety": "destructive",
       "params": [
         {
           "name": "objects",
@@ -1583,6 +1665,8 @@
     {
       "name": "ChangeTimeOut",
       "description": "Set the wait and segmentation timeouts together, in seconds. This is the only public control over how long STP waits before deciding a sketch is finished, so it is required whenever a user draws a multi-stroke 2525/APP6 symbol: use 0.0 for ordinary single-stroke point, line and area work, and around 2.5 while a full symbol is being drawn. Fire and forget.",
+      "x-stpSafety": "write",
+      "x-stpInform": true,
       "params": [
         {
           "name": "timeout",
@@ -1596,11 +1680,15 @@
     {
       "name": "ResetSegmentationTimeout",
       "description": "Restore the segmentation timeout to its configured default, undoing an earlier ChangeTimeOut. Fire and forget.",
+      "x-stpSafety": "write",
+      "x-stpInform": true,
       "params": []
     },
     {
       "name": "SetSpeechListening",
       "description": "Turn speech capture on or off for this client. Fire and forget; STP reports the resulting state through the AudioCapture event.",
+      "x-stpSafety": "write",
+      "x-stpInform": true,
       "params": [
         {
           "name": "listen",
@@ -1614,11 +1702,15 @@
     {
       "name": "RecognizeNow",
       "description": "Recognize whatever has been collected so far instead of waiting for the segmentation timeout to expire. Fire and forget.",
+      "x-stpSafety": "write",
+      "x-stpInform": true,
       "params": []
     },
     {
       "name": "SendListen",
       "description": "Ask STP to start or stop listening. Fire and forget. NB the .NET SDK serialises `mode` with default settings, so it arrives as the ORDINAL of the enum rather than its name; the engine accepts either spelling.",
+      "x-stpSafety": "write",
+      "x-stpInform": true,
       "params": [
         {
           "name": "mode",
@@ -1657,6 +1749,8 @@
     {
       "name": "SendAudioCaptureState",
       "description": "Report this client's own audio capture state to STP so other components can reflect it in their user interface. Fire and forget.",
+      "x-stpSafety": "write",
+      "x-stpInform": true,
       "params": [
         {
           "name": "isListening",
@@ -1670,6 +1764,8 @@
     {
       "name": "AdvertiseViewport",
       "description": "Tell STP which geographic area this client is currently showing, so recognition can be biased towards what the user can actually see. Fire and forget.",
+      "x-stpSafety": "write",
+      "x-stpInform": true,
       "params": [
         {
           "name": "topLeft",
@@ -1690,6 +1786,8 @@
     {
       "name": "SetAutoTasking",
       "description": "Enable or disable automatic tasking, in which STP infers tasks from symbols without an explicit spoken task. Fire and forget.",
+      "x-stpSafety": "write",
+      "x-stpInform": true,
       "params": [
         {
           "name": "isEnabled",
@@ -1703,11 +1801,15 @@
     {
       "name": "ResetRole",
       "description": "Clear the role previously set with SetRole, returning this client to the default role. Fire and forget.",
+      "x-stpSafety": "write",
+      "x-stpInform": true,
       "params": []
     },
     {
       "name": "UndoLastOp",
       "description": "Undo the last operation applied to an object. STP replays the effect as ordinary events carrying isUndo = true, so a client that already handles the Added/Modified/Deleted events needs no extra handling. Fire and forget.",
+      "x-stpSafety": "write",
+      "x-stpInform": true,
       "params": [
         {
           "name": "poid",
@@ -1721,11 +1823,14 @@
     {
       "name": "ResetStpScenario",
       "description": "Discard the current scenario contents on the server, leaving the scenario itself in place. Returns no value.",
+      "x-stpSafety": "destructive",
+      "x-stpInform": true,
       "params": []
     },
     {
       "name": "GetActiveScenarioDescription",
       "description": "Return the metadata of the scenario currently loaded - its name, id and session details - without fetching any of its contents.",
+      "x-stpSafety": "read",
       "params": [],
       "result": {
         "name": "scenario",
@@ -1738,6 +1843,7 @@
     {
       "name": "GetAllObjects",
       "description": "Return every object in the current scenario as a flat list, symbols, tasks and task organizations alike. Prefer GetScenarioContent or GetScenarioObjectSet when the structured form is wanted.",
+      "x-stpSafety": "read",
       "params": [],
       "result": {
         "name": "objects",
@@ -1753,6 +1859,7 @@
     {
       "name": "GetDeletedObjects",
       "description": "Return the objects deleted from the current scenario. A deleted object is TOMBSTONED rather than removed, so it is still reachable here and its poid can be reused by a later add.",
+      "x-stpSafety": "read",
       "params": [],
       "result": {
         "name": "objects",
@@ -1768,6 +1875,7 @@
     {
       "name": "GetPoidObject",
       "description": "Return a single object by its unique id. Returns null when no object carries that poid.",
+      "x-stpSafety": "read",
       "params": [
         {
           "name": "poid",
@@ -1788,6 +1896,7 @@
     {
       "name": "GetScenarioTaskOrgList",
       "description": "Return the task organizations (ORBATs) defined in the current scenario, as summaries rather than full contents.",
+      "x-stpSafety": "read",
       "params": [],
       "result": {
         "name": "taskOrgs",
@@ -1802,6 +1911,7 @@
     {
       "name": "GetTaskOrgObjects",
       "description": "Return the objects making up a task organization as a plain array. This is a SYNONYM of GetTaskOrgObjectSet - both reach the same engine call and return the same array; the two spellings exist because the .NET SDK grew both.",
+      "x-stpSafety": "read",
       "params": [
         {
           "name": "poid",
@@ -3316,6 +3426,80 @@
           "description": "Location/geometry associated with the command.",
           "schema": {
             "$ref": "#/components/schemas/Location"
+          }
+        }
+      ]
+    },
+    {
+      "name": "CoaAdded",
+      "description": "Emitted after a COA has been added (AddCoa).",
+      "params": [
+        {
+          "name": "poid",
+          "description": "Unique identifier of the added COA.",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "coa",
+          "description": "Added COA.",
+          "schema": {
+            "$ref": "#/components/schemas/StpCoa"
+          }
+        },
+        {
+          "name": "isUndo",
+          "description": "True if this event is the result of an undo operation.",
+          "schema": {
+            "type": "boolean"
+          }
+        }
+      ]
+    },
+    {
+      "name": "CoaModified",
+      "description": "Emitted after a COA's definition has been updated (UpdateCoa).",
+      "params": [
+        {
+          "name": "poid",
+          "description": "Unique identifier of the modified COA.",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "coa",
+          "description": "New COA state.",
+          "schema": {
+            "$ref": "#/components/schemas/StpCoa"
+          }
+        },
+        {
+          "name": "isUndo",
+          "description": "True if this event is the result of an undo operation.",
+          "schema": {
+            "type": "boolean"
+          }
+        }
+      ]
+    },
+    {
+      "name": "CoaDeleted",
+      "description": "Emitted after a COA has been deleted (DeleteCoa).",
+      "params": [
+        {
+          "name": "poid",
+          "description": "Unique identifier of the deleted COA.",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "isUndo",
+          "description": "True if this event is the result of an undo operation.",
+          "schema": {
+            "type": "boolean"
           }
         }
       ]

@@ -23,8 +23,12 @@ export interface ContractMethod {
   /** "transport" for connector-level messages an application never sends. */
   "x-layer"?: string;
   "x-descriptionStatus"?: string;
-  /** read | write | destructive (STP-1059). Absent until the contract classifies the method. */
+  /** read | write | destructive (STP-1059, contract 0.7.0). Every method carries one. */
   "x-stpSafety"?: string;
+  /** true when the engine sends no result: the outcome arrives as events (STP-1059). */
+  "x-stpInform"?: boolean;
+  /** true when the call reaches a system outside STP, e.g. the C2SIM server (STP-1059). */
+  "x-stpOpenWorld"?: boolean;
 }
 
 /** An engine -> client event (the contract's `x-stpEvents`). */

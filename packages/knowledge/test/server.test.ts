@@ -45,7 +45,7 @@ describe("knowledge server", () => {
     expect(names).not.toContain("Register");
     const addSymbol = body.methods.find((m: { name: string }) => m.name === "AddSymbol");
     expect(addSymbol).toMatchObject({ safety: "write", returns: "events only" });
-    expect(body.contract.version).toBe("0.8.0");
+    expect(body.contract.version).toBe("0.9.0");
     expect(body.docs.repo).toBe("hyssostech/stp-docs");
     expect(body.docs.ref).toMatch(/^[0-9a-f]{40}$/);
   });
@@ -60,10 +60,24 @@ describe("knowledge server", () => {
   it("says which events follow a call and which filed defects affect it", async () => {
     const { body } = await call("get_method", { name: "DeleteCoa" });
     expect(body.emits).toContainEqual({ event: "CoaDeleted", when: "always", to: "session" });
-    expect(body.known_issues).toContain("STP-1078");
+    expect(body.known_issues).toBeUndefined(); // STP-1078 and STP-1079 are fixed
+    const relationship = await call("get_method", { name: "AddTaskOrgRelationship" });
+    expect(relationship.body.known_issues).toContain("STP-1089");
     const read = await call("get_method", { name: "GetScenarioContent" });
     expect(read.body.emits).toEqual([]);
     expect(read.body.known_issues).toBeUndefined();
+  });
+
+  it("shows a captured example and the engine's edge cases (contract 0.9.0)", async () => {
+    const { body } = await call("get_method", { name: "SetCurrentCoa" });
+    const example = body.method.examples[0];
+    expect(example.params.map((p: { name: string }) => p.name)).toEqual(["poid"]);
+    expect(example).toHaveProperty("result");
+    const outcomes = body.method["x-stpEdgeCases"].map((c: { outcome: string }) => c.outcome);
+    expect(outcomes).toContain("refused");
+    const inform = await call("get_method", { name: "AddCoa" });
+    expect(inform.body.method.examples[0]).not.toHaveProperty("result");
+    expect(inform.body.method.examples[0]["x-stpEventsObserved"][0].event).toBe("CoaAdded");
   });
 
   it("returns a callable input schema for an available method", async () => {
@@ -129,7 +143,7 @@ describe("search_docs", () => {
     const { body, content, isError } = await call("search_docs", { query: "how do I load a scenario", k: 4 });
     expect(isError).toBe(false);
     expect(body.docs.ref).toBe(loadDocsPin().ref);
-    expect(body.contract.version).toBe("0.8.0");
+    expect(body.contract.version).toBe("0.9.0");
     expect(body.results.length).toBe(4);
     const top = body.results[0];
     expect(top.uri).toBe("stp-docs://guides/scenarios");

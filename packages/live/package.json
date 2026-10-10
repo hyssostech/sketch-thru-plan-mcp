@@ -1,0 +1,24 @@
+{
+  "name": "stp-mcp-live",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Read-only MCP server for a running Sketch-thru-Plan engine: contract-generated query tools over the WebSockets JSON-RPC bridge, plus a live context of recent STP events",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/server.js",
+  "types": "dist/server.d.ts",
+  "bin": {
+    "stp-mcp-live": "dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.31.0",
+    "stp-mcp-contract-tools": "0.1.0",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "ws": "8.21.3"
+  }
+}

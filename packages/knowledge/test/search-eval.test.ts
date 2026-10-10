@@ -10,8 +10,11 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { createKnowledgeServer } from "../src/server.js";
 
-/** Measured 58/59 = 0.983 on the answerable questions (docs aa83c51, contract 0.4.0). */
-const RECALL_FLOOR = 0.95;
+/**
+ * Measured 66/67 = 0.985 on the answerable questions (docs 938e3ef, contract 0.4.0; STP-1062). Was 58/59 = 0.983
+ * at docs aa83c51 with floor 0.95. The floor allows one miss more than measured.
+ */
+const RECALL_FLOOR = 0.97;
 const K = 5;
 
 interface Question {

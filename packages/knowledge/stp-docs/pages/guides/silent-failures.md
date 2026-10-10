@@ -34,12 +34,13 @@ unambiguously STP's own value rather than an echo of yours.
 
 ## An empty payload wipes the scenario
 
-Posting a scenario with no objects is not a no-op. It is treated as a request to
-clear, and STP performs a full wipe - the same operation as an explicit
+Posting a scenario with no objects to the [REST connector](../reference/rest-connector.md)
+is not a no-op. Unless the post says `?append=true`, it is treated as a request
+to clear, and STP performs a full wipe - the same operation as an explicit
 `?replace=true`.
 
 ```
-POST /symbols        # payload contains no objects
+POST /api/v1/scenario   # payload contains no objects
 -> scenario cleared via new_scenario
 ```
 
@@ -67,7 +68,8 @@ Three behaviours, and only one of them is additive:
 | `?replace=true` | **wipes** the resident scenario and reloads it from the payload |
 | `?append=true` | adds the payload to the resident scenario |
 | neither | reconciles the payload against what is resident |
-| empty payload, any mode | **wipes** (see above) |
+| empty payload, without `append=true` | **wipes** (see above) |
+| empty payload, with `append=true` | nothing is applied |
 
 `append=true` and `replace=true` together are rejected with a 400 - they ask for
 opposite things, and honouring both would make the result depend on evaluation
@@ -78,11 +80,15 @@ your objects to be added to what is already loaded, say `append=true`; otherwise
 you get a reconcile, which may remove resident objects your payload does not
 mention.
 
-Reconcile only removes objects of the kinds your payload actually describes. A
-post that asserts no symbols or tasks at all - a time-only update, say - removes
-nothing, behaving like an append. So the risk is not "reconcile deletes
-everything"; it is that a payload describing *some* units implicitly asserts the
-*complete* set of units, and residents missing from it are removed.
+A post that asserts no symbols, tasks or ORBAT at all - a time-only update,
+say - removes nothing, behaving like an append. So the risk is not "reconcile
+deletes everything"; it is that a payload describing *some* units implicitly
+asserts the *complete* set of units, and residents missing from it are removed.
+The assertion covers more than the kinds you sent: once a post carries any
+symbols, tasks or ORBAT, resident symbols, tasks and task-organization objects
+it does not mention are all candidates for removal - a symbols-only post also
+removes the resident tasks. Use `?mode=dryrun` to see what a post would delete
+before applying it.
 
 ## Symbology values arriving as null
 

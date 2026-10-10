@@ -8,6 +8,7 @@ import net from "node:net";
  *   with `timeout` in SECONDS; the answer is the event `RequestResponse {cookie, success, result}`;
  * - `Register` (sent the same way) names the session and the events this client wants ("solvables");
  * - `JoinScenarioSession` replays the scenario to this client as events, ahead of its own answer;
+ * - a fire-and-forget method (x-stpInform) goes as an inform, `{method, params}`, and is never answered;
  * - every other frame is an event, `{method:<EventName>, params}`.
  *
  * The connection is lazy: the first call opens it (Register, then JoinScenarioSession). When the socket
@@ -83,6 +84,7 @@ export class StpConnection {
   private connecting: Promise<void> | undefined;
   private readonly pending = new Map<number, Pending>();
   private readonly waiters = new Set<EventWaiter>();
+  private readonly listeners = new Set<(event: StpEvent) => void>();
   private nextCookie = 1;
   private joinsInFlight = 0;
   private sessionId: string | null;
@@ -173,6 +175,41 @@ export class StpConnection {
     } finally {
       this.waiters.delete(waiter);
     }
+  }
+
+  /**
+   * Sends a fire-and-forget method as an inform, `{method, params}`, the way the SDKs do. The engine
+   * never answers an inform: its outcome arrives as events only (V10 watches for them).
+   */
+  async inform(method: string, params: unknown): Promise<void> {
+    await this.ensureReady();
+    const ws = this.ws;
+    if (!ws || ws.readyState !== WebSocket.OPEN) {
+      throw new StpError(
+        `the STP connection closed (engine restarted?) before ${method} could be sent to ${this.options.url}; ` +
+          `retry - the next call reconnects.`,
+        "closed",
+      );
+    }
+    ws.send(JSON.stringify({ method, params }));
+  }
+
+  /** Calls `listener` with every event from now on; returns the function that stops it. */
+  addEventListener(listener: (event: StpEvent) => void): () => void {
+    this.listeners.add(listener);
+    return () => this.listeners.delete(listener);
+  }
+
+  /** Records what a HasActiveScenario asked by a client of this connection answered. */
+  noteScenario(active: boolean): void {
+    this.scenario = active
+      ? { active: true, note: "the session has an active scenario (HasActiveScenario, asked before a write)" }
+      : {
+          active: false,
+          note:
+            "the session has no active scenario (HasActiveScenario, asked before a write). Reads answer empty values " +
+            "and writes are refused until a client of this session creates or loads one; STP_SESSION selects the session.",
+        };
   }
 
   /** Closes the socket for good: pending calls fail and no reconnect follows. */
@@ -365,6 +402,7 @@ export class StpConnection {
     const event: StpEvent = { name: msg.method, params: msg.params, at: new Date(), replay: this.joinsInFlight > 0 };
     for (const w of this.waiters) if (w.names.has(event.name)) w.onEvent(event.name);
     this.options.onEvent?.(event);
+    for (const l of this.listeners) l(event);
   }
 
   private failPending(error: (p: Pending) => StpError): void {

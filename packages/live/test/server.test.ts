@@ -271,7 +271,7 @@ describe("live context", () => {
   it("serves the context and single objects as resources", async () => {
     const { client, engine } = await setup({ JoinScenarioSession: { result: null, events: [{ name: "SymbolAdded", params: symbolAdded("idA", "A") }] } });
     const { resources } = await client.listResources();
-    expect(resources.map((r) => r.uri)).toEqual(["stp-live://context"]);
+    expect(resources.map((r) => r.uri).sort()).toEqual(["stp-live://actions", "stp-live://context"]);
     const { resourceTemplates } = await client.listResourceTemplates();
     expect(resourceTemplates.map((t) => t.uriTemplate).sort()).toEqual([
       "stp-live://coa/{poid}",

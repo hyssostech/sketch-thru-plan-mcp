@@ -4,13 +4,16 @@ import { readFileSync } from "node:fs";
 import { WebSocketServer, type WebSocket } from "ws";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
+import { ElicitRequestSchema, type ElicitRequest, type ElicitResult } from "@modelcontextprotocol/sdk/types.js";
 import { createLiveServer, type LiveServer, type LiveServerOptions } from "../src/server.js";
 import type { LiveConfig } from "../src/config.js";
 
 /**
  * A small STP engine stand-in that speaks the WebSockets bridge wire: Request{jsonRequest, cookie,
  * timeout} in, RequestResponse{cookie, success, result} and events out. Each method answers from a
- * scripted table; an answer can refuse, be delayed, never come, or close the connection.
+ * scripted table; an answer can refuse, be delayed, never come, or close the connection. An inform
+ * ({method, params}, no Request wrapper) gets only the scripted events - the engine never answers
+ * one - and an inform with no script entry gets nothing, as the engine ignores a call it cannot apply.
  */
 
 export interface ScriptedAnswer {
@@ -30,8 +33,10 @@ export type Script = Record<string, ScriptedAnswer | ((params: Record<string, un
 export interface Received {
   method: string;
   params: Record<string, unknown>;
+  /** -1 for an inform. */
   cookie: number;
   timeout: unknown;
+  wire: "request" | "inform";
 }
 
 const DEFAULT_SCRIPT: Script = {
@@ -95,10 +100,23 @@ export class FakeEngine {
 
   private async handle(ws: WebSocket, text: string): Promise<void> {
     const frame = JSON.parse(text) as { method: string; params: { jsonRequest: string; cookie: number; timeout: unknown } };
-    if (frame.method !== "Request") return; // informs: this server never sends one
+    if (frame.method !== "Request") {
+      const params = (frame.params ?? {}) as unknown as Record<string, unknown>;
+      this.received.push({ method: frame.method, params, cookie: -1, timeout: undefined, wire: "inform" });
+      const entry = this.script[frame.method];
+      if (entry === undefined) return;
+      const answer = typeof entry === "function" ? entry(params) : entry;
+      if (answer.delayMs) await new Promise((r) => setTimeout(r, answer.delayMs));
+      if (answer.close) {
+        ws.terminate();
+        return;
+      }
+      for (const e of answer.events ?? []) ws.send(JSON.stringify({ method: e.name, params: e.params }));
+      return;
+    }
     const inner = JSON.parse(frame.params.jsonRequest) as { method: string; params?: Record<string, unknown> };
     const params = inner.params ?? {};
-    this.received.push({ method: inner.method, params, cookie: frame.params.cookie, timeout: frame.params.timeout });
+    this.received.push({ method: inner.method, params, cookie: frame.params.cookie, timeout: frame.params.timeout, wire: "request" });
     const entry = this.script[inner.method];
     const answer: ScriptedAnswer =
       entry === undefined
@@ -139,7 +157,10 @@ export class ReplayEngine {
       if (!line.trim()) continue;
       const f = JSON.parse(line) as { dir: "send" | "recv"; frame: { method: string; params?: Record<string, unknown> } };
       if (f.dir === "send") {
-        const inner = JSON.parse(String(f.frame.params!.jsonRequest)) as { method: string; params?: unknown };
+        const inner =
+          f.frame.method === "Request"
+            ? (JSON.parse(String(f.frame.params!.jsonRequest)) as { method: string; params?: unknown })
+            : { method: f.frame.method, params: f.frame.params };
         this.steps.push({ method: inner.method, params: inner.params, frames: [], used: false });
       } else {
         this.steps.at(-1)?.frames.push(f.frame);
@@ -148,13 +169,19 @@ export class ReplayEngine {
     wss.on("connection", (ws) =>
       ws.on("message", (data) => {
         const frame = JSON.parse(String(data));
-        const inner = JSON.parse(frame.params.jsonRequest) as { method: string; params?: unknown };
+        const isInform = frame.method !== "Request";
+        const inner = (isInform ? { method: frame.method, params: frame.params } : JSON.parse(frame.params.jsonRequest)) as {
+          method: string;
+          params?: unknown;
+        };
         const same = (s: (typeof this.steps)[number]) => !s.used && s.method === inner.method;
         const step =
           this.steps.find((s) => same(s) && JSON.stringify(s.params) === JSON.stringify(inner.params)) ?? this.steps.find(same);
         if (!step) {
           this.unmatched.push(inner.method);
-          ws.send(JSON.stringify({ method: "RequestResponse", params: { cookie: frame.params.cookie, success: false, result: `replay: no recorded ${inner.method}` } }));
+          if (!isInform) {
+            ws.send(JSON.stringify({ method: "RequestResponse", params: { cookie: frame.params.cookie, success: false, result: `replay: no recorded ${inner.method}` } }));
+          }
           return;
         }
         step.used = true;
@@ -203,21 +230,41 @@ export async function httpServer(): Promise<{ server: Server; port: number }> {
   return { server, port: (server.address() as AddressInfo).port };
 }
 
+/**
+ * How the test's MCP client answers a confirmation request: accept (checking confirm), accept with
+ * confirm unchecked, decline or cancel. Without one, the client does not declare elicitation.
+ */
+export type ElicitAnswer = "accept" | "accept-unchecked" | "decline" | "cancel" | ((request: ElicitRequest) => ElicitResult);
+
 /** A live server over `config`, and an MCP client connected to it in memory. */
 export async function connectLive(
   config: Partial<LiveConfig> & { url: string },
   options: Omit<LiveServerOptions, "config"> = {},
+  client: { name?: string; elicit?: ElicitAnswer; elicited?: ElicitRequest[] } = {},
 ): Promise<{ live: LiveServer; client: Client; close: () => Promise<void> }> {
   const live = createLiveServer({ config: { timeoutS: 5, ...config }, ...options });
   const [clientSide, serverSide] = InMemoryTransport.createLinkedPair();
   await live.mcp.connect(serverSide);
-  const client = new Client({ name: "test", version: "0" });
-  await client.connect(clientSide);
+  const mcpClient = new Client(
+    { name: client.name ?? "test", version: "0" },
+    client.elicit ? { capabilities: { elicitation: { form: {} } } } : {},
+  );
+  if (client.elicit) {
+    const answer = client.elicit;
+    mcpClient.setRequestHandler(ElicitRequestSchema, (request) => {
+      client.elicited?.push(request);
+      if (typeof answer === "function") return answer(request);
+      if (answer === "accept") return { action: "accept", content: { confirm: true } };
+      if (answer === "accept-unchecked") return { action: "accept", content: { confirm: false } };
+      return { action: answer };
+    });
+  }
+  await mcpClient.connect(clientSide);
   return {
     live,
-    client,
+    client: mcpClient,
     close: async () => {
-      await client.close();
+      await mcpClient.close();
       await live.close();
     },
   };
@@ -228,4 +275,22 @@ export async function call(client: Client, name: string, args: Record<string, un
   const res = await client.callTool({ name, arguments: args });
   const text = (res.content as { type: string; text: string }[])[0].text;
   return { isError: res.isError === true, text, body: res.isError ? undefined : JSON.parse(text) };
+}
+
+/**
+ * Calls a write tool. Its result is the JSON report, after a one-line explanation when it is an error
+ * (V10 not_done / other / unknown); a refusal before the call has no report (`report` undefined).
+ */
+export async function callWrite(client: Client, name: string, args: Record<string, unknown> = {}) {
+  const res = await client.callTool({ name, arguments: args });
+  const text = (res.content as { type: string; text: string }[])[0].text;
+  const json = text.indexOf("\n\n{");
+  const report = text.startsWith("{") ? JSON.parse(text) : json !== -1 ? JSON.parse(text.slice(json + 2)) : undefined;
+  return { isError: res.isError === true, text, report };
+}
+
+/** The stp-live://actions document. */
+export async function readActions(client: Client) {
+  const res = await client.readResource({ uri: "stp-live://actions" });
+  return JSON.parse((res.contents[0] as { text: string }).text);
 }

@@ -1,0 +1,108 @@
+import { describe, expect, it } from "vitest";
+import {
+  generateTools,
+  loadContract,
+  loadPin,
+  toolFromMethod,
+  type Contract,
+} from "../src/index.js";
+
+const contract = loadContract();
+const result = generateTools(contract);
+
+// Floors, as in STP's tools/check-openrpc-surface.sh: a generator that quietly
+// stops producing tools must read as broken, never as a smaller API.
+// 2026-10-10, contract 0.4.0: 72 methods -> 62 tools + 10 excluded, 29 events.
+const TOOL_FLOOR = 55;
+const EVENT_FLOOR = 25;
+
+describe("pinned contract", () => {
+  it("matches its pin", () => {
+    expect(contract.info.version).toBe(loadPin().version);
+  });
+
+  it("is above the extraction floors", () => {
+    expect(result.tools.length).toBeGreaterThanOrEqual(TOOL_FLOOR);
+    expect(contract["x-stpEvents"]?.length ?? 0).toBeGreaterThanOrEqual(EVENT_FLOOR);
+  });
+});
+
+describe("generateTools", () => {
+  it("accounts for every contract method exactly once", () => {
+    const names = [...result.tools.map((t) => t.name), ...result.excluded.map((e) => e.name)];
+    expect(names.sort()).toEqual(contract.methods.map((m) => m.name).sort());
+  });
+
+  it("never exposes a method the engine does not dispatch", () => {
+    const undispatched = contract.methods.filter((m) => m["x-engineDispatch"] === "none").map((m) => m.name);
+    const toolNames = new Set(result.tools.map((t) => t.name));
+    for (const name of undispatched) expect(toolNames.has(name)).toBe(false);
+  });
+
+  it("never exposes a transport-layer message", () => {
+    const toolNames = new Set(result.tools.map((t) => t.name));
+    expect(toolNames.has("Register")).toBe(false);
+    expect(toolNames.has("Request")).toBe(false);
+  });
+
+  it("emits self-contained input schemas with valid MCP tool names", () => {
+    for (const tool of result.tools) {
+      expect(tool.name).toMatch(/^[A-Za-z0-9_-]{1,64}$/);
+      expect(tool.inputSchema.type).toBe("object");
+      const text = JSON.stringify(tool.inputSchema);
+      expect(text).not.toContain("#/components/");
+      for (const ref of text.matchAll(/"\$ref":"#\/\$defs\/([^"]+)"/g)) {
+        expect(tool.inputSchema.$defs, `${tool.name} -> ${ref[1]}`).toHaveProperty(ref[1]);
+      }
+    }
+  });
+
+  it("matches the committed snapshot (regenerate with `vitest -u` when the contract moves)", async () => {
+    await expect(JSON.stringify(result, null, 2) + "\n").toMatchFileSnapshot("./__snapshots__/generated-tools.json");
+  });
+});
+
+describe("toolFromMethod", () => {
+  const tiny: Contract = {
+    openrpc: "1.2.6",
+    info: { title: "t", version: "0" },
+    methods: [],
+    components: {
+      schemas: {
+        Outer: { type: "object", properties: { inner: { $ref: "#/components/schemas/Inner" } } },
+        Inner: { type: "string" },
+      },
+    },
+  };
+
+  it("closes $defs over nested references and keeps required params", () => {
+    const tool = toolFromMethod(
+      {
+        name: "M",
+        description: "d",
+        params: [{ name: "o", required: true, description: "the outer", schema: { $ref: "#/components/schemas/Outer" } }],
+        "x-stpSafety": "destructive",
+      },
+      tiny,
+    );
+    expect(tool.inputSchema.required).toEqual(["o"]);
+    expect(tool.inputSchema.properties.o).toEqual({ $ref: "#/$defs/Outer", description: "the outer" });
+    expect(Object.keys(tool.inputSchema.$defs ?? {})).toEqual(["Inner", "Outer"]);
+    expect(tool.annotations).toMatchObject({ readOnlyHint: false, destructiveHint: true });
+    expect(tool._meta["stp/safety"]).toBe("destructive");
+  });
+
+  it("refuses a reference to a missing component", () => {
+    expect(() =>
+      toolFromMethod({ name: "M", params: [{ name: "x", schema: { $ref: "#/components/schemas/Nope" } }] }, tiny),
+    ).toThrow(/missing component schema 'Nope'/);
+  });
+
+  it("refuses an unknown safety class", () => {
+    expect(() => toolFromMethod({ name: "M", params: [], "x-stpSafety": "maybe" }, tiny)).toThrow(/unknown x-stpSafety/);
+  });
+
+  it("leaves an unclassified method without annotations", () => {
+    expect(toolFromMethod({ name: "M", params: [] }, tiny).annotations).toEqual({});
+  });
+});

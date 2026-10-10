@@ -1,0 +1,7 @@
+{
+  "files": [],
+  "references": [
+    { "path": "packages/contract-tools" },
+    { "path": "packages/knowledge" }
+  ]
+}

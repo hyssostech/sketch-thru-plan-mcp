@@ -1,0 +1,21 @@
+{
+  "name": "stp-mcp-knowledge",
+  "version": "0.1.0",
+  "private": true,
+  "description": "MCP knowledge server for Sketch-thru-Plan: the STP JSON-RPC contract (and later the STP docs) as read-only tools",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/server.js",
+  "types": "dist/server.d.ts",
+  "bin": {
+    "stp-mcp-knowledge": "dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.31.0",
+    "stp-mcp-contract-tools": "0.1.0",
+    "zod": "^4.6.5"
+  }
+}

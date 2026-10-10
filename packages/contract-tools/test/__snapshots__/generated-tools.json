@@ -1,0 +1,3737 @@
+{
+  "contractVersion": "0.4.0",
+  "tools": [
+    {
+      "name": "SendPenDown",
+      "description": "Notify STP that the user began a sketch gesture (pen down) at a map coordinate.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "$ref": "#/$defs/LatLon",
+            "description": "Map coordinate of the first sketched point (latitude/longitude)."
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "ISO 8601 timestamp (UTC) when the initial point was placed."
+          }
+        },
+        "additionalProperties": false,
+        "$defs": {
+          "LatLon": {
+            "description": "Geodetic coordinate (latitude, longitude).",
+            "required": [
+              "lat",
+              "lon"
+            ],
+            "properties": {
+              "lat": {
+                "type": "number",
+                "description": "Latitude in decimal degrees."
+              },
+              "lon": {
+                "type": "number",
+                "description": "Longitude in decimal degrees."
+              }
+            }
+          }
+        }
+      },
+      "annotations": {},
+      "_meta": {
+        "stp/safety": "unclassified"
+      }
+    },
+    {
+      "name": "SendInk",
+      "description": "Send a sketched gesture (stroke) to STP, including the window bounds, map extents, stroke points and intersection context.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "pixelBoundsWindow": {
+            "$ref": "#/$defs/Size",
+            "description": "Screen bounds of the map viewport in pixels (width x height)."
+          },
+          "topLeftGeoMap": {
+            "$ref": "#/$defs/LatLon",
+            "description": "Top-left map coordinate (latitude/longitude)."
+          },
+          "bottomRightGeoMap": {
+            "$ref": "#/$defs/LatLon",
+            "description": "Bottom-right map coordinate (latitude/longitude)."
+          },
+          "strokePoints": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/LatLon"
+            },
+            "description": "Ordered list of coordinates comprising the sketched stroke."
+          },
+          "timeStrokeStart": {
+            "type": "string",
+            "format": "date-time",
+            "description": "ISO 8601 timestamp (UTC) when the first stroke point was placed."
+          },
+          "timeStrokeEnd": {
+            "type": "string",
+            "format": "date-time",
+            "description": "ISO 8601 timestamp (UTC) when the last stroke point was placed."
+          },
+          "intersectedPoids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Unique identifiers of symbols intersected by the stroke (used for edit operations)."
+          }
+        },
+        "additionalProperties": false,
+        "$defs": {
+          "LatLon": {
+            "description": "Geodetic coordinate (latitude, longitude).",
+            "required": [
+              "lat",
+              "lon"
+            ],
+            "properties": {
+              "lat": {
+                "type": "number",
+                "description": "Latitude in decimal degrees."
+              },
+              "lon": {
+                "type": "number",
+                "description": "Longitude in decimal degrees."
+              }
+            }
+          },
+          "Size": {
+            "description": "Screen-space size (width x height).",
+            "required": [
+              "width",
+              "height"
+            ],
+            "properties": {
+              "width": {
+                "type": "number",
+                "description": "Viewport width in pixels."
+              },
+              "height": {
+                "type": "number",
+                "description": "Viewport height in pixels."
+              }
+            }
+          }
+        }
+      },
+      "annotations": {},
+      "_meta": {
+        "stp/safety": "unclassified"
+      }
+    },
+    {
+      "name": "SendSpeechRecognition",
+      "description": "Send transcribed speech recognition results to STP (or typed phrases).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "recoList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/ISpeechRecoItem"
+            },
+            "description": "Hypothesis list returned by a speech recognizer."
+          },
+          "startTime": {
+            "type": "string",
+            "format": "date-time",
+            "description": "ISO 8601 timestamp (UTC) when speech started."
+          },
+          "endTime": {
+            "type": "string",
+            "format": "date-time",
+            "description": "ISO 8601 timestamp (UTC) when speech ended."
+          }
+        },
+        "additionalProperties": false,
+        "$defs": {
+          "ISpeechRecoItem": {
+            "description": "Single speech recognition hypothesis.",
+            "required": [
+              "text",
+              "confidence"
+            ],
+            "properties": {
+              "text": {
+                "type": "string",
+                "description": "Transcribed text."
+              },
+              "confidence": {
+                "type": "number",
+                "description": "Likelihood/confidence (0..1)."
+              }
+            }
+          }
+        }
+      },
+      "annotations": {},
+      "_meta": {
+        "stp/safety": "unclassified"
+      }
+    },
+    {
+      "name": "SendSimulatedSpeechRecognition",
+      "description": "Send typed text to STP that will be treated as simulated speech recognition. Numbers and letters are converted server-side to speech-like transcriptions (e.g. 'A 3 1' becomes 'alpha three one').",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string",
+            "description": "Text to send as simulated speech."
+          },
+          "startTime": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Optional ISO 8601 timestamp (UTC) when speech started. Defaults to current time if not provided."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {},
+      "_meta": {
+        "stp/safety": "unclassified"
+      }
+    },
+    {
+      "name": "CreateNewScenario",
+      "description": "Create and load a new scenario, replacing any previous content.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Human-friendly scenario name."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {},
+      "_meta": {
+        "stp/safety": "unclassified"
+      }
+    },
+    {
+      "name": "LoadNewScenario",
+      "description": "Load a scenario from a serialized content string (object_set([...])). Replaces previous content.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "string",
+            "description": "Scenario content string in STP's object_set format."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {},
+      "_meta": {
+        "stp/safety": "unclassified"
+      }
+    },
+    {
+      "name": "ImportPlanData",
+      "description": "Import additional content into the current scenario (object_set([...])).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "string",
+            "description": "Data to merge into the scenario."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {},
+      "_meta": {
+        "stp/safety": "unclassified"
+      }
+    },
+    {
+      "name": "GetScenarioContent",
+      "description": "Return the current scenario as a serialized string (object_set([...])) suitable for persistence.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      },
+      "annotations": {},
+      "_meta": {
+        "stp/safety": "unclassified"
+      }
+    },
+    {
+      "name": "JoinScenarioSession",
+      "description": "Emit the current scenario objects as if they were received live, allowing a client to rebuild local state.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      },
+      "annotations": {},
+      "_meta": {
+        "stp/safety": "unclassified"
+      }
+    },
+    {
+      "name": "SyncScenarioSession",
+      "description": "Load a scenario and update the session state with detected differences.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "string",
+            "description": "Scenario content string in STP's object_set format."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {},
+      "_meta": {
+        "stp/safety": "unclassified"
+      }
+    },
+    {
+      "name": "HasActiveScenario",
+      "description": "Check whether STP currently has a loaded scenario.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      },
+      "annotations": {},
+      "_meta": {
+        "stp/safety": "unclassified"
+      }
+    },
+    {
+      "name": "AddSymbol",
+      "description": "Request addition of a symbol. STP will respond with a SymbolAdded event.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "symbol": {
+            "$ref": "#/$defs/StpSymbol",
+            "description": "Symbol to add."
+          }
+        },
+        "additionalProperties": false,
+        "$defs": {
+          "Affiliation": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "unknown",
+              "assumed_friend",
+              "friend",
+              "neutral",
+              "suspect",
+              "hostile"
+            ],
+            "description": "Affiliation used for Symbols, COAs and TOs."
+          },
+          "DISCode": {
+            "description": "SISO Entity Type (DIS) code used by C2SIM.",
+            "properties": {
+              "category": {
+                "type": "number",
+                "description": "DIS category."
+              },
+              "country": {
+                "type": "string",
+                "description": "DIS country code."
+              },
+              "domain": {
+                "type": "number",
+                "description": "DIS domain."
+              },
+              "extra": {
+                "type": "number",
+                "description": "DIS extra code."
+              },
+              "kind": {
+                "type": "number",
+                "description": "DIS kind."
+              },
+              "specific": {
+                "type": "number",
+                "description": "DIS specific code."
+              },
+              "subcategory": {
+                "type": "number",
+                "description": "DIS subcategory."
+              }
+            }
+          },
+          "LatLon": {
+            "description": "Geodetic coordinate (latitude, longitude).",
+            "required": [
+              "lat",
+              "lon"
+            ],
+            "properties": {
+              "lat": {
+                "type": "number",
+                "description": "Latitude in decimal degrees."
+              },
+              "lon": {
+                "type": "number",
+                "description": "Longitude in decimal degrees."
+              }
+            }
+          },
+          "Location": {
+            "description": "Spatial location and geometry used by STP for symbols and gestures.",
+            "properties": {
+              "fsTYPE": {
+                "type": "string",
+                "enum": [
+                  "point",
+                  "line",
+                  "area",
+                  "multipoint"
+                ],
+                "description": "General geometry type."
+              },
+              "width": {
+                "type": "number",
+                "description": "Width of line/area strokes (meters)."
+              },
+              "altitude": {
+                "type": "number",
+                "description": "Altitude (meters)."
+              },
+              "shape": {
+                "type": "string",
+                "description": "Gesture-derived shape classification (e.g., arrowthin, hook)."
+              },
+              "radius": {
+                "type": "number",
+                "description": "Radius around the symbol (meters)."
+              },
+              "coords": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/LatLon"
+                },
+                "description": "Anchor coordinates, order following MIL-STD-2525D draw rules."
+              },
+              "centroid": {
+                "$ref": "#/$defs/LatLon"
+              },
+              "candidatePoids": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Symbols intersected by coords (unique STP identifiers)."
+              }
+            }
+          },
+          "Resource": {
+            "description": "C2SIM resource details (name, quantities, DIS code).",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Resource name (e.g., '155mm shells')."
+              },
+              "operationalQuantity": {
+                "type": "number",
+                "description": "Operationally usable quantity."
+              },
+              "disCode": {
+                "$ref": "#/$defs/DISCode"
+              },
+              "onHandQuantity": {
+                "type": "number",
+                "description": "Optional current on-hand quantity."
+              },
+              "requiredOnHandQuantity": {
+                "type": "number",
+                "description": "Optional required on-hand quantity."
+              }
+            }
+          },
+          "Sidc": {
+            "description": "Dual-standard military symbol identifiers: STP ships BOTH the 2525D form (partA/partB/partC, symbolSet) and the 2525C form (charlie) for every symbol that has one; clients pick the standard they render.",
+            "properties": {
+              "partA": {
+                "type": "string",
+                "description": "SIDC part A (2525D)."
+              },
+              "partB": {
+                "type": "string",
+                "description": "SIDC part B (2525D)."
+              },
+              "partC": {
+                "type": "string",
+                "description": "SIDC part C (2525D). Not emitted by the engine; derive from delta if needed."
+              },
+              "symbolSet": {
+                "type": "string",
+                "description": "2525D symbol set."
+              },
+              "charlie": {
+                "type": "string",
+                "description": "2525C SIDC."
+              },
+              "delta": {
+                "type": "string",
+                "description": "Full 20-digit MIL-STD-2525D SIDC (partA + partB)."
+              },
+              "legacy": {
+                "type": "string",
+                "deprecated": true,
+                "description": "DEPRECATED alias of 'charlie' (same value). Retained for existing clients; the wire ships both during the deprecation window."
+              }
+            }
+          },
+          "StpSymbol": {
+            "description": "STP military symbol and common properties.",
+            "properties": {
+              "fsTYPE": {
+                "type": "string",
+                "description": "Item type identifier (e.g., 'unit', 'equipment', 'tg')."
+              },
+              "poid": {
+                "type": "string",
+                "description": "Unique STP identifier for this symbol."
+              },
+              "parentCoa": {
+                "type": "string",
+                "description": "Unique id of the COA this symbol belongs to."
+              },
+              "creatorRole": {
+                "type": "string",
+                "description": "Role that created the symbol (S2, S3, S4, FSO, ENG)."
+              },
+              "interval": {
+                "description": "Time interval of symbol validity.",
+                "type": "object"
+              },
+              "confidence": {
+                "type": "number",
+                "description": "Recognition confidence score (0..1)."
+              },
+              "alt": {
+                "type": "number",
+                "description": "Alternate index: ranking of this interpretation among hypotheses."
+              },
+              "sidc": {
+                "$ref": "#/$defs/Sidc"
+              },
+              "commonIdentifier": {
+                "type": "string",
+                "description": "Named-system common identifier amplifier (e.g. 'patriot', 'avenger') when the symbol is a named system; empty otherwise."
+              },
+              "location": {
+                "$ref": "#/$defs/Location"
+              },
+              "shortDescription": {
+                "type": "string",
+                "description": "Short symbol description; essential distinguishing elements (e.g., designators)."
+              },
+              "description": {
+                "type": "string",
+                "description": "Regular description; name/type plus designators, may omit assumed decorators."
+              },
+              "fullDescription": {
+                "type": "string",
+                "description": "Full description including all relevant decorators."
+              },
+              "affiliation": {
+                "$ref": "#/$defs/Affiliation"
+              },
+              "echelon": {
+                "type": "string",
+                "description": "Echelon (e.g., company, battalion, brigade)."
+              },
+              "parent": {
+                "type": "string",
+                "description": "Parent unit designator."
+              },
+              "designator1": {
+                "type": "string",
+                "description": "Primary unit designator (e.g., 'A', '1')."
+              },
+              "designator2": {
+                "type": "string",
+                "description": "Additional designator (e.g., neighbor company indicator)."
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "present",
+                  "anticipated"
+                ],
+                "description": "Operational status of the symbol."
+              },
+              "modifier": {
+                "type": "string",
+                "description": "HQ/Task Force/Installation modifiers."
+              },
+              "strength": {
+                "type": "string",
+                "description": "Strength modifier (reduced/reinforced/etc.)."
+              },
+              "branch": {
+                "type": "string",
+                "description": "Branch, e.g., ground_unit, equipment, installation."
+              },
+              "timeFrom": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Start time (UTC) for time-bounded symbols."
+              },
+              "timeTo": {
+                "type": "string",
+                "format": "date-time",
+                "description": "End time (UTC) for time-bounded symbols."
+              },
+              "altitude": {
+                "type": "number",
+                "description": "Altitude (meters)."
+              },
+              "minAltitude": {
+                "type": "number",
+                "description": "Minimum altitude (meters)."
+              },
+              "maxAltitude": {
+                "type": "number",
+                "description": "Maximum altitude (meters)."
+              },
+              "toUnitPoid": {
+                "type": "string",
+                "description": "If created from a TO, the source Task Org Unit id."
+              },
+              "federate": {
+                "type": "string",
+                "description": "C2SIM federate this entity is assigned to."
+              },
+              "disCode": {
+                "$ref": "#/$defs/DISCode"
+              },
+              "resources": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/Resource"
+                },
+                "description": "Associated C2SIM resources for this symbol."
+              },
+              "extensions": {
+                "type": "object",
+                "additionalProperties": true,
+                "description": "Optional client-defined extension properties. Values can be primitives, arrays, or nested objects. Round-tripped through STP. Omitted when null."
+              },
+              "specialC2Hq": {
+                "type": "string",
+                "description": "2525D amplifier AA (Special C2 HQ CP-type, e.g. toc/main). Optional; empty when unset."
+              },
+              "additionalInformation": {
+                "type": "string",
+                "description": "2525D amplifier H (Additional Information text). Optional; empty when unset."
+              },
+              "dbTimestamp": {
+                "type": "string",
+                "description": "Set by the engine on emitted objects; ignored on input."
+              },
+              "dbVersion": {
+                "type": "string",
+                "description": "Set by the engine on emitted objects; ignored on input."
+              }
+            }
+          }
+        }
+      },
+      "annotations": {},
+      "_meta": {
+        "stp/safety": "unclassified"
+      }
+    },
+    {
+      "name": "UpdateSymbol",
+      "description": "Request update of a symbol. STP will respond with a SymbolModified event.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "poid": {
+            "type": "string",
+            "description": "Unique identifier of the symbol to update."
+          },
+          "symbol": {
+            "$ref": "#/$defs/StpSymbol",
+            "description": "New symbol properties."
+          }
+        },
+        "additionalProperties": false,
+        "$defs": {
+          "Affiliation": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "unknown",
+              "assumed_friend",
+              "friend",
+              "neutral",
+              "suspect",
+              "hostile"
+            ],
+            "description": "Affiliation used for Symbols, COAs and TOs."
+          },
+          "DISCode": {
+            "description": "SISO Entity Type (DIS) code used by C2SIM.",
+            "properties": {
+              "category": {
+                "type": "number",
+                "description": "DIS category."
+              },
+              "country": {
+                "type": "string",
+                "description": "DIS country code."
+              },
+              "domain": {
+                "type": "number",
+                "description": "DIS domain."
+              },
+              "extra": {
+                "type": "number",
+                "description": "DIS extra code."
+              },
+              "kind": {
+                "type": "number",
+                "description": "DIS kind."
+              },
+              "specific": {
+                "type": "number",
+                "description": "DIS specific code."
+              },
+              "subcategory": {
+                "type": "number",
+                "description": "DIS subcategory."
+              }
+            }
+          },
+          "LatLon": {
+            "description": "Geodetic coordinate (latitude, longitude).",
+            "required": [
+              "lat",
+              "lon"
+            ],
+            "properties": {
+              "lat": {
+                "type": "number",
+                "description": "Latitude in decimal degrees."
+              },
+              "lon": {
+                "type": "number",
+                "description": "Longitude in decimal degrees."
+              }
+            }
+          },
+          "Location": {
+            "description": "Spatial location and geometry used by STP for symbols and gestures.",
+            "properties": {
+              "fsTYPE": {
+                "type": "string",
+                "enum": [
+                  "point",
+                  "line",
+                  "area",
+                  "multipoint"
+                ],
+                "description": "General geometry type."
+              },
+              "width": {
+                "type": "number",
+                "description": "Width of line/area strokes (meters)."
+              },
+              "altitude": {
+                "type": "number",
+                "description": "Altitude (meters)."
+              },
+              "shape": {
+                "type": "string",
+                "description": "Gesture-derived shape classification (e.g., arrowthin, hook)."
+              },
+              "radius": {
+                "type": "number",
+                "description": "Radius around the symbol (meters)."
+              },
+              "coords": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/LatLon"
+                },
+                "description": "Anchor coordinates, order following MIL-STD-2525D draw rules."
+              },
+              "centroid": {
+                "$ref": "#/$defs/LatLon"
+              },
+              "candidatePoids": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Symbols intersected by coords (unique STP identifiers)."
+              }
+            }
+          },
+          "Resource": {
+            "description": "C2SIM resource details (name, quantities, DIS code).",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Resource name (e.g., '155mm shells')."
+              },
+              "operationalQuantity": {
+                "type": "number",
+                "description": "Operationally usable quantity."
+              },
+              "disCode": {
+                "$ref": "#/$defs/DISCode"
+              },
+              "onHandQuantity": {
+                "type": "number",
+                "description": "Optional current on-hand quantity."
+              },
+              "requiredOnHandQuantity": {
+                "type": "number",
+                "description": "Optional required on-hand quantity."
+              }
+            }
+          },
+          "Sidc": {
+            "description": "Dual-standard military symbol identifiers: STP ships BOTH the 2525D form (partA/partB/partC, symbolSet) and the 2525C form (charlie) for every symbol that has one; clients pick the standard they render.",
+            "properties": {
+              "partA": {
+                "type": "string",
+                "description": "SIDC part A (2525D)."
+              },
+              "partB": {
+                "type": "string",
+                "description": "SIDC part B (2525D)."
+              },
+              "partC": {
+                "type": "string",
+                "description": "SIDC part C (2525D). Not emitted by the engine; derive from delta if needed."
+              },
+              "symbolSet": {
+                "type": "string",
+                "description": "2525D symbol set."
+              },
+              "charlie": {
+                "type": "string",
+                "description": "2525C SIDC."
+              },
+              "delta": {
+                "type": "string",
+                "description": "Full 20-digit MIL-STD-2525D SIDC (partA + partB)."
+              },
+              "legacy": {
+                "type": "string",
+                "deprecated": true,
+                "description": "DEPRECATED alias of 'charlie' (same value). Retained for existing clients; the wire ships both during the deprecation window."
+              }
+            }
+          },
+          "StpSymbol": {
+            "description": "STP military symbol and common properties.",
+            "properties": {
+              "fsTYPE": {
+                "type": "string",
+                "description": "Item type identifier (e.g., 'unit', 'equipment', 'tg')."
+              },
+              "poid": {
+                "type": "string",
+                "description": "Unique STP identifier for this symbol."
+              },
+              "parentCoa": {
+                "type": "string",
+                "description": "Unique id of the COA this symbol belongs to."
+              },
+              "creatorRole": {
+                "type": "string",
+                "description": "Role that created the symbol (S2, S3, S4, FSO, ENG)."
+              },
+              "interval": {
+                "description": "Time interval of symbol validity.",
+                "type": "object"
+              },
+              "confidence": {
+                "type": "number",
+                "description": "Recognition confidence score (0..1)."
+              },
+              "alt": {
+                "type": "number",
+                "description": "Alternate index: ranking of this interpretation among hypotheses."
+              },
+              "sidc": {
+                "$ref": "#/$defs/Sidc"
+              },
+              "commonIdentifier": {
+                "type": "string",
+                "description": "Named-system common identifier amplifier (e.g. 'patriot', 'avenger') when the symbol is a named system; empty otherwise."
+              },
+              "location": {
+                "$ref": "#/$defs/Location"
+              },
+              "shortDescription": {
+                "type": "string",
+                "description": "Short symbol description; essential distinguishing elements (e.g., designators)."
+              },
+              "description": {
+                "type": "string",
+                "description": "Regular description; name/type plus designators, may omit assumed decorators."
+              },
+              "fullDescription": {
+                "type": "string",
+                "description": "Full description including all relevant decorators."
+              },
+              "affiliation": {
+                "$ref": "#/$defs/Affiliation"
+              },
+              "echelon": {
+                "type": "string",
+                "description": "Echelon (e.g., company, battalion, brigade)."
+              },
+              "parent": {
+                "type": "string",
+                "description": "Parent unit designator."
+              },
+              "designator1": {
+                "type": "string",
+                "description": "Primary unit designator (e.g., 'A', '1')."
+              },
+              "designator2": {
+                "type": "string",
+                "description": "Additional designator (e.g., neighbor company indicator)."
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "present",
+                  "anticipated"
+                ],
+                "description": "Operational status of the symbol."
+              },
+              "modifier": {
+                "type": "string",
+                "description": "HQ/Task Force/Installation modifiers."
+              },
+              "strength": {
+                "type": "string",
+                "description": "Strength modifier (reduced/reinforced/etc.)."
+              },
+              "branch": {
+                "type": "string",
+                "description": "Branch, e.g., ground_unit, equipment, installation."
+              },
+              "timeFrom": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Start time (UTC) for time-bounded symbols."
+              },
+              "timeTo": {
+                "type": "string",
+                "format": "date-time",
+                "description": "End time (UTC) for time-bounded symbols."
+              },
+              "altitude": {
+                "type": "number",
+                "description": "Altitude (meters)."
+              },
+              "minAltitude": {
+                "type": "number",
+                "description": "Minimum altitude (meters)."
+              },
+              "maxAltitude": {
+                "type": "number",
+                "description": "Maximum altitude (meters)."
+              },
+              "toUnitPoid": {
+                "type": "string",
+                "description": "If created from a TO, the source Task Org Unit id."
+              },
+              "federate": {
+                "type": "string",
+                "description": "C2SIM federate this entity is assigned to."
+              },
+              "disCode": {
+                "$ref": "#/$defs/DISCode"
+              },
+              "resources": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/Resource"
+                },
+                "description": "Associated C2SIM resources for this symbol."
+              },
+              "extensions": {
+                "type": "object",
+                "additionalProperties": true,
+                "description": "Optional client-defined extension properties. Values can be primitives, arrays, or nested objects. Round-tripped through STP. Omitted when null."
+              },
+              "specialC2Hq": {
+                "type": "string",
+                "description": "2525D amplifier AA (Special C2 HQ CP-type, e.g. toc/main). Optional; empty when unset."
+              },
+              "additionalInformation": {
+                "type": "string",
+                "description": "2525D amplifier H (Additional Information text). Optional; empty when unset."
+              },
+              "dbTimestamp": {
+                "type": "string",
+                "description": "Set by the engine on emitted objects; ignored on input."
+              },
+              "dbVersion": {
+                "type": "string",
+                "description": "Set by the engine on emitted objects; ignored on input."
+              }
+            }
+          }
+        }
+      },
+      "annotations": {},
+      "_meta": {
+        "stp/safety": "unclassified"
+      }
+    },
+    {
+      "name": "DeleteSymbol",
+      "description": "Request deletion of a symbol. STP will respond with a SymbolDeleted event.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "poid": {
+            "type": "string",
+            "description": "Unique identifier of the symbol to delete."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {},
+      "_meta": {
+        "stp/safety": "unclassified"
+      }
+    },
+    {
+      "name": "ChooseAlternate",
+      "description": "Pick an alternate recognition for a symbol/task.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "poid": {
+            "type": "string",
+            "description": "Unique identifier of the object."
+          },
+          "nBestIndex": {
+            "type": "integer",
+            "description": "Index of the chosen alternate."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {},
+      "_meta": {
+        "stp/safety": "unclassified"
+      }
+    },
+    {
+      "name": "ImportTaskOrgContent",
+      "description": "Import a Task Organization (TO) from serialized content, using fresh unique IDs.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "string",
+            "description": "TO content string (object_set([...]))."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {},
+      "_meta": {
+        "stp/safety": "unclassified"
+      }
+    },
+    {
+      "name": "GetTaskOrgContent",
+      "description": "Return the serialized content of a Task Organization.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "poid": {
+            "type": "string",
+            "description": "TO unique id."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {},
+      "_meta": {
+        "stp/safety": "unclassified"
+      }
+    },
+    {
+      "name": "SetDefaultTaskOrg",
+      "description": "Set a TO as the default for its affiliation (used when a COA is selected).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "poid": {
+            "type": "string",
+            "description": "TO unique id."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {},
+      "_meta": {
+        "stp/safety": "unclassified"
+      }
+    },
+    {
+      "name": "ResetDefaultTaskOrg",
+      "description": "Unset the default TO for an affiliation.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "affiliation": {
+            "$ref": "#/$defs/Affiliation",
+            "description": "Affiliation whose default TO should be reset."
+          }
+        },
+        "additionalProperties": false,
+        "$defs": {
+          "Affiliation": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "unknown",
+              "assumed_friend",
+              "friend",
+              "neutral",
+              "suspect",
+              "hostile"
+            ],
+            "description": "Affiliation used for Symbols, COAs and TOs."
+          }
+        }
+      },
+      "annotations": {},
+      "_meta": {
+        "stp/safety": "unclassified"
+      }
+    },
+    {
+      "name": "AddTaskOrg",
+      "description": "Add a Task Organization (ORBAT) definition.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "taskOrg": {
+            "$ref": "#/$defs/StpTaskOrg",
+            "description": "TO to add."
+          }
+        },
+        "additionalProperties": false,
+        "$defs": {
+          "Affiliation": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "unknown",
+              "assumed_friend",
+              "friend",
+              "neutral",
+              "suspect",
+              "hostile"
+            ],
+            "description": "Affiliation used for Symbols, COAs and TOs."
+          },
+          "StpTaskOrg": {
+            "description": "Task Organization (ORBAT) definition.",
+            "properties": {
+              "fsTYPE": {
+                "type": "string",
+                "enum": [
+                  "task_org"
+                ],
+                "description": "Item type identifier for Task Org."
+              },
+              "poid": {
+                "type": "string",
+                "description": "Unique id of the Task Org (TO)."
+              },
+              "name": {
+                "type": "string",
+                "description": "Human-readable TO name (e.g., '3-3')."
+              },
+              "affiliation": {
+                "$ref": "#/$defs/Affiliation"
+              },
+              "timestamp": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Version timestamp (UTC)."
+              },
+              "extensions": {
+                "type": "object",
+                "additionalProperties": true,
+                "description": "Optional client-defined extension properties. Values can be primitives, arrays, or nested objects. Round-tripped through STP. Omitted when null."
+              },
+              "dbTimestamp": {
+                "type": "string",
+                "description": "Set by the engine on emitted objects; ignored on input."
+              },
+              "dbVersion": {
+                "type": "string",
+                "description": "Set by the engine on emitted objects; ignored on input."
+              }
+            }
+          }
+        }
+      },
+      "annotations": {},
+      "_meta": {
+        "stp/safety": "unclassified"
+      }
+    },
+    {
+      "name": "UpdateTaskOrg",
+      "description": "Update an existing TO definition.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "poid": {
+            "type": "string",
+            "description": "TO unique id."
+          },
+          "taskOrg": {
+            "$ref": "#/$defs/StpTaskOrg",
+            "description": "Updated TO."
+          }
+        },
+        "additionalProperties": false,
+        "$defs": {
+          "Affiliation": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "unknown",
+              "assumed_friend",
+              "friend",
+              "neutral",
+              "suspect",
+              "hostile"
+            ],
+            "description": "Affiliation used for Symbols, COAs and TOs."
+          },
+          "StpTaskOrg": {
+            "description": "Task Organization (ORBAT) definition.",
+            "properties": {
+              "fsTYPE": {
+                "type": "string",
+                "enum": [
+                  "task_org"
+                ],
+                "description": "Item type identifier for Task Org."
+              },
+              "poid": {
+                "type": "string",
+                "description": "Unique id of the Task Org (TO)."
+              },
+              "name": {
+                "type": "string",
+                "description": "Human-readable TO name (e.g., '3-3')."
+              },
+              "affiliation": {
+                "$ref": "#/$defs/Affiliation"
+              },
+              "timestamp": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Version timestamp (UTC)."
+              },
+              "extensions": {
+                "type": "object",
+                "additionalProperties": true,
+                "description": "Optional client-defined extension properties. Values can be primitives, arrays, or nested objects. Round-tripped through STP. Omitted when null."
+              },
+              "dbTimestamp": {
+                "type": "string",
+                "description": "Set by the engine on emitted objects; ignored on input."
+              },
+              "dbVersion": {
+                "type": "string",
+                "description": "Set by the engine on emitted objects; ignored on input."
+              }
+            }
+          }
+        }
+      },
+      "annotations": {},
+      "_meta": {
+        "stp/safety": "unclassified"
+      }
+    },
+    {
+      "name": "DeleteTaskOrg",
+      "description": "Delete a Task Organization.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "poid": {
+            "type": "string",
+            "description": "TO unique id."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {},
+      "_meta": {
+        "stp/safety": "unclassified"
+      }
+    },
+    {
+      "name": "AddTaskOrgUnit",
+      "description": "Add a Task Org Unit (e.g., a military unit within the ORBAT).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "toUnit": {
+            "$ref": "#/$defs/StpTaskOrgUnit",
+            "description": "Unit to add."
+          }
+        },
+        "additionalProperties": false,
+        "$defs": {
+          "Affiliation": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "unknown",
+              "assumed_friend",
+              "friend",
+              "neutral",
+              "suspect",
+              "hostile"
+            ],
+            "description": "Affiliation used for Symbols, COAs and TOs."
+          },
+          "DISCode": {
+            "description": "SISO Entity Type (DIS) code used by C2SIM.",
+            "properties": {
+              "category": {
+                "type": "number",
+                "description": "DIS category."
+              },
+              "country": {
+                "type": "string",
+                "description": "DIS country code."
+              },
+              "domain": {
+                "type": "number",
+                "description": "DIS domain."
+              },
+              "extra": {
+                "type": "number",
+                "description": "DIS extra code."
+              },
+              "kind": {
+                "type": "number",
+                "description": "DIS kind."
+              },
+              "specific": {
+                "type": "number",
+                "description": "DIS specific code."
+              },
+              "subcategory": {
+                "type": "number",
+                "description": "DIS subcategory."
+              }
+            }
+          },
+          "LatLon": {
+            "description": "Geodetic coordinate (latitude, longitude).",
+            "required": [
+              "lat",
+              "lon"
+            ],
+            "properties": {
+              "lat": {
+                "type": "number",
+                "description": "Latitude in decimal degrees."
+              },
+              "lon": {
+                "type": "number",
+                "description": "Longitude in decimal degrees."
+              }
+            }
+          },
+          "Location": {
+            "description": "Spatial location and geometry used by STP for symbols and gestures.",
+            "properties": {
+              "fsTYPE": {
+                "type": "string",
+                "enum": [
+                  "point",
+                  "line",
+                  "area",
+                  "multipoint"
+                ],
+                "description": "General geometry type."
+              },
+              "width": {
+                "type": "number",
+                "description": "Width of line/area strokes (meters)."
+              },
+              "altitude": {
+                "type": "number",
+                "description": "Altitude (meters)."
+              },
+              "shape": {
+                "type": "string",
+                "description": "Gesture-derived shape classification (e.g., arrowthin, hook)."
+              },
+              "radius": {
+                "type": "number",
+                "description": "Radius around the symbol (meters)."
+              },
+              "coords": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/LatLon"
+                },
+                "description": "Anchor coordinates, order following MIL-STD-2525D draw rules."
+              },
+              "centroid": {
+                "$ref": "#/$defs/LatLon"
+              },
+              "candidatePoids": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Symbols intersected by coords (unique STP identifiers)."
+              }
+            }
+          },
+          "Resource": {
+            "description": "C2SIM resource details (name, quantities, DIS code).",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Resource name (e.g., '155mm shells')."
+              },
+              "operationalQuantity": {
+                "type": "number",
+                "description": "Operationally usable quantity."
+              },
+              "disCode": {
+                "$ref": "#/$defs/DISCode"
+              },
+              "onHandQuantity": {
+                "type": "number",
+                "description": "Optional current on-hand quantity."
+              },
+              "requiredOnHandQuantity": {
+                "type": "number",
+                "description": "Optional required on-hand quantity."
+              }
+            }
+          },
+          "Sidc": {
+            "description": "Dual-standard military symbol identifiers: STP ships BOTH the 2525D form (partA/partB/partC, symbolSet) and the 2525C form (charlie) for every symbol that has one; clients pick the standard they render.",
+            "properties": {
+              "partA": {
+                "type": "string",
+                "description": "SIDC part A (2525D)."
+              },
+              "partB": {
+                "type": "string",
+                "description": "SIDC part B (2525D)."
+              },
+              "partC": {
+                "type": "string",
+                "description": "SIDC part C (2525D). Not emitted by the engine; derive from delta if needed."
+              },
+              "symbolSet": {
+                "type": "string",
+                "description": "2525D symbol set."
+              },
+              "charlie": {
+                "type": "string",
+                "description": "2525C SIDC."
+              },
+              "delta": {
+                "type": "string",
+                "description": "Full 20-digit MIL-STD-2525D SIDC (partA + partB)."
+              },
+              "legacy": {
+                "type": "string",
+                "deprecated": true,
+                "description": "DEPRECATED alias of 'charlie' (same value). Retained for existing clients; the wire ships both during the deprecation window."
+              }
+            }
+          },
+          "StpSymbol": {
+            "description": "STP military symbol and common properties.",
+            "properties": {
+              "fsTYPE": {
+                "type": "string",
+                "description": "Item type identifier (e.g., 'unit', 'equipment', 'tg')."
+              },
+              "poid": {
+                "type": "string",
+                "description": "Unique STP identifier for this symbol."
+              },
+              "parentCoa": {
+                "type": "string",
+                "description": "Unique id of the COA this symbol belongs to."
+              },
+              "creatorRole": {
+                "type": "string",
+                "description": "Role that created the symbol (S2, S3, S4, FSO, ENG)."
+              },
+              "interval": {
+                "description": "Time interval of symbol validity.",
+                "type": "object"
+              },
+              "confidence": {
+                "type": "number",
+                "description": "Recognition confidence score (0..1)."
+              },
+              "alt": {
+                "type": "number",
+                "description": "Alternate index: ranking of this interpretation among hypotheses."
+              },
+              "sidc": {
+                "$ref": "#/$defs/Sidc"
+              },
+              "commonIdentifier": {
+                "type": "string",
+                "description": "Named-system common identifier amplifier (e.g. 'patriot', 'avenger') when the symbol is a named system; empty otherwise."
+              },
+              "location": {
+                "$ref": "#/$defs/Location"
+              },
+              "shortDescription": {
+                "type": "string",
+                "description": "Short symbol description; essential distinguishing elements (e.g., designators)."
+              },
+              "description": {
+                "type": "string",
+                "description": "Regular description; name/type plus designators, may omit assumed decorators."
+              },
+              "fullDescription": {
+                "type": "string",
+                "description": "Full description including all relevant decorators."
+              },
+              "affiliation": {
+                "$ref": "#/$defs/Affiliation"
+              },
+              "echelon": {
+                "type": "string",
+                "description": "Echelon (e.g., company, battalion, brigade)."
+              },
+              "parent": {
+                "type": "string",
+                "description": "Parent unit designator."
+              },
+              "designator1": {
+                "type": "string",
+                "description": "Primary unit designator (e.g., 'A', '1')."
+              },
+              "designator2": {
+                "type": "string",
+                "description": "Additional designator (e.g., neighbor company indicator)."
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "present",
+                  "anticipated"
+                ],
+                "description": "Operational status of the symbol."
+              },
+              "modifier": {
+                "type": "string",
+                "description": "HQ/Task Force/Installation modifiers."
+              },
+              "strength": {
+                "type": "string",
+                "description": "Strength modifier (reduced/reinforced/etc.)."
+              },
+              "branch": {
+                "type": "string",
+                "description": "Branch, e.g., ground_unit, equipment, installation."
+              },
+              "timeFrom": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Start time (UTC) for time-bounded symbols."
+              },
+              "timeTo": {
+                "type": "string",
+                "format": "date-time",
+                "description": "End time (UTC) for time-bounded symbols."
+              },
+              "altitude": {
+                "type": "number",
+                "description": "Altitude (meters)."
+              },
+              "minAltitude": {
+                "type": "number",
+                "description": "Minimum altitude (meters)."
+              },
+              "maxAltitude": {
+                "type": "number",
+                "description": "Maximum altitude (meters)."
+              },
+              "toUnitPoid": {
+                "type": "string",
+                "description": "If created from a TO, the source Task Org Unit id."
+              },
+              "federate": {
+                "type": "string",
+                "description": "C2SIM federate this entity is assigned to."
+              },
+              "disCode": {
+                "$ref": "#/$defs/DISCode"
+              },
+              "resources": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/Resource"
+                },
+                "description": "Associated C2SIM resources for this symbol."
+              },
+              "extensions": {
+                "type": "object",
+                "additionalProperties": true,
+                "description": "Optional client-defined extension properties. Values can be primitives, arrays, or nested objects. Round-tripped through STP. Omitted when null."
+              },
+              "specialC2Hq": {
+                "type": "string",
+                "description": "2525D amplifier AA (Special C2 HQ CP-type, e.g. toc/main). Optional; empty when unset."
+              },
+              "additionalInformation": {
+                "type": "string",
+                "description": "2525D amplifier H (Additional Information text). Optional; empty when unset."
+              },
+              "dbTimestamp": {
+                "type": "string",
+                "description": "Set by the engine on emitted objects; ignored on input."
+              },
+              "dbVersion": {
+                "type": "string",
+                "description": "Set by the engine on emitted objects; ignored on input."
+              }
+            }
+          },
+          "StpTaskOrgUnit": {
+            "description": "Task Org Unit, extends StpSymbol with unit-specific properties.",
+            "allOf": [
+              {
+                "$ref": "#/$defs/StpSymbol"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "fsTYPE": {
+                    "type": "string",
+                    "enum": [
+                      "task_org_unit"
+                    ]
+                  },
+                  "name": {
+                    "type": "string",
+                    "description": "Unit name; may include grouping/alternatives for speech."
+                  },
+                  "speechPhrases": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "description": "Phrase usable for speech placement/selection."
+                    },
+                    "description": "Speech phrases derived from the unit name to improve speech interaction."
+                  },
+                  "unitType": {
+                    "type": "string",
+                    "description": "Functional type (e.g., MECHANIZED INFANTRY)."
+                  },
+                  "info": {
+                    "type": "string",
+                    "description": "Additional notes or metadata about the unit."
+                  },
+                  "parentTO": {
+                    "type": "string",
+                    "description": "Unique id of the parent Task Org."
+                  }
+                }
+              }
+            ]
+          }
+        }
+      },
+      "annotations": {},
+      "_meta": {
+        "stp/safety": "unclassified"
+      }
+    },
+    {
+      "name": "UpdateTaskOrgUnit",
+      "description": "Update a Task Org Unit.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "poid": {
+            "type": "string",
+            "description": "Unit unique id."
+          },
+          "toUnit": {
+            "$ref": "#/$defs/StpTaskOrgUnit",
+            "description": "Updated Unit."
+          }
+        },
+        "additionalProperties": false,
+        "$defs": {
+          "Affiliation": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "unknown",
+              "assumed_friend",
+              "friend",
+              "neutral",
+              "suspect",
+              "hostile"
+            ],
+            "description": "Affiliation used for Symbols, COAs and TOs."
+          },
+          "DISCode": {
+            "description": "SISO Entity Type (DIS) code used by C2SIM.",
+            "properties": {
+              "category": {
+                "type": "number",
+                "description": "DIS category."
+              },
+              "country": {
+                "type": "string",
+                "description": "DIS country code."
+              },
+              "domain": {
+                "type": "number",
+                "description": "DIS domain."
+              },
+              "extra": {
+                "type": "number",
+                "description": "DIS extra code."
+              },
+              "kind": {
+                "type": "number",
+                "description": "DIS kind."
+              },
+              "specific": {
+                "type": "number",
+                "description": "DIS specific code."
+              },
+              "subcategory": {
+                "type": "number",
+                "description": "DIS subcategory."
+              }
+            }
+          },
+          "LatLon": {
+            "description": "Geodetic coordinate (latitude, longitude).",
+            "required": [
+              "lat",
+              "lon"
+            ],
+            "properties": {
+              "lat": {
+                "type": "number",
+                "description": "Latitude in decimal degrees."
+              },
+              "lon": {
+                "type": "number",
+                "description": "Longitude in decimal degrees."
+              }
+            }
+          },
+          "Location": {
+            "description": "Spatial location and geometry used by STP for symbols and gestures.",
+            "properties": {
+              "fsTYPE": {
+                "type": "string",
+                "enum": [
+                  "point",
+                  "line",
+                  "area",
+                  "multipoint"
+                ],
+                "description": "General geometry type."
+              },
+              "width": {
+                "type": "number",
+                "description": "Width of line/area strokes (meters)."
+              },
+              "altitude": {
+                "type": "number",
+                "description": "Altitude (meters)."
+              },
+              "shape": {
+                "type": "string",
+                "description": "Gesture-derived shape classification (e.g., arrowthin, hook)."
+              },
+              "radius": {
+                "type": "number",
+                "description": "Radius around the symbol (meters)."
+              },
+              "coords": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/LatLon"
+                },
+                "description": "Anchor coordinates, order following MIL-STD-2525D draw rules."
+              },
+              "centroid": {
+                "$ref": "#/$defs/LatLon"
+              },
+              "candidatePoids": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Symbols intersected by coords (unique STP identifiers)."
+              }
+            }
+          },
+          "Resource": {
+            "description": "C2SIM resource details (name, quantities, DIS code).",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Resource name (e.g., '155mm shells')."
+              },
+              "operationalQuantity": {
+                "type": "number",
+                "description": "Operationally usable quantity."
+              },
+              "disCode": {
+                "$ref": "#/$defs/DISCode"
+              },
+              "onHandQuantity": {
+                "type": "number",
+                "description": "Optional current on-hand quantity."
+              },
+              "requiredOnHandQuantity": {
+                "type": "number",
+                "description": "Optional required on-hand quantity."
+              }
+            }
+          },
+          "Sidc": {
+            "description": "Dual-standard military symbol identifiers: STP ships BOTH the 2525D form (partA/partB/partC, symbolSet) and the 2525C form (charlie) for every symbol that has one; clients pick the standard they render.",
+            "properties": {
+              "partA": {
+                "type": "string",
+                "description": "SIDC part A (2525D)."
+              },
+              "partB": {
+                "type": "string",
+                "description": "SIDC part B (2525D)."
+              },
+              "partC": {
+                "type": "string",
+                "description": "SIDC part C (2525D). Not emitted by the engine; derive from delta if needed."
+              },
+              "symbolSet": {
+                "type": "string",
+                "description": "2525D symbol set."
+              },
+              "charlie": {
+                "type": "string",
+                "description": "2525C SIDC."
+              },
+              "delta": {
+                "type": "string",
+                "description": "Full 20-digit MIL-STD-2525D SIDC (partA + partB)."
+              },
+              "legacy": {
+                "type": "string",
+                "deprecated": true,
+                "description": "DEPRECATED alias of 'charlie' (same value). Retained for existing clients; the wire ships both during the deprecation window."
+              }
+            }
+          },
+          "StpSymbol": {
+            "description": "STP military symbol and common properties.",
+            "properties": {
+              "fsTYPE": {
+                "type": "string",
+                "description": "Item type identifier (e.g., 'unit', 'equipment', 'tg')."
+              },
+              "poid": {
+                "type": "string",
+                "description": "Unique STP identifier for this symbol."
+              },
+              "parentCoa": {
+                "type": "string",
+                "description": "Unique id of the COA this symbol belongs to."
+              },
+              "creatorRole": {
+                "type": "string",
+                "description": "Role that created the symbol (S2, S3, S4, FSO, ENG)."
+              },
+              "interval": {
+                "description": "Time interval of symbol validity.",
+                "type": "object"
+              },
+              "confidence": {
+                "type": "number",
+                "description": "Recognition confidence score (0..1)."
+              },
+              "alt": {
+                "type": "number",
+                "description": "Alternate index: ranking of this interpretation among hypotheses."
+              },
+              "sidc": {
+                "$ref": "#/$defs/Sidc"
+              },
+              "commonIdentifier": {
+                "type": "string",
+                "description": "Named-system common identifier amplifier (e.g. 'patriot', 'avenger') when the symbol is a named system; empty otherwise."
+              },
+              "location": {
+                "$ref": "#/$defs/Location"
+              },
+              "shortDescription": {
+                "type": "string",
+                "description": "Short symbol description; essential distinguishing elements (e.g., designators)."
+              },
+              "description": {
+                "type": "string",
+                "description": "Regular description; name/type plus designators, may omit assumed decorators."
+              },
+              "fullDescription": {
+                "type": "string",
+                "description": "Full description including all relevant decorators."
+              },
+              "affiliation": {
+                "$ref": "#/$defs/Affiliation"
+              },
+              "echelon": {
+                "type": "string",
+                "description": "Echelon (e.g., company, battalion, brigade)."
+              },
+              "parent": {
+                "type": "string",
+                "description": "Parent unit designator."
+              },
+              "designator1": {
+                "type": "string",
+                "description": "Primary unit designator (e.g., 'A', '1')."
+              },
+              "designator2": {
+                "type": "string",
+                "description": "Additional designator (e.g., neighbor company indicator)."
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "present",
+                  "anticipated"
+                ],
+                "description": "Operational status of the symbol."
+              },
+              "modifier": {
+                "type": "string",
+                "description": "HQ/Task Force/Installation modifiers."
+              },
+              "strength": {
+                "type": "string",
+                "description": "Strength modifier (reduced/reinforced/etc.)."
+              },
+              "branch": {
+                "type": "string",
+                "description": "Branch, e.g., ground_unit, equipment, installation."
+              },
+              "timeFrom": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Start time (UTC) for time-bounded symbols."
+              },
+              "timeTo": {
+                "type": "string",
+                "format": "date-time",
+                "description": "End time (UTC) for time-bounded symbols."
+              },
+              "altitude": {
+                "type": "number",
+                "description": "Altitude (meters)."
+              },
+              "minAltitude": {
+                "type": "number",
+                "description": "Minimum altitude (meters)."
+              },
+              "maxAltitude": {
+                "type": "number",
+                "description": "Maximum altitude (meters)."
+              },
+              "toUnitPoid": {
+                "type": "string",
+                "description": "If created from a TO, the source Task Org Unit id."
+              },
+              "federate": {
+                "type": "string",
+                "description": "C2SIM federate this entity is assigned to."
+              },
+              "disCode": {
+                "$ref": "#/$defs/DISCode"
+              },
+              "resources": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/Resource"
+                },
+                "description": "Associated C2SIM resources for this symbol."
+              },
+              "extensions": {
+                "type": "object",
+                "additionalProperties": true,
+                "description": "Optional client-defined extension properties. Values can be primitives, arrays, or nested objects. Round-tripped through STP. Omitted when null."
+              },
+              "specialC2Hq": {
+                "type": "string",
+                "description": "2525D amplifier AA (Special C2 HQ CP-type, e.g. toc/main). Optional; empty when unset."
+              },
+              "additionalInformation": {
+                "type": "string",
+                "description": "2525D amplifier H (Additional Information text). Optional; empty when unset."
+              },
+              "dbTimestamp": {
+                "type": "string",
+                "description": "Set by the engine on emitted objects; ignored on input."
+              },
+              "dbVersion": {
+                "type": "string",
+                "description": "Set by the engine on emitted objects; ignored on input."
+              }
+            }
+          },
+          "StpTaskOrgUnit": {
+            "description": "Task Org Unit, extends StpSymbol with unit-specific properties.",
+            "allOf": [
+              {
+                "$ref": "#/$defs/StpSymbol"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "fsTYPE": {
+                    "type": "string",
+                    "enum": [
+                      "task_org_unit"
+                    ]
+                  },
+                  "name": {
+                    "type": "string",
+                    "description": "Unit name; may include grouping/alternatives for speech."
+                  },
+                  "speechPhrases": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "description": "Phrase usable for speech placement/selection."
+                    },
+                    "description": "Speech phrases derived from the unit name to improve speech interaction."
+                  },
+                  "unitType": {
+                    "type": "string",
+                    "description": "Functional type (e.g., MECHANIZED INFANTRY)."
+                  },
+                  "info": {
+                    "type": "string",
+                    "description": "Additional notes or metadata about the unit."
+                  },
+                  "parentTO": {
+                    "type": "string",
+                    "description": "Unique id of the parent Task Org."
+                  }
+                }
+              }
+            ]
+          }
+        }
+      },
+      "annotations": {},
+      "_meta": {
+        "stp/safety": "unclassified"
+      }
+    },
+    {
+      "name": "DeleteTaskOrgUnit",
+      "description": "Delete a Task Org Unit.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "poid": {
+            "type": "string",
+            "description": "Unit unique id."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {},
+      "_meta": {
+        "stp/safety": "unclassified"
+      }
+    },
+    {
+      "name": "AddTaskOrgRelationship",
+      "description": "Add a relationship between TO units (e.g., command/attached).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "toRelationship": {
+            "$ref": "#/$defs/StpTaskOrgRelationship",
+            "description": "Relationship to add."
+          }
+        },
+        "additionalProperties": false,
+        "$defs": {
+          "CommandRelationship": {
+            "type": "string",
+            "description": "Command relationship between parent and child units (e.g., OPCON, TACON, Direct Support).",
+            "enum": [
+              "none",
+              "organic",
+              "attached",
+              "assigned",
+              "adcon",
+              "opcon",
+              "tacon",
+              "ds",
+              "r",
+              "gsr",
+              "gs"
+            ]
+          },
+          "StpTaskOrgRelationship": {
+            "description": "Relationship between TO units.",
+            "properties": {
+              "fsTYPE": {
+                "type": "string",
+                "enum": [
+                  "task_org_relationship"
+                ]
+              },
+              "poid": {
+                "type": "string",
+                "description": "Unique id of this relationship."
+              },
+              "parent": {
+                "type": "string",
+                "description": "Unique id of the parent unit."
+              },
+              "child": {
+                "type": "string",
+                "description": "Unique id of the child unit."
+              },
+              "relationship": {
+                "$ref": "#/$defs/CommandRelationship"
+              },
+              "isMTOE": {
+                "type": "boolean",
+                "description": "True if this comes from a MTOE (Table of Organization and Equipment)."
+              },
+              "parentTO": {
+                "type": "string",
+                "description": "Unique id of the Task Org this relationship belongs to."
+              },
+              "extensions": {
+                "type": "object",
+                "additionalProperties": true,
+                "description": "Optional client-defined extension properties. Values can be primitives, arrays, or nested objects. Round-tripped through STP. Omitted when null."
+              },
+              "dbTimestamp": {
+                "type": "string",
+                "description": "Set by the engine on emitted objects; ignored on input."
+              },
+              "dbVersion": {
+                "type": "string",
+                "description": "Set by the engine on emitted objects; ignored on input."
+              }
+            }
+          }
+        }
+      },
+      "annotations": {},
+      "_meta": {
+        "stp/safety": "unclassified"
+      }
+    },
+    {
+      "name": "UpdateTaskOrgRelationship",
+      "description": "Update a relationship between TO units.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "poid": {
+            "type": "string",
+            "description": "Relationship unique id."
+          },
+          "toRelationship": {
+            "$ref": "#/$defs/StpTaskOrgRelationship",
+            "description": "Updated relationship."
+          }
+        },
+        "additionalProperties": false,
+        "$defs": {
+          "CommandRelationship": {
+            "type": "string",
+            "description": "Command relationship between parent and child units (e.g., OPCON, TACON, Direct Support).",
+            "enum": [
+              "none",
+              "organic",
+              "attached",
+              "assigned",
+              "adcon",
+              "opcon",
+              "tacon",
+              "ds",
+              "r",
+              "gsr",
+              "gs"
+            ]
+          },
+          "StpTaskOrgRelationship": {
+            "description": "Relationship between TO units.",
+            "properties": {
+              "fsTYPE": {
+                "type": "string",
+                "enum": [
+                  "task_org_relationship"
+                ]
+              },
+              "poid": {
+                "type": "string",
+                "description": "Unique id of this relationship."
+              },
+              "parent": {
+                "type": "string",
+                "description": "Unique id of the parent unit."
+              },
+              "child": {
+                "type": "string",
+                "description": "Unique id of the child unit."
+              },
+              "relationship": {
+                "$ref": "#/$defs/CommandRelationship"
+              },
+              "isMTOE": {
+                "type": "boolean",
+                "description": "True if this comes from a MTOE (Table of Organization and Equipment)."
+              },
+              "parentTO": {
+                "type": "string",
+                "description": "Unique id of the Task Org this relationship belongs to."
+              },
+              "extensions": {
+                "type": "object",
+                "additionalProperties": true,
+                "description": "Optional client-defined extension properties. Values can be primitives, arrays, or nested objects. Round-tripped through STP. Omitted when null."
+              },
+              "dbTimestamp": {
+                "type": "string",
+                "description": "Set by the engine on emitted objects; ignored on input."
+              },
+              "dbVersion": {
+                "type": "string",
+                "description": "Set by the engine on emitted objects; ignored on input."
+              }
+            }
+          }
+        }
+      },
+      "annotations": {},
+      "_meta": {
+        "stp/safety": "unclassified"
+      }
+    },
+    {
+      "name": "DeleteTaskOrgRelationship",
+      "description": "Delete a relationship between TO units.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "poid": {
+            "type": "string",
+            "description": "Relationship unique id."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {},
+      "_meta": {
+        "stp/safety": "unclassified"
+      }
+    },
+    {
+      "name": "AddTask",
+      "description": "Request addition of a task. STP will respond with TaskAdded.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "task": {
+            "$ref": "#/$defs/StpTask",
+            "description": "Task to add."
+          }
+        },
+        "additionalProperties": false,
+        "$defs": {
+          "MovementFeatures": {
+            "description": "Task movement features.",
+            "properties": {
+              "fsTYPE": {
+                "type": "string",
+                "enum": [
+                  "movement_features"
+                ]
+              },
+              "movement": {
+                "type": "boolean",
+                "description": "True if the task involves movement."
+              },
+              "movesTo": {
+                "type": "string",
+                "description": "Destination or target identifier for movement."
+              }
+            }
+          },
+          "StpTask": {
+            "description": "STP task definition and common properties.",
+            "properties": {
+              "fsTYPE": {
+                "type": "string",
+                "description": "Item type identifier for tasks."
+              },
+              "poid": {
+                "type": "string",
+                "description": "Unique id of the task."
+              },
+              "parentCoa": {
+                "type": "string",
+                "description": "Unique id of the COA this task belongs to."
+              },
+              "creatorRole": {
+                "type": "string",
+                "description": "Role that created the task (S2, S3, S4, FSO, ENG)."
+              },
+              "interval": {
+                "type": "object",
+                "description": "Temporal interval of task execution."
+              },
+              "confidence": {
+                "type": "number",
+                "description": "Recognition confidence (0..1)."
+              },
+              "alt": {
+                "type": "number",
+                "description": "Alternate index in the set of task hypotheses."
+              },
+              "description": {
+                "type": "string",
+                "description": "Human-readable task description."
+              },
+              "who": {
+                "type": "string",
+                "description": "Unit executing the task (unique id)."
+              },
+              "supported": {
+                "type": "string",
+                "description": "Supported unit (unique id), if applicable."
+              },
+              "tgs": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Associated Tactical Graphics unique ids."
+              },
+              "name": {
+                "type": "string",
+                "description": "Task type/name (e.g., 'AssaultObjectiveOnAxis')."
+              },
+              "how": {
+                "$ref": "#/$defs/TaskHow"
+              },
+              "what": {
+                "$ref": "#/$defs/TaskWhat"
+              },
+              "why": {
+                "$ref": "#/$defs/TaskWhy"
+              },
+              "roe": {
+                "$ref": "#/$defs/TaskROE"
+              },
+              "startTime": {
+                "type": "integer",
+                "description": "Start time slot index."
+              },
+              "endTime": {
+                "type": "integer",
+                "description": "End time slot index."
+              },
+              "speech": {
+                "type": "string",
+                "description": "Associated speech transcript, if applicable."
+              },
+              "language": {
+                "type": "string",
+                "description": "Language of the task description/speech."
+              },
+              "taskStatus": {
+                "type": "string",
+                "enum": [
+                  "implicit",
+                  "explicit"
+                ],
+                "description": "Whether the task was generated implicitly or explicitly."
+              },
+              "uiStatus": {
+                "type": "string",
+                "enum": [
+                  "confirming",
+                  "confirmed"
+                ],
+                "description": "UI confirmation state for the task."
+              },
+              "prob": {
+                "type": "number",
+                "description": "Task interpretation likelihood (0..1)."
+              },
+              "movementFeatures": {
+                "$ref": "#/$defs/MovementFeatures"
+              },
+              "extensions": {
+                "type": "object",
+                "additionalProperties": true,
+                "description": "Optional client-defined extension properties. Values can be primitives, arrays, or nested objects. Round-tripped through STP. Omitted when null."
+              }
+            }
+          },
+          "TaskHow": {
+            "type": "string",
+            "description": "Method or approach: the engine's TaskHow member name, e.g. DEFEND, ATTACK, CORDON_AND_SEARCH."
+          },
+          "TaskROE": {
+            "type": "string",
+            "enum": [
+              "NOT_SPECIFIED",
+              "Hold",
+              "Tight",
+              "Free"
+            ]
+          },
+          "TaskWhat": {
+            "type": "string",
+            "description": "Task objective: the engine's TaskWhat member name, e.g. SECURE, SEIZE, DELAY."
+          },
+          "TaskWhy": {
+            "type": "string",
+            "description": "Purpose/intent: the engine's TaskWhy member name, e.g. ENABLE, PROTECT, PREVENT."
+          }
+        }
+      },
+      "annotations": {},
+      "_meta": {
+        "stp/safety": "unclassified"
+      }
+    },
+    {
+      "name": "UpdateTask",
+      "description": "Request update of a task (usually one of the alternates). STP will respond with TaskModified.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "poid": {
+            "type": "string",
+            "description": "Task unique id."
+          },
+          "alternates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/StpTask"
+            },
+            "description": "Task alternates to update (usually one updated)."
+          }
+        },
+        "additionalProperties": false,
+        "$defs": {
+          "MovementFeatures": {
+            "description": "Task movement features.",
+            "properties": {
+              "fsTYPE": {
+                "type": "string",
+                "enum": [
+                  "movement_features"
+                ]
+              },
+              "movement": {
+                "type": "boolean",
+                "description": "True if the task involves movement."
+              },
+              "movesTo": {
+                "type": "string",
+                "description": "Destination or target identifier for movement."
+              }
+            }
+          },
+          "StpTask": {
+            "description": "STP task definition and common properties.",
+            "properties": {
+              "fsTYPE": {
+                "type": "string",
+                "description": "Item type identifier for tasks."
+              },
+              "poid": {
+                "type": "string",
+                "description": "Unique id of the task."
+              },
+              "parentCoa": {
+                "type": "string",
+                "description": "Unique id of the COA this task belongs to."
+              },
+              "creatorRole": {
+                "type": "string",
+                "description": "Role that created the task (S2, S3, S4, FSO, ENG)."
+              },
+              "interval": {
+                "type": "object",
+                "description": "Temporal interval of task execution."
+              },
+              "confidence": {
+                "type": "number",
+                "description": "Recognition confidence (0..1)."
+              },
+              "alt": {
+                "type": "number",
+                "description": "Alternate index in the set of task hypotheses."
+              },
+              "description": {
+                "type": "string",
+                "description": "Human-readable task description."
+              },
+              "who": {
+                "type": "string",
+                "description": "Unit executing the task (unique id)."
+              },
+              "supported": {
+                "type": "string",
+                "description": "Supported unit (unique id), if applicable."
+              },
+              "tgs": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Associated Tactical Graphics unique ids."
+              },
+              "name": {
+                "type": "string",
+                "description": "Task type/name (e.g., 'AssaultObjectiveOnAxis')."
+              },
+              "how": {
+                "$ref": "#/$defs/TaskHow"
+              },
+              "what": {
+                "$ref": "#/$defs/TaskWhat"
+              },
+              "why": {
+                "$ref": "#/$defs/TaskWhy"
+              },
+              "roe": {
+                "$ref": "#/$defs/TaskROE"
+              },
+              "startTime": {
+                "type": "integer",
+                "description": "Start time slot index."
+              },
+              "endTime": {
+                "type": "integer",
+                "description": "End time slot index."
+              },
+              "speech": {
+                "type": "string",
+                "description": "Associated speech transcript, if applicable."
+              },
+              "language": {
+                "type": "string",
+                "description": "Language of the task description/speech."
+              },
+              "taskStatus": {
+                "type": "string",
+                "enum": [
+                  "implicit",
+                  "explicit"
+                ],
+                "description": "Whether the task was generated implicitly or explicitly."
+              },
+              "uiStatus": {
+                "type": "string",
+                "enum": [
+                  "confirming",
+                  "confirmed"
+                ],
+                "description": "UI confirmation state for the task."
+              },
+              "prob": {
+                "type": "number",
+                "description": "Task interpretation likelihood (0..1)."
+              },
+              "movementFeatures": {
+                "$ref": "#/$defs/MovementFeatures"
+              },
+              "extensions": {
+                "type": "object",
+                "additionalProperties": true,
+                "description": "Optional client-defined extension properties. Values can be primitives, arrays, or nested objects. Round-tripped through STP. Omitted when null."
+              }
+            }
+          },
+          "TaskHow": {
+            "type": "string",
+            "description": "Method or approach: the engine's TaskHow member name, e.g. DEFEND, ATTACK, CORDON_AND_SEARCH."
+          },
+          "TaskROE": {
+            "type": "string",
+            "enum": [
+              "NOT_SPECIFIED",
+              "Hold",
+              "Tight",
+              "Free"
+            ]
+          },
+          "TaskWhat": {
+            "type": "string",
+            "description": "Task objective: the engine's TaskWhat member name, e.g. SECURE, SEIZE, DELAY."
+          },
+          "TaskWhy": {
+            "type": "string",
+            "description": "Purpose/intent: the engine's TaskWhy member name, e.g. ENABLE, PROTECT, PREVENT."
+          }
+        }
+      },
+      "annotations": {},
+      "_meta": {
+        "stp/safety": "unclassified"
+      }
+    },
+    {
+      "name": "DeleteTask",
+      "description": "Request deletion of a task. STP will respond with TaskDeleted.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "poid": {
+            "type": "string",
+            "description": "Task unique id."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {},
+      "_meta": {
+        "stp/safety": "unclassified"
+      }
+    },
+    {
+      "name": "ConfirmTask",
+      "description": "Confirm or unconfirm a task alternate, transitioning UI status between 'confirming' and 'confirmed'.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "poid": {
+            "type": "string",
+            "description": "Task unique id."
+          },
+          "nBestIndex": {
+            "type": "integer",
+            "description": "Index of the chosen alternate."
+          },
+          "isConfirmed": {
+            "type": "boolean",
+            "description": "Whether to mark the task as confirmed (default true)."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {},
+      "_meta": {
+        "stp/safety": "unclassified"
+      }
+    },
+    {
+      "name": "SetRole",
+      "description": "Switch the role associated with the current COA (e.g., S2, S3, S4, FSO, ENG). If no COA exists for the role and createIfNone is true, a default COA may be created.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "role": {
+            "$ref": "#/$defs/StpRole",
+            "description": "Role to set."
+          },
+          "createIfNone": {
+            "type": "boolean",
+            "description": "If true, create a default COA for the role if none exists (default true)."
+          }
+        },
+        "additionalProperties": false,
+        "$defs": {
+          "StpRole": {
+            "type": "string",
+            "enum": [
+              "S2",
+              "S3",
+              "S4",
+              "FSO",
+              "ENG"
+            ],
+            "description": "STP roles."
+          }
+        }
+      },
+      "annotations": {},
+      "_meta": {
+        "stp/safety": "unclassified"
+      }
+    },
+    {
+      "name": "ConvertC2SIMContent",
+      "description": "Convert C2SIM content (e.g. between BML/IBML formats) to STP's native object-set representation. The conversion happens entirely inside the engine's own SDK layer and never reaches the C2SIM bridge agent. Returns the converted objects as the multiline string ObjectSet.ToMultilineString() produces: \"object_set([\" followed by one STP object per line and a closing \"])\". Three things are worth knowing before you rely on the result. SYMBOLS ONLY: units and tactical graphics are extracted, but tasks are not created. This is a long-standing, deliberate limitation - STP tasks carry more detail than C2SIM captures, and the missing information cannot be filled in from an Order document. NOT IDEMPOTENT: the conversion mints a task org to hold the converted symbols (one per affiliation present, named \"Friendly TO\" and \"Hostile TO\") with a freshly generated identifier on every call, so converting the same document twice yields two different task orgs. NO PARENT COA: converted symbols are parented to that minted task org, but a purely local conversion mints no course of action, so nothing carries a parent COA - a caller that needs COA-parented objects, to load them into a scenario say, must mint the COAs and parent the objects itself. Input must be well-formed XML: a well-formed document with nothing convertible yields an empty \"object_set([])\" shell, but malformed content fails the call rather than returning an empty result.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "string",
+            "description": "C2SIM content string to convert."
+          },
+          "options": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Accepted for wire compatibility with existing clients (the public .NET SDK sends this field) and then IGNORED. That is deliberate, and it differs from the sibling C2SIM methods on purpose: those carry an enumerated key set and reject an unknown key rather than ignoring it (STP-687), whereas this method has no key set to enumerate. Those keys configure the C2SIM bridge agent, and this conversion is purely local to the engine's SDK layer and never reaches that agent. Nothing passed here can change the result."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {},
+      "_meta": {
+        "stp/safety": "unclassified",
+        "stp/descriptionStatus": "draft"
+      }
+    },
+    {
+      "name": "GetC2SIMContent",
+      "description": "Return content for the scenario (or specified COAs) rendered in a C2SIM format (e.g. BML/IBML), selected by data type and affiliation.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name to associate with the generated content."
+          },
+          "dataType": {
+            "type": "string",
+            "description": "C2SIM data type to generate (engine-defined; parsed as StpRecognizer.C2CIMDataType)."
+          },
+          "affiliation": {
+            "type": "string",
+            "description": "Affiliation to scope the generated content to."
+          },
+          "coaPoids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Unique identifiers of the COAs to include."
+          },
+          "options": {
+            "type": "object",
+            "properties": {
+              "resturl": {
+                "type": "string",
+                "description": "C2SIM REST endpoint, host:port/path, e.g. http://10.2.10.30:8080/C2SIMServer."
+              },
+              "restpassword": {
+                "type": "string",
+                "description": "C2SIM REST endpoint password. Applied to this call only; it is never stored."
+              },
+              "stompurl": {
+                "type": "string",
+                "description": "STOMP endpoint, host:port/destination. Used to build this call's REST client; it does NOT move the engine's long-lived notification subscription."
+              },
+              "serverprotocol": {
+                "type": "string",
+                "description": "C2SIM server protocol version."
+              },
+              "systemname": {
+                "type": "string",
+                "description": "Value of SystemEntityList/SystemName in the generated Initialization document."
+              },
+              "resetbeforeinitialize": {
+                "type": "boolean",
+                "description": "Force the C2SIM server to Uninitialized before pushing Initialization, so it is not merged with a previous one."
+              },
+              "runafterinitialize": {
+                "type": "boolean",
+                "description": "Switch the C2SIM server to Running immediately after pushing Initialization."
+              },
+              "fullto": {
+                "type": "boolean",
+                "description": "Include the full Task Org, including entities not placed on the map. When false, only placed elements and their subordinates."
+              },
+              "schemaversion": {
+                "type": "string",
+                "description": "Schema version hint (1.0.0 / 1.0.1 / 1.0.2). All inputs generate 1.0.2 unified output."
+              },
+              "addorphantgtoinitialization": {
+                "type": "boolean",
+                "description": "Include tactical graphics that are not part of any task in the Initialization document."
+              },
+              "placealltgininitialization": {
+                "type": "boolean",
+                "description": "Place tactical graphics in the Initialization document instead of the Order document."
+              },
+              "includeMapGraphicId": {
+                "type": "boolean",
+                "description": "Include MapGraphicID references to tactical graphics in tasks, rather than relying on Location."
+              },
+              "entityNameCharLimit": {
+                "type": "integer",
+                "description": "Maximum number of characters in a generated entity name; 0 for no limit."
+              },
+              "includeDescriptionInName": {
+                "type": "boolean",
+                "description": "Append the description to generated entity names - required to round-trip an ORBAT imported from C2SIM documents."
+              },
+              "rulesOfEngagement": {
+                "type": "string",
+                "description": "Default rules of engagement.",
+                "enum": [
+                  "Hold",
+                  "Free",
+                  "Tight"
+                ]
+              },
+              "updateunitpositions": {
+                "type": "boolean",
+                "description": "Use Position Report information to update units. ACCEPTED BUT INERT for a single call: it is read only by the engine's inbound report handler, which has no per-call context."
+              },
+              "exportfiledir": {
+                "type": "string",
+                "description": "Default document export folder."
+              },
+              "validationschema": {
+                "type": "string",
+                "description": "Path to a schema file to validate generated XML against; empty for no validation."
+              },
+              "startdate": {
+                "type": "string",
+                "description": "Mission start date. ACCEPTED BUT INERT: nothing in the C2SIM bridge reads it.",
+                "format": "date-time"
+              },
+              "phaseduration": {
+                "type": "integer",
+                "description": "Duration of each STP phase, in minutes."
+              },
+              "fromsenderuuid": {
+                "type": "string",
+                "description": "Sender unique id."
+              },
+              "toreceiveruuid": {
+                "type": "string",
+                "description": "Receiver unique id."
+              },
+              "friendfstname": {
+                "type": "string",
+                "description": "Friendly forces name."
+              },
+              "friendfstuuid": {
+                "type": "string",
+                "description": "Friendly forces unique id."
+              },
+              "hostilefstname": {
+                "type": "string",
+                "description": "Hostile forces name."
+              },
+              "hostilefstuuid": {
+                "type": "string",
+                "description": "Hostile forces unique id."
+              },
+              "neutralfstname": {
+                "type": "string",
+                "description": "Neutral forces name."
+              },
+              "neutralfstuuid": {
+                "type": "string",
+                "description": "Neutral forces unique id."
+              },
+              "unknownfstname": {
+                "type": "string",
+                "description": "Unknown forces name. ACCEPTED BUT INERT: nothing in the C2SIM bridge reads it."
+              },
+              "unknownfstuuid": {
+                "type": "string",
+                "description": "Unknown forces unique id. ACCEPTED BUT INERT: nothing in the C2SIM bridge reads it."
+              }
+            },
+            "additionalProperties": false,
+            "description": "Generation options. Applied to THIS CALL ONLY - options no longer persist into the engine's shared configuration, so nothing one caller passes affects any later call or any other session (STP-687). The key set is definite and enumerated below, NOT implementation-defined. An unknown or misspelled key fails the call with success = false and nothing applied, rather than being silently ignored. Key names are compared CASE-INSENSITIVELY, so the camelCase spellings used by the JS SDK's StpC2SIMOptions (for example restUrl for resturl) are equivalent to the canonical names listed here. Three properties of the engine's configuration are deliberately NOT settable over the wire because they are not operator-settable either - stphost and stpport drive the engine's own long-lived connection, and backgroundmode is set by the host process."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {},
+      "_meta": {
+        "stp/safety": "unclassified",
+        "stp/descriptionStatus": "draft"
+      }
+    },
+    {
+      "name": "GetCoaObjectSet",
+      "description": "Return the objects making up a COA as an in-memory object set. Object-set equivalent of GetCoaContent.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "poid": {
+            "type": "string",
+            "description": "COA unique id."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {},
+      "_meta": {
+        "stp/safety": "unclassified",
+        "stp/descriptionStatus": "draft"
+      }
+    },
+    {
+      "name": "GetScenarioObjectSet",
+      "description": "Return the current scenario as an in-memory object set (array of STP objects). Object-set equivalent of GetScenarioContent. Takes no parameters.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      },
+      "annotations": {},
+      "_meta": {
+        "stp/safety": "unclassified",
+        "stp/descriptionStatus": "draft"
+      }
+    },
+    {
+      "name": "GetTaskOrgObjectSet",
+      "description": "Return the objects making up a Task Organization as an in-memory object set. Object-set equivalent of GetTaskOrgContent.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "poid": {
+            "type": "string",
+            "description": "TO unique id."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {},
+      "_meta": {
+        "stp/safety": "unclassified",
+        "stp/descriptionStatus": "draft"
+      }
+    },
+    {
+      "name": "ImportCoaFromObjectSet",
+      "description": "Import a new COA from an in-memory object set (array of STP objects), using fresh unique IDs. Object-set equivalent of ImportCoaContent.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "objects": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            },
+            "description": "STP objects making up the COA to import."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {},
+      "_meta": {
+        "stp/safety": "unclassified",
+        "stp/descriptionStatus": "draft"
+      }
+    },
+    {
+      "name": "ImportPlanDataFromObjectSet",
+      "description": "Import additional content into the current scenario from an in-memory object set (array of STP objects). Object-set equivalent of ImportPlanData.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "objects": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            },
+            "description": "STP objects to merge into the scenario."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {},
+      "_meta": {
+        "stp/safety": "unclassified",
+        "stp/descriptionStatus": "draft"
+      }
+    },
+    {
+      "name": "ImportTaskOrgFromObjectSet",
+      "description": "Import a Task Organization from an in-memory object set (array of STP objects), using fresh unique IDs. Object-set equivalent of ImportTaskOrgContent.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "objects": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            },
+            "description": "STP objects making up the TO to import."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {},
+      "_meta": {
+        "stp/safety": "unclassified",
+        "stp/descriptionStatus": "draft"
+      }
+    },
+    {
+      "name": "LoadNewScenarioFromObjectSet",
+      "description": "Create and load a new scenario from an in-memory object set (array of STP objects), replacing any previous content. Object-set equivalent of LoadNewScenario.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "objects": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            },
+            "description": "STP objects making up the new scenario."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {},
+      "_meta": {
+        "stp/safety": "unclassified",
+        "stp/descriptionStatus": "draft"
+      }
+    },
+    {
+      "name": "PullC2SIMInitialization",
+      "description": "Pull C2SIM initialization content (e.g. order of battle) from the connected C2SIM infrastructure.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "options": {
+            "type": "object",
+            "properties": {
+              "resturl": {
+                "type": "string",
+                "description": "C2SIM REST endpoint, host:port/path, e.g. http://10.2.10.30:8080/C2SIMServer."
+              },
+              "restpassword": {
+                "type": "string",
+                "description": "C2SIM REST endpoint password. Applied to this call only; it is never stored."
+              },
+              "stompurl": {
+                "type": "string",
+                "description": "STOMP endpoint, host:port/destination. Used to build this call's REST client; it does NOT move the engine's long-lived notification subscription."
+              },
+              "serverprotocol": {
+                "type": "string",
+                "description": "C2SIM server protocol version."
+              },
+              "systemname": {
+                "type": "string",
+                "description": "Value of SystemEntityList/SystemName in the generated Initialization document."
+              },
+              "resetbeforeinitialize": {
+                "type": "boolean",
+                "description": "Force the C2SIM server to Uninitialized before pushing Initialization, so it is not merged with a previous one."
+              },
+              "runafterinitialize": {
+                "type": "boolean",
+                "description": "Switch the C2SIM server to Running immediately after pushing Initialization."
+              },
+              "fullto": {
+                "type": "boolean",
+                "description": "Include the full Task Org, including entities not placed on the map. When false, only placed elements and their subordinates."
+              },
+              "schemaversion": {
+                "type": "string",
+                "description": "Schema version hint (1.0.0 / 1.0.1 / 1.0.2). All inputs generate 1.0.2 unified output."
+              },
+              "addorphantgtoinitialization": {
+                "type": "boolean",
+                "description": "Include tactical graphics that are not part of any task in the Initialization document."
+              },
+              "placealltgininitialization": {
+                "type": "boolean",
+                "description": "Place tactical graphics in the Initialization document instead of the Order document."
+              },
+              "includeMapGraphicId": {
+                "type": "boolean",
+                "description": "Include MapGraphicID references to tactical graphics in tasks, rather than relying on Location."
+              },
+              "entityNameCharLimit": {
+                "type": "integer",
+                "description": "Maximum number of characters in a generated entity name; 0 for no limit."
+              },
+              "includeDescriptionInName": {
+                "type": "boolean",
+                "description": "Append the description to generated entity names - required to round-trip an ORBAT imported from C2SIM documents."
+              },
+              "rulesOfEngagement": {
+                "type": "string",
+                "description": "Default rules of engagement.",
+                "enum": [
+                  "Hold",
+                  "Free",
+                  "Tight"
+                ]
+              },
+              "updateunitpositions": {
+                "type": "boolean",
+                "description": "Use Position Report information to update units. ACCEPTED BUT INERT for a single call: it is read only by the engine's inbound report handler, which has no per-call context."
+              },
+              "exportfiledir": {
+                "type": "string",
+                "description": "Default document export folder."
+              },
+              "validationschema": {
+                "type": "string",
+                "description": "Path to a schema file to validate generated XML against; empty for no validation."
+              },
+              "startdate": {
+                "type": "string",
+                "description": "Mission start date. ACCEPTED BUT INERT: nothing in the C2SIM bridge reads it.",
+                "format": "date-time"
+              },
+              "phaseduration": {
+                "type": "integer",
+                "description": "Duration of each STP phase, in minutes."
+              },
+              "fromsenderuuid": {
+                "type": "string",
+                "description": "Sender unique id."
+              },
+              "toreceiveruuid": {
+                "type": "string",
+                "description": "Receiver unique id."
+              },
+              "friendfstname": {
+                "type": "string",
+                "description": "Friendly forces name."
+              },
+              "friendfstuuid": {
+                "type": "string",
+                "description": "Friendly forces unique id."
+              },
+              "hostilefstname": {
+                "type": "string",
+                "description": "Hostile forces name."
+              },
+              "hostilefstuuid": {
+                "type": "string",
+                "description": "Hostile forces unique id."
+              },
+              "neutralfstname": {
+                "type": "string",
+                "description": "Neutral forces name."
+              },
+              "neutralfstuuid": {
+                "type": "string",
+                "description": "Neutral forces unique id."
+              },
+              "unknownfstname": {
+                "type": "string",
+                "description": "Unknown forces name. ACCEPTED BUT INERT: nothing in the C2SIM bridge reads it."
+              },
+              "unknownfstuuid": {
+                "type": "string",
+                "description": "Unknown forces unique id. ACCEPTED BUT INERT: nothing in the C2SIM bridge reads it."
+              }
+            },
+            "additionalProperties": false,
+            "description": "Pull options. Applied to THIS CALL ONLY - options no longer persist into the engine's shared configuration, so nothing one caller passes affects any later call or any other session (STP-687). The key set is definite and enumerated below, NOT implementation-defined. An unknown or misspelled key fails the call with success = false and nothing applied, rather than being silently ignored. Key names are compared CASE-INSENSITIVELY, so the camelCase spellings used by the JS SDK's StpC2SIMOptions (for example restUrl for resturl) are equivalent to the canonical names listed here. Three properties of the engine's configuration are deliberately NOT settable over the wire because they are not operator-settable either - stphost and stpport drive the engine's own long-lived connection, and backgroundmode is set by the host process."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {},
+      "_meta": {
+        "stp/safety": "unclassified",
+        "stp/descriptionStatus": "draft"
+      }
+    },
+    {
+      "name": "PushC2SIMContent",
+      "description": "Submit C2SIM-formatted content to STP for processing/import.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "string",
+            "description": "C2SIM content string to push."
+          },
+          "dataType": {
+            "type": "string",
+            "description": "C2SIM data type of the content (engine-defined; parsed as StpRecognizer.C2CIMDataType)."
+          },
+          "options": {
+            "type": "object",
+            "properties": {
+              "resturl": {
+                "type": "string",
+                "description": "C2SIM REST endpoint, host:port/path, e.g. http://10.2.10.30:8080/C2SIMServer."
+              },
+              "restpassword": {
+                "type": "string",
+                "description": "C2SIM REST endpoint password. Applied to this call only; it is never stored."
+              },
+              "stompurl": {
+                "type": "string",
+                "description": "STOMP endpoint, host:port/destination. Used to build this call's REST client; it does NOT move the engine's long-lived notification subscription."
+              },
+              "serverprotocol": {
+                "type": "string",
+                "description": "C2SIM server protocol version."
+              },
+              "systemname": {
+                "type": "string",
+                "description": "Value of SystemEntityList/SystemName in the generated Initialization document."
+              },
+              "resetbeforeinitialize": {
+                "type": "boolean",
+                "description": "Force the C2SIM server to Uninitialized before pushing Initialization, so it is not merged with a previous one."
+              },
+              "runafterinitialize": {
+                "type": "boolean",
+                "description": "Switch the C2SIM server to Running immediately after pushing Initialization."
+              },
+              "fullto": {
+                "type": "boolean",
+                "description": "Include the full Task Org, including entities not placed on the map. When false, only placed elements and their subordinates."
+              },
+              "schemaversion": {
+                "type": "string",
+                "description": "Schema version hint (1.0.0 / 1.0.1 / 1.0.2). All inputs generate 1.0.2 unified output."
+              },
+              "addorphantgtoinitialization": {
+                "type": "boolean",
+                "description": "Include tactical graphics that are not part of any task in the Initialization document."
+              },
+              "placealltgininitialization": {
+                "type": "boolean",
+                "description": "Place tactical graphics in the Initialization document instead of the Order document."
+              },
+              "includeMapGraphicId": {
+                "type": "boolean",
+                "description": "Include MapGraphicID references to tactical graphics in tasks, rather than relying on Location."
+              },
+              "entityNameCharLimit": {
+                "type": "integer",
+                "description": "Maximum number of characters in a generated entity name; 0 for no limit."
+              },
+              "includeDescriptionInName": {
+                "type": "boolean",
+                "description": "Append the description to generated entity names - required to round-trip an ORBAT imported from C2SIM documents."
+              },
+              "rulesOfEngagement": {
+                "type": "string",
+                "description": "Default rules of engagement.",
+                "enum": [
+                  "Hold",
+                  "Free",
+                  "Tight"
+                ]
+              },
+              "updateunitpositions": {
+                "type": "boolean",
+                "description": "Use Position Report information to update units. ACCEPTED BUT INERT for a single call: it is read only by the engine's inbound report handler, which has no per-call context."
+              },
+              "exportfiledir": {
+                "type": "string",
+                "description": "Default document export folder."
+              },
+              "validationschema": {
+                "type": "string",
+                "description": "Path to a schema file to validate generated XML against; empty for no validation."
+              },
+              "startdate": {
+                "type": "string",
+                "description": "Mission start date. ACCEPTED BUT INERT: nothing in the C2SIM bridge reads it.",
+                "format": "date-time"
+              },
+              "phaseduration": {
+                "type": "integer",
+                "description": "Duration of each STP phase, in minutes."
+              },
+              "fromsenderuuid": {
+                "type": "string",
+                "description": "Sender unique id."
+              },
+              "toreceiveruuid": {
+                "type": "string",
+                "description": "Receiver unique id."
+              },
+              "friendfstname": {
+                "type": "string",
+                "description": "Friendly forces name."
+              },
+              "friendfstuuid": {
+                "type": "string",
+                "description": "Friendly forces unique id."
+              },
+              "hostilefstname": {
+                "type": "string",
+                "description": "Hostile forces name."
+              },
+              "hostilefstuuid": {
+                "type": "string",
+                "description": "Hostile forces unique id."
+              },
+              "neutralfstname": {
+                "type": "string",
+                "description": "Neutral forces name."
+              },
+              "neutralfstuuid": {
+                "type": "string",
+                "description": "Neutral forces unique id."
+              },
+              "unknownfstname": {
+                "type": "string",
+                "description": "Unknown forces name. ACCEPTED BUT INERT: nothing in the C2SIM bridge reads it."
+              },
+              "unknownfstuuid": {
+                "type": "string",
+                "description": "Unknown forces unique id. ACCEPTED BUT INERT: nothing in the C2SIM bridge reads it."
+              }
+            },
+            "additionalProperties": false,
+            "description": "Push options. Applied to THIS CALL ONLY - options no longer persist into the engine's shared configuration, so nothing one caller passes affects any later call or any other session (STP-687). The key set is definite and enumerated below, NOT implementation-defined. An unknown or misspelled key fails the call with success = false and nothing applied, rather than being silently ignored. Key names are compared CASE-INSENSITIVELY, so the camelCase spellings used by the JS SDK's StpC2SIMOptions (for example restUrl for resturl) are equivalent to the canonical names listed here. Three properties of the engine's configuration are deliberately NOT settable over the wire because they are not operator-settable either - stphost and stpport drive the engine's own long-lived connection, and backgroundmode is set by the host process."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {},
+      "_meta": {
+        "stp/safety": "unclassified",
+        "stp/descriptionStatus": "draft"
+      }
+    },
+    {
+      "name": "SyncScenarioSessionFromObjectSet",
+      "description": "Load a scenario from an in-memory object set and update the session state with detected differences. Object-set equivalent of SyncScenarioSession.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "objects": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            },
+            "description": "STP objects making up the scenario to sync against."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {},
+      "_meta": {
+        "stp/safety": "unclassified",
+        "stp/descriptionStatus": "draft"
+      }
+    },
+    {
+      "name": "ChangeTimeOut",
+      "description": "Set the wait and segmentation timeouts together, in seconds. This is the only public control over how long STP waits before deciding a sketch is finished, so it is required whenever a user draws a multi-stroke 2525/APP6 symbol: use 0.0 for ordinary single-stroke point, line and area work, and around 2.5 while a full symbol is being drawn. Fire and forget.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "timeout": {
+            "type": "number",
+            "description": "Timeout in seconds. 0.0 restores single-stroke behaviour."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {},
+      "_meta": {
+        "stp/safety": "unclassified"
+      }
+    },
+    {
+      "name": "ResetSegmentationTimeout",
+      "description": "Restore the segmentation timeout to its configured default, undoing an earlier ChangeTimeOut. Fire and forget.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      },
+      "annotations": {},
+      "_meta": {
+        "stp/safety": "unclassified"
+      }
+    },
+    {
+      "name": "SetSpeechListening",
+      "description": "Turn speech capture on or off for this client. Fire and forget; STP reports the resulting state through the AudioCapture event.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "listen": {
+            "type": "boolean",
+            "description": "True to start listening, false to stop."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {},
+      "_meta": {
+        "stp/safety": "unclassified"
+      }
+    },
+    {
+      "name": "RecognizeNow",
+      "description": "Recognize whatever has been collected so far instead of waiting for the segmentation timeout to expire. Fire and forget.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      },
+      "annotations": {},
+      "_meta": {
+        "stp/safety": "unclassified"
+      }
+    },
+    {
+      "name": "SendListen",
+      "description": "Ask STP to start or stop listening. Fire and forget. NB the .NET SDK serialises `mode` with default settings, so it arrives as the ORDINAL of the enum rather than its name; the engine accepts either spelling.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "mode": {
+            "oneOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "once",
+                  "on",
+                  "off"
+                ]
+              },
+              {
+                "type": "integer",
+                "enum": [
+                  0,
+                  1,
+                  2
+                ]
+              }
+            ],
+            "description": "Listening mode: once (0) listens until the first inactivity, on (1) listens until told to stop, off (2) stops."
+          },
+          "time": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp of the request. Defaults to now."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {},
+      "_meta": {
+        "stp/safety": "unclassified"
+      }
+    },
+    {
+      "name": "SendAudioCaptureState",
+      "description": "Report this client's own audio capture state to STP so other components can reflect it in their user interface. Fire and forget.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "isListening": {
+            "type": "boolean",
+            "description": "True while this client is capturing audio."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {},
+      "_meta": {
+        "stp/safety": "unclassified"
+      }
+    },
+    {
+      "name": "AdvertiseViewport",
+      "description": "Tell STP which geographic area this client is currently showing, so recognition can be biased towards what the user can actually see. Fire and forget.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "topLeft": {
+            "$ref": "#/$defs/LatLon",
+            "description": "North-west corner of the visible map."
+          },
+          "botRight": {
+            "$ref": "#/$defs/LatLon",
+            "description": "South-east corner of the visible map."
+          }
+        },
+        "additionalProperties": false,
+        "$defs": {
+          "LatLon": {
+            "description": "Geodetic coordinate (latitude, longitude).",
+            "required": [
+              "lat",
+              "lon"
+            ],
+            "properties": {
+              "lat": {
+                "type": "number",
+                "description": "Latitude in decimal degrees."
+              },
+              "lon": {
+                "type": "number",
+                "description": "Longitude in decimal degrees."
+              }
+            }
+          }
+        }
+      },
+      "annotations": {},
+      "_meta": {
+        "stp/safety": "unclassified"
+      }
+    },
+    {
+      "name": "SetAutoTasking",
+      "description": "Enable or disable automatic tasking, in which STP infers tasks from symbols without an explicit spoken task. Fire and forget.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "isEnabled": {
+            "type": "boolean",
+            "description": "True to enable automatic tasking."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {},
+      "_meta": {
+        "stp/safety": "unclassified"
+      }
+    },
+    {
+      "name": "ResetRole",
+      "description": "Clear the role previously set with SetRole, returning this client to the default role. Fire and forget.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      },
+      "annotations": {},
+      "_meta": {
+        "stp/safety": "unclassified"
+      }
+    },
+    {
+      "name": "UndoLastOp",
+      "description": "Undo the last operation applied to an object. STP replays the effect as ordinary events carrying isUndo = true, so a client that already handles the Added/Modified/Deleted events needs no extra handling. Fire and forget.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "poid": {
+            "type": "string",
+            "description": "Unique id of the object whose last operation is to be undone."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {},
+      "_meta": {
+        "stp/safety": "unclassified"
+      }
+    },
+    {
+      "name": "ResetStpScenario",
+      "description": "Discard the current scenario contents on the server, leaving the scenario itself in place. Returns no value.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      },
+      "annotations": {},
+      "_meta": {
+        "stp/safety": "unclassified"
+      }
+    },
+    {
+      "name": "GetActiveScenarioDescription",
+      "description": "Return the metadata of the scenario currently loaded - its name, id and session details - without fetching any of its contents.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      },
+      "annotations": {},
+      "_meta": {
+        "stp/safety": "unclassified"
+      }
+    },
+    {
+      "name": "GetAllObjects",
+      "description": "Return every object in the current scenario as a flat list, symbols, tasks and task organizations alike. Prefer GetScenarioContent or GetScenarioObjectSet when the structured form is wanted.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      },
+      "annotations": {},
+      "_meta": {
+        "stp/safety": "unclassified"
+      }
+    },
+    {
+      "name": "GetDeletedObjects",
+      "description": "Return the objects deleted from the current scenario. A deleted object is TOMBSTONED rather than removed, so it is still reachable here and its poid can be reused by a later add.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      },
+      "annotations": {},
+      "_meta": {
+        "stp/safety": "unclassified"
+      }
+    },
+    {
+      "name": "GetPoidObject",
+      "description": "Return a single object by its unique id. Returns null when no object carries that poid.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "poid": {
+            "type": "string",
+            "description": "Unique id of the object to fetch."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {},
+      "_meta": {
+        "stp/safety": "unclassified"
+      }
+    },
+    {
+      "name": "GetScenarioTaskOrgList",
+      "description": "Return the task organizations (ORBATs) defined in the current scenario, as summaries rather than full contents.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      },
+      "annotations": {},
+      "_meta": {
+        "stp/safety": "unclassified"
+      }
+    },
+    {
+      "name": "GetTaskOrgObjects",
+      "description": "Return the objects making up a task organization as a plain array. This is a SYNONYM of GetTaskOrgObjectSet - both reach the same engine call and return the same array; the two spellings exist because the .NET SDK grew both.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "poid": {
+            "type": "string",
+            "description": "Task organization unique id."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {},
+      "_meta": {
+        "stp/safety": "unclassified"
+      }
+    }
+  ],
+  "excluded": [
+    {
+      "name": "SetCoaTaskOrg",
+      "reason": "not dispatched by the engine (x-engineDispatch: none); the call answers 'No handler'"
+    },
+    {
+      "name": "ResetCoaTaskOrg",
+      "reason": "not dispatched by the engine (x-engineDispatch: none); the call answers 'No handler'"
+    },
+    {
+      "name": "ImportCoaContent",
+      "reason": "not dispatched by the engine (x-engineDispatch: none); the call answers 'No handler'"
+    },
+    {
+      "name": "GetCoaContent",
+      "reason": "not dispatched by the engine (x-engineDispatch: none); the call answers 'No handler'"
+    },
+    {
+      "name": "SetCurrentCoa",
+      "reason": "not dispatched by the engine (x-engineDispatch: none); the call answers 'No handler'"
+    },
+    {
+      "name": "AddCoa",
+      "reason": "not dispatched by the engine (x-engineDispatch: none); the call answers 'No handler'"
+    },
+    {
+      "name": "UpdateCoa",
+      "reason": "not dispatched by the engine (x-engineDispatch: none); the call answers 'No handler'"
+    },
+    {
+      "name": "DeleteCoa",
+      "reason": "not dispatched by the engine (x-engineDispatch: none); the call answers 'No handler'"
+    },
+    {
+      "name": "Register",
+      "reason": "transport-layer message, built and consumed by the SDK connectors only"
+    },
+    {
+      "name": "Request",
+      "reason": "transport-layer message, built and consumed by the SDK connectors only"
+    }
+  ]
+}

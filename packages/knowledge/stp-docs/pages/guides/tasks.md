@@ -58,7 +58,7 @@ stpsdk.onTaskDeleted = (poid, isUndo) => {
 | `how` | `TaskHow` enum value |
 | `what` | `TaskWhat` enum value |
 | `why` | `TaskWhy` enum value |
-| `startTime` / `endTime` | Time slots |
+| `startTime` / `endTime` | Time slot indexes (see [Timing and synchronization](./timing-and-synchronization.md)) |
 | `speech` | Associated speech |
 | `language` | Language describing the task |
 | `taskStatus` | `implicit` (auto-detected) or `explicit` (manually created) |

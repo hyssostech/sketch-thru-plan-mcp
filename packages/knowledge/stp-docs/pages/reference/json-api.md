@@ -46,80 +46,80 @@ Always produce a response. Equivalent to a remote procedure call, even though th
 - `method` — event name (same as the SDK method name)
 - `params` — event parameters (same order and types as the SDK)
 
-## Response Format
+## Requests and Responses
 
-### Successful request
-
-```json
-{
-    "id": 1,
-    "jsonrpc": "2.0",
-    "result": [
-        {
-            "fsTYPE": "coa",
-            "poid": "id7J5ZJ1GVNQUNE",
-            "name": "R1",
-            "type": "hostile",
-            "creator_role": "s2"
-        }
-    ]
-}
-```
-
-### Error response
+A request is not sent as a bare JSON-RPC call with an `id`. The SDK connectors
+wrap it in a `Request` message that carries the serialized call, a correlation
+`cookie` and a timeout in seconds. The reply is a `RequestResponse` message that
+echoes the cookie:
 
 ```json
 {
-    "jsonrpc": "2.0",
-    "id": "5",
-    "error": {
-        "code": -32601,
-        "message": "Invalid argument: expected a numeric id"
+    "method": "Request",
+    "params": {
+        "jsonRequest": "{\"method\":\"HasActiveScenario\",\"params\":null}",
+        "cookie": 3,
+        "timeout": 30
     }
 }
 ```
 
+```json
+{
+    "method": "RequestResponse",
+    "params": { "cookie": 3, "success": true, "result": true }
+}
+```
+
+A failed or refused request is answered with `success: false`, and `result`
+carries the reason as text (older engines send `null`). STP does not send
+JSON-RPC `error` objects or numeric error codes. Informs get no reply at all.
+See [Errors, refusals and timeouts](../guides/errors-and-timeouts.md) for every
+failure case and how each SDK reports it.
+
 ## Incoming Message Format
 
-STP components are both consumers and producers of events. Incoming messages follow the same format:
+STP components are both consumers and producers of events. Incoming messages follow the same format. `SymbolAdded` carries the recognized symbol and its alternative interpretations in `alternates`, best first:
 
 ```json
 {
-    "jsonrpc": "2.0",
     "method": "SymbolAdded",
     "params": {
-        "symbol": {
-            "fsTYPE": "unit",
-            "poid": "idDS6X03AGXT68E",
-            "creatorRole": "s3",
-            "confidence": 0.82,
-            "alt": 0,
-            "sidc": {
-                "partA": "1003100015",
-                "partB": "1205010000",
-                "symbolSet": "10",
-                "legacy": "SFGPUCRVA--E---"
-            },
-            "location": {
+        "alternates": [
+            {
                 "fsTYPE": "unit",
-                "shape": "point",
-                "coords": [{ "lon": 11.164, "lat": 58.948 }],
-                "width": 0.0,
-                "altitude": 0.0,
-                "radius": 0.0,
-                "candidatePoids": []
-            },
-            "shortDescription": "A/3-1",
-            "description": "ARMORED CAVALRY RECON COMPANY",
-            "fullDescription": "FRIENDLY ARMORED CAVALRY RECON COMPANY A/3-1",
-            "affiliation": "friend",
-            "echelon": "company",
-            "parent": "3-1",
-            "designator1": "A",
-            "status": "present",
-            "modifier": "none",
-            "strength": "none"
-        },
+                "poid": "idDS6X03AGXT68E",
+                "creatorRole": "s3",
+                "confidence": 0.82,
+                "alt": 0,
+                "sidc": {
+                    "partA": "1003100015",
+                    "partB": "1205010000",
+                    "symbolSet": "10",
+                    "legacy": "SFGPUCRVA--E---"
+                },
+                "location": {
+                    "fsTYPE": "point",
+                    "shape": "point",
+                    "coords": [{ "lon": 11.164, "lat": 58.948 }],
+                    "width": 0.0,
+                    "altitude": 0.0,
+                    "radius": 0.0,
+                    "candidatePoids": []
+                },
+                "shortDescription": "A/3-1",
+                "description": "ARMORED CAVALRY RECON COMPANY",
+                "fullDescription": "FRIENDLY ARMORED CAVALRY RECON COMPANY A/3-1",
+                "affiliation": "friend",
+                "echelon": "company",
+                "parent": "3-1",
+                "designator1": "A",
+                "status": "present",
+                "modifier": "none",
+                "strength": "",
+                "dbVersion": "v7QK2M9XH4RB1E"
+            }
+        ],
         "isUndo": false
     }
 }

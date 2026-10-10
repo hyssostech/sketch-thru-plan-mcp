@@ -501,43 +501,38 @@
     {
       "id": "event-ordering",
       "question": "In what order do events arrive after I load a scenario - NewScenario, SymbolAdded, TaskAdded, TaskOrg events?",
-      "expected": [],
-      "noGoodSource": true,
-      "gap": "Event ordering (after a load, a join, a sync or an undo) is not documented anywhere."
+      "expected": [
+        "stp-docs://guides/events-and-ordering"
+      ]
     },
     {
       "id": "error-codes",
       "question": "Which JSON-RPC error codes can STP return and what does each mean?",
       "expected": [
+        "stp-docs://guides/errors-and-timeouts",
         "stp-docs://reference/json-api"
-      ],
-      "noGoodSource": true,
-      "gap": "json-api shows one error example (-32601); there is no list of error codes or of when STP answers with an error versus success=false."
+      ]
     },
     {
       "id": "refused-vs-timeout",
       "question": "How do I tell a refused request from one that timed out?",
       "expected": [
-        "stp-docs://guides/integration-troubleshooting"
-      ],
-      "noGoodSource": true,
-      "gap": "Refusals ('No handler') are covered, but timeout behaviour (default 30 s in the JS SDK, what happens to a late reply, retries) and how to distinguish the two are not."
+        "stp-docs://guides/errors-and-timeouts"
+      ]
     },
     {
       "id": "reconnect",
       "question": "How should my app reconnect after the WebSocket connection drops?",
-      "expected": [],
-      "noGoodSource": true,
-      "gap": "Connection loss and reconnection (re-registering, re-joining the scenario, missed events) are not documented."
+      "expected": [
+        "stp-docs://guides/connection-lifecycle"
+      ]
     },
     {
       "id": "dotnet-quickstart",
       "question": "How do I connect and receive symbol events with the .NET SDK?",
       "expected": [
-        "stp-docs://guides/integration-troubleshooting"
+        "stp-docs://getting-started-dotnet"
       ],
-      "noGoodSource": true,
-      "gap": "All guides are written for the JavaScript SDK; the .NET SDK has only its generated reference (ConnectAndRegisterAsync etc.), no guide.",
       "generatedReference": [
         "docs/api-net/stpsdk.stprecognizer.md"
       ]
@@ -553,10 +548,8 @@
       "id": "concurrent-edits",
       "question": "What happens when two clients edit the same symbol at the same time?",
       "expected": [
-        "stp-docs://guides/scenarios"
-      ],
-      "noGoodSource": true,
-      "gap": "Only the sync rules (newer timestamp wins) are described; concurrent live edits, locking and conflict notification are not."
+        "stp-docs://guides/events-and-ordering"
+      ]
     },
     {
       "id": "engine-install",
@@ -571,20 +564,15 @@
       "id": "symbol-times",
       "question": "How do I set the time window or phase of a symbol or task for synchronization?",
       "expected": [
-        "stp-docs://guides/symbols-and-rendering",
-        "stp-docs://guides/tasks"
-      ],
-      "noGoodSource": true,
-      "gap": "timeFrom/timeTo and startTime/endTime are listed as properties, but phases, time formats and how timing drives C2SIM orders are not explained."
+        "stp-docs://guides/timing-and-synchronization"
+      ]
     },
     {
       "id": "rest-connector",
       "question": "What endpoints does the REST connector expose and how do I post symbols to it?",
       "expected": [
-        "stp-docs://guides/silent-failures"
-      ],
-      "noGoodSource": true,
-      "gap": "The REST connector is referred to (POST /symbols, ?replace=true, ?append=true) but has no reference page of its endpoints and payloads."
+        "stp-docs://reference/rest-connector"
+      ]
     }
   ]
 }

@@ -1,9 +1,9 @@
 {
   "repo": "hyssostech/stp-docs",
   "path": "docs",
-  "ref": "aa83c5111f1f5bc0b2149e2a4bad9f204b9d60e2",
+  "ref": "938e3ef497b58bb69434cf118d3b554dff331eea",
   "license": "MIT",
-  "count": 22,
+  "count": 28,
   "excluded": [
     {
       "path": "docs/api/",
@@ -16,16 +16,32 @@
   ],
   "files": [
     {
+      "path": "docs/getting-started-dotnet.md",
+      "blob": "ee4dc2b1208412905c3fb135559c35aa081c4752"
+    },
+    {
       "path": "docs/getting-started.md",
-      "blob": "50cae93cd9233b341517c52e4b2ea8fc3d7b0da2"
+      "blob": "cb302d13c030f235b947a27d1a9605707a4e8b9b"
     },
     {
       "path": "docs/guides/c2sim.md",
       "blob": "67b2a71c22ed2d0309342aea9d69f86faa832e43"
     },
     {
+      "path": "docs/guides/connection-lifecycle.md",
+      "blob": "1ff03875bb756ebf1f74f64bd97646f41db0f270"
+    },
+    {
       "path": "docs/guides/custom-commands.md",
       "blob": "23b19e3a0e737ee3638cd76d90afa4da48f69007"
+    },
+    {
+      "path": "docs/guides/errors-and-timeouts.md",
+      "blob": "b2f1e5cb9f43822477c36329a87bc22b9e14ae66"
+    },
+    {
+      "path": "docs/guides/events-and-ordering.md",
+      "blob": "39d4f132bd96d09d397ad2476da39d9c08d498ba"
     },
     {
       "path": "docs/guides/iframe-embedding.md",
@@ -33,7 +49,7 @@
     },
     {
       "path": "docs/guides/integration-troubleshooting.md",
-      "blob": "9fc406cfa69e91309fa9bc5a46a59bc63e47a4ce"
+      "blob": "e67152f3371fa303b588b40bfca6f6e054a1a45b"
     },
     {
       "path": "docs/guides/roles.md",
@@ -41,7 +57,7 @@
     },
     {
       "path": "docs/guides/scenarios.md",
-      "blob": "35d0c900d4b9575e93856c8b8eb80974c2a17e31"
+      "blob": "61fa252d4ab3b2403c48a30de7d3fc42bb288aa6"
     },
     {
       "path": "docs/guides/sessions.md",
@@ -49,7 +65,7 @@
     },
     {
       "path": "docs/guides/silent-failures.md",
-      "blob": "28ba9b635978c806947779a9204b49069546e28f"
+      "blob": "eb35da50a52d613c431c82edc8fb6a42f3f62501"
     },
     {
       "path": "docs/guides/symbology-and-the-wire.md",
@@ -57,7 +73,7 @@
     },
     {
       "path": "docs/guides/symbols-and-rendering.md",
-      "blob": "8583506bb2287c6bea4f052ca403a64631a0a541"
+      "blob": "fa82c8d132820fc2d790ad917e2281e4168ce53e"
     },
     {
       "path": "docs/guides/task-org.md",
@@ -65,7 +81,11 @@
     },
     {
       "path": "docs/guides/tasks.md",
-      "blob": "4a9b024133659b1d512a88a58ceaef058dfc1d3c"
+      "blob": "af03cdc02b96d16adb400a1fd67e9b97e5914208"
+    },
+    {
+      "path": "docs/guides/timing-and-synchronization.md",
+      "blob": "953d1b46b6335543e62940a569e5f339349bbb8f"
     },
     {
       "path": "docs/installation.md",
@@ -97,7 +117,11 @@
     },
     {
       "path": "docs/reference/json-api.md",
-      "blob": "188eb0b4db565cb726bc890bee7e8ca585188c72"
+      "blob": "a1b4cd7defc8a8e16a79768dd186271b78644209"
+    },
+    {
+      "path": "docs/reference/rest-connector.md",
+      "blob": "cf13e67193cc67f5eac3abdeb67cb968e60a8228"
     },
     {
       "path": "docs/reference/symbol-properties.md",

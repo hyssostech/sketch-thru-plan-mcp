@@ -114,7 +114,7 @@ STP provides a rich set of properties on each `StpSymbol`:
 | `modifier` | HQ/Task Force: `none`, `dummy`, `hq`, `task_force`, etc. |
 | `strength` | `none`, `reduced`, `reinforced`, `reduced_reinforced` |
 | `branch` | `weapon`, `ground_unit`, `equipment`, `installation`, etc. |
-| `timeFrom` / `timeTo` | Time window (e.g., Restricted Operations Zone) |
+| `timeFrom` / `timeTo` | Time window (e.g., Restricted Operations Zone), ISO 8601 UTC (see [Timing and synchronization](./timing-and-synchronization.md)) |
 | `altitude` | Altitude, if applicable |
 | `minAltitude` / `maxAltitude` | Altitude range, if supported |
 | `toUnitPoid` | For symbols from a Task Org, the source Task Org Unit id |

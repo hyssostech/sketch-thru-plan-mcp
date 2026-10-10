@@ -55,6 +55,13 @@ These calls cannot succeed on current releases. Most of them are the COA
 through the SDK rather than through the STP client UI, expect to hit this
 list.
 
+:::note
+Newer releases report the refusal with text: since JavaScript SDK 0.6.15 the
+promise rejects with an `Error`, and since .NET SDK 0.5.0 the `StpException`
+carries a message. Recent engines also name the method in the reply. See
+[Errors, refusals and timeouts](./errors-and-timeouts.md).
+:::
+
 **How to tell.** Two independent checks, either is sufficient:
 
 1. The engine's own log records the refusal as `No handler for <message>` at

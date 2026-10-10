@@ -6,6 +6,8 @@ sidebar_position: 3
 
 # Getting Started
 
+Writing a C# app? See the [.NET quickstart](./getting-started-dotnet.md).
+
 This tutorial walks through building a browser app that uses the STP SDK to create military symbols via combined speech and sketch on a Leaflet map. By the end you will have a working app that:
 
 1. Connects to an STP Engine

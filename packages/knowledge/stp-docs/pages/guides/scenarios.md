@@ -71,6 +71,8 @@ This is useful when parts of a plan were developed offline and need to be reconc
 2. Objects in both → the **more recent** version (by timestamp) wins
 3. Objects marked as deleted in the loaded content → **deleted** in the session (but not vice-versa)
 
+The order in which events arrive after a load, a join or a sync is described in [Event ordering and concurrent edits](./events-and-ordering.md).
+
 :::caution
 These rules are lenient and leave space for potential conflicts. Proper division of labor — so users know who "owns" which objects — is the primary conflict avoidance strategy.
 :::

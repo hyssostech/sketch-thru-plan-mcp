@@ -1,0 +1,30 @@
+{
+  "name": "stp-mcp",
+  "private": true,
+  "description": "MCP servers for Sketch-thru-Plan",
+  "license": "MIT",
+  "author": "Hyssos Tech",
+  "type": "module",
+  "workspaces": [
+    "packages/contract-tools",
+    "packages/knowledge"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "tsc --build",
+    "clean": "tsc --build --clean",
+    "test": "npm run build && vitest run",
+    "contract:update": "node scripts/update-contract.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hyssostech/stp-mcp.git"
+  }
+}

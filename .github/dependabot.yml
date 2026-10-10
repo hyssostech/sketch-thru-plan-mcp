@@ -1,0 +1,24 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 10
+    groups:
+      # vitest and its plugins must move together, majors included (STP-728 in sdk-js).
+      vitest:
+        patterns:
+          - "vitest"
+          - "@vitest/*"
+        update-types: [ major, minor, patch ]
+      npm-minor-patch:
+        update-types: [ minor, patch ]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5

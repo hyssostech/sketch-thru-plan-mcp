@@ -25,9 +25,48 @@ Two servers, one repo:
   exposed.
 - **Tool descriptions are prompts.** They are written for a model reader.
 
+## Layout
+
+| Package | What it is |
+|---|---|
+| `packages/contract-tools` | The pinned OpenRPC contract (`contract/`, with `pin.json` naming its source commit) and the generator that turns it into MCP tool definitions. Methods the engine does not dispatch, and transport-layer messages, are excluded with their reason. |
+| `packages/knowledge` | The knowledge server (`stp-mcp-knowledge`, stdio). Today: `list_methods`, `get_method`, `list_events`, `get_event` over the contract. Next: the STP docs as resources and `search_docs` (STP-1061). |
+
+The live-STP server (STP-1063) is not started yet.
+
+## Develop
+
+```sh
+npm ci
+npm test            # builds every workspace, then runs the tests
+```
+
+Run the knowledge server from a local checkout in Claude Code:
+
+```sh
+npm run build
+claude mcp add stp-knowledge -- node /path/to/stp-mcp/packages/knowledge/dist/index.js
+```
+
+or in Claude Desktop's `claude_desktop_config.json`:
+
+```json
+{ "mcpServers": { "stp-knowledge": { "command": "node", "args": ["/path/to/stp-mcp/packages/knowledge/dist/index.js"] } } }
+```
+
+### Re-pinning the contract
+
+```sh
+npm run contract:update            # or: node scripts/update-contract.mjs --ref <branch|tag|sha>
+npx vitest run -u                  # regenerate the tool snapshot
+git diff packages/contract-tools   # review what agents will see change
+```
+
+The `Contract drift` workflow checks weekly whether the published contract has moved past the pin.
+
 ## Status
 
-Work in progress, tracked under STP-943 (STP-1058 - STP-1065).
+Work in progress, tracked in the STP Jira project under STP-943 (STP-1058 - STP-1065).
 
 ## License
 

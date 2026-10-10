@@ -33,6 +33,32 @@ export interface ContractMethod {
   "x-stpEmits"?: EmittedEvent[];
   /** Ticket keys of filed defects that make today's engine differ from this entry. */
   "x-stpKnownIssues"?: string[];
+  /** What a live engine did with bad or unusual input (STP-1059, contract 0.9.0). */
+  "x-stpEdgeCases"?: EdgeCase[];
+  /** OpenRPC example pairings, captured from a live engine (STP-1059, contract 0.9.0). */
+  examples?: ExamplePairing[];
+}
+
+/** One edge case: the input, and whether the engine refused, announced, ignored or accepted it. */
+export interface EdgeCase {
+  when: string;
+  outcome: "refused" | "announced" | "ignored" | "accepted";
+  /** The refusal or StpMessage text. */
+  message?: string;
+  /** What an accepted call returned or sent, or a caveat. */
+  note?: string;
+  /** "request" when an inform was sent through Request. */
+  wire?: string;
+}
+
+/** An OpenRPC example pairing; informs have no result. */
+export interface ExamplePairing {
+  name: string;
+  description?: string;
+  params: { name: string; value: unknown }[];
+  result?: { name: string; value: unknown };
+  /** The events the captured call produced. */
+  "x-stpEventsObserved"?: { event: string; params: unknown }[];
 }
 
 /** One event a method produces: always, if a condition holds, or may (content-dependent). */

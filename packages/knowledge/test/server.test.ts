@@ -45,7 +45,7 @@ describe("knowledge server", () => {
     expect(names).not.toContain("Register");
     const addSymbol = body.methods.find((m: { name: string }) => m.name === "AddSymbol");
     expect(addSymbol).toMatchObject({ safety: "write", returns: "events only" });
-    expect(body.contract.version).toBe("0.7.0");
+    expect(body.contract.version).toBe("0.8.0");
     expect(body.docs.repo).toBe("hyssostech/stp-docs");
     expect(body.docs.ref).toMatch(/^[0-9a-f]{40}$/);
   });
@@ -55,6 +55,15 @@ describe("knowledge server", () => {
     expect(body.method.name).toBe("Register");
     expect(body.available).toBe(false);
     expect(body.unavailable_because).toMatch(/transport-layer/);
+  });
+
+  it("says which events follow a call and which filed defects affect it", async () => {
+    const { body } = await call("get_method", { name: "DeleteCoa" });
+    expect(body.emits).toContainEqual({ event: "CoaDeleted", when: "always", to: "session" });
+    expect(body.known_issues).toContain("STP-1078");
+    const read = await call("get_method", { name: "GetScenarioContent" });
+    expect(read.body.emits).toEqual([]);
+    expect(read.body.known_issues).toBeUndefined();
   });
 
   it("returns a callable input schema for an available method", async () => {
@@ -120,7 +129,7 @@ describe("search_docs", () => {
     const { body, content, isError } = await call("search_docs", { query: "how do I load a scenario", k: 4 });
     expect(isError).toBe(false);
     expect(body.docs.ref).toBe(loadDocsPin().ref);
-    expect(body.contract.version).toBe("0.7.0");
+    expect(body.contract.version).toBe("0.8.0");
     expect(body.results.length).toBe(4);
     const top = body.results[0];
     expect(top.uri).toBe("stp-docs://guides/scenarios");

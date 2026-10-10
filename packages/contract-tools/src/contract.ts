@@ -29,6 +29,18 @@ export interface ContractMethod {
   "x-stpInform"?: boolean;
   /** true when the call reaches a system outside STP, e.g. the C2SIM server (STP-1059). */
   "x-stpOpenWorld"?: boolean;
+  /** The events that follow a call, and who receives them (STP-1059, contract 0.8.0). */
+  "x-stpEmits"?: EmittedEvent[];
+  /** Ticket keys of filed defects that make today's engine differ from this entry. */
+  "x-stpKnownIssues"?: string[];
+}
+
+/** One event a method produces: always, if a condition holds, or may (content-dependent). */
+export interface EmittedEvent {
+  event: string;
+  when: "always" | "if" | "may";
+  condition?: string;
+  to: "caller" | "session";
 }
 
 /** An engine -> client event (the contract's `x-stpEvents`). */

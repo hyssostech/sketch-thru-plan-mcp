@@ -12,7 +12,7 @@ const result = generateTools(contract);
 
 // Floors, as in STP's tools/check-openrpc-surface.sh: a generator that quietly
 // stops producing tools must read as broken, never as a smaller API.
-// 2026-10-10, contract 0.7.0: 72 methods -> 70 tools + 2 excluded (transport), 32 events.
+// 2026-10-10, contract 0.8.0: 72 methods -> 70 tools + 2 excluded (transport), 32 events.
 const TOOL_FLOOR = 66;
 const EVENT_FLOOR = 28;
 
@@ -47,6 +47,9 @@ describe("generateTools", () => {
     expect(by("AddSymbol")._meta["stp/inform"]).toBe(true);
     expect(by("PushC2SIMContent").annotations).toMatchObject({ destructiveHint: true, openWorldHint: true });
     expect(by("PullC2SIMInitialization").annotations.openWorldHint).toBe(true);
+    expect(by("AddSymbol")._meta["stp/emits"]).toContainEqual({ event: "SymbolAdded", when: "always", to: "session" });
+    expect(by("DeleteCoa")._meta["stp/knownIssues"]).toContain("STP-1078");
+    expect(by("GetScenarioContent")._meta["stp/emits"]).toBeUndefined();
   });
 
   it("never exposes a transport-layer message", () => {

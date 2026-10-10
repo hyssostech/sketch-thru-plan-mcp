@@ -1,4 +1,4 @@
-import type { Contract, ContractMethod, JsonSchema } from "./contract.js";
+import type { Contract, ContractMethod, EmittedEvent, JsonSchema } from "./contract.js";
 
 export type SafetyClass = "read" | "write" | "destructive";
 
@@ -23,6 +23,10 @@ export interface GeneratedTool {
     "stp/safety": SafetyClass;
     /** Present when the engine answers with events only, never a result. */
     "stp/inform"?: true;
+    /** The events that follow a call (contract x-stpEmits). */
+    "stp/emits"?: EmittedEvent[];
+    /** Filed defects that make today's engine differ from the contract entry. */
+    "stp/knownIssues"?: string[];
     "stp/descriptionStatus"?: string;
   };
 }
@@ -145,6 +149,8 @@ export function toolFromMethod(method: ContractMethod, contract: Contract): Gene
     _meta: { "stp/safety": safety },
   };
   if (method["x-stpInform"] === true) tool._meta["stp/inform"] = true;
+  if (method["x-stpEmits"]?.length) tool._meta["stp/emits"] = method["x-stpEmits"];
+  if (method["x-stpKnownIssues"]?.length) tool._meta["stp/knownIssues"] = method["x-stpKnownIssues"];
   if (required.length > 0) tool.inputSchema.required = required;
   if (used.size > 0) tool.inputSchema.$defs = collectDefs(used, components, method.name);
   if (method["x-descriptionStatus"]) tool._meta["stp/descriptionStatus"] = method["x-descriptionStatus"];

@@ -1,5 +1,5 @@
 {
-  "contractVersion": "0.4.0",
+  "contractVersion": "0.7.0",
   "tools": [
     {
       "name": "SendPenDown",
@@ -38,9 +38,14 @@
           }
         }
       },
-      "annotations": {},
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
       "_meta": {
-        "stp/safety": "unclassified"
+        "stp/safety": "write",
+        "stp/inform": true
       }
     },
     {
@@ -124,9 +129,14 @@
           }
         }
       },
-      "annotations": {},
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
       "_meta": {
-        "stp/safety": "unclassified"
+        "stp/safety": "write",
+        "stp/inform": true
       }
     },
     {
@@ -174,9 +184,14 @@
           }
         }
       },
-      "annotations": {},
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
       "_meta": {
-        "stp/safety": "unclassified"
+        "stp/safety": "write",
+        "stp/inform": true
       }
     },
     {
@@ -197,9 +212,14 @@
         },
         "additionalProperties": false
       },
-      "annotations": {},
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
       "_meta": {
-        "stp/safety": "unclassified"
+        "stp/safety": "write",
+        "stp/inform": true
       }
     },
     {
@@ -215,9 +235,13 @@
         },
         "additionalProperties": false
       },
-      "annotations": {},
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
       "_meta": {
-        "stp/safety": "unclassified"
+        "stp/safety": "destructive"
       }
     },
     {
@@ -233,14 +257,18 @@
         },
         "additionalProperties": false
       },
-      "annotations": {},
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
       "_meta": {
-        "stp/safety": "unclassified"
+        "stp/safety": "destructive"
       }
     },
     {
       "name": "ImportPlanData",
-      "description": "Import additional content into the current scenario (object_set([...])).",
+      "description": "Import additional content into the current scenario (object_set([...])). An object in the content whose poid already exists in the scenario REPLACES the resident object (its previous version stays in the undo history); objects not in the content are left alone, and a content object carrying the deletion version (fsdb_version 0) deletes that poid. Afterwards the default friend and hostile task orgs are re-selected, preferring task orgs this content just loaded.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -251,9 +279,13 @@
         },
         "additionalProperties": false
       },
-      "annotations": {},
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
       "_meta": {
-        "stp/safety": "unclassified"
+        "stp/safety": "destructive"
       }
     },
     {
@@ -264,27 +296,33 @@
         "properties": {},
         "additionalProperties": false
       },
-      "annotations": {},
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false
+      },
       "_meta": {
-        "stp/safety": "unclassified"
+        "stp/safety": "read"
       }
     },
     {
       "name": "JoinScenarioSession",
-      "description": "Emit the current scenario objects as if they were received live, allowing a client to rebuild local state.",
+      "description": "Replay the current scenario to this client as if its objects had just arrived live (the usual Added events, deleted objects skipped), so a client can rebuild its local state. Changes nothing on the server.",
       "inputSchema": {
         "type": "object",
         "properties": {},
         "additionalProperties": false
       },
-      "annotations": {},
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false
+      },
       "_meta": {
-        "stp/safety": "unclassified"
+        "stp/safety": "read"
       }
     },
     {
       "name": "SyncScenarioSession",
-      "description": "Load a scenario and update the session state with detected differences.",
+      "description": "Merge a scenario into the active session and update the session state with the differences. Takes object-set text (object_set([...])); a blank string does nothing. It first joins the session (as JoinScenarioSession), then drops infrastructure objects (planning_scenario, system_state, edit, viewport, ink, parse_info, gesture, speech) from the content and imports the rest. An object in the content whose poid already exists in the scenario REPLACES the resident object (its previous version stays in the undo history); objects not in the content are left alone, and a content object carrying the deletion version (fsdb_version 0) deletes that poid. It does NOT discard the current contents first - use LoadNewScenario for that. Afterwards the default friend and hostile task orgs are re-selected, preferring task orgs this content just loaded.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -295,9 +333,13 @@
         },
         "additionalProperties": false
       },
-      "annotations": {},
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
       "_meta": {
-        "stp/safety": "unclassified"
+        "stp/safety": "destructive"
       }
     },
     {
@@ -308,9 +350,12 @@
         "properties": {},
         "additionalProperties": false
       },
-      "annotations": {},
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false
+      },
       "_meta": {
-        "stp/safety": "unclassified"
+        "stp/safety": "read"
       }
     },
     {
@@ -652,9 +697,14 @@
           }
         }
       },
-      "annotations": {},
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
       "_meta": {
-        "stp/safety": "unclassified"
+        "stp/safety": "write",
+        "stp/inform": true
       }
     },
     {
@@ -1000,9 +1050,14 @@
           }
         }
       },
-      "annotations": {},
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
       "_meta": {
-        "stp/safety": "unclassified"
+        "stp/safety": "write",
+        "stp/inform": true
       }
     },
     {
@@ -1018,9 +1073,14 @@
         },
         "additionalProperties": false
       },
-      "annotations": {},
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
       "_meta": {
-        "stp/safety": "unclassified"
+        "stp/safety": "destructive",
+        "stp/inform": true
       }
     },
     {
@@ -1040,14 +1100,19 @@
         },
         "additionalProperties": false
       },
-      "annotations": {},
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
       "_meta": {
-        "stp/safety": "unclassified"
+        "stp/safety": "write",
+        "stp/inform": true
       }
     },
     {
       "name": "ImportTaskOrgContent",
-      "description": "Import a Task Organization (TO) from serialized content, using fresh unique IDs.",
+      "description": "Import a Task Organization (TO) from serialized content. Poids are kept exactly as they are in the content: the content is not used as a template and no new ids are generated. Returns the poid of the task_org object in the content. An object in the content whose poid already exists in the scenario REPLACES the resident object (its previous version stays in the undo history); objects not in the content are left alone, and a content object carrying the deletion version (fsdb_version 0) deletes that poid.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -1058,9 +1123,13 @@
         },
         "additionalProperties": false
       },
-      "annotations": {},
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
       "_meta": {
-        "stp/safety": "unclassified"
+        "stp/safety": "destructive"
       }
     },
     {
@@ -1076,9 +1145,12 @@
         },
         "additionalProperties": false
       },
-      "annotations": {},
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false
+      },
       "_meta": {
-        "stp/safety": "unclassified"
+        "stp/safety": "read"
       }
     },
     {
@@ -1094,9 +1166,13 @@
         },
         "additionalProperties": false
       },
-      "annotations": {},
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
       "_meta": {
-        "stp/safety": "unclassified"
+        "stp/safety": "write"
       }
     },
     {
@@ -1127,9 +1203,13 @@
           }
         }
       },
-      "annotations": {},
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
       "_meta": {
-        "stp/safety": "unclassified"
+        "stp/safety": "write"
       }
     },
     {
@@ -1201,9 +1281,14 @@
           }
         }
       },
-      "annotations": {},
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
       "_meta": {
-        "stp/safety": "unclassified"
+        "stp/safety": "write",
+        "stp/inform": true
       }
     },
     {
@@ -1279,9 +1364,14 @@
           }
         }
       },
-      "annotations": {},
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
       "_meta": {
-        "stp/safety": "unclassified"
+        "stp/safety": "write",
+        "stp/inform": true
       }
     },
     {
@@ -1297,9 +1387,14 @@
         },
         "additionalProperties": false
       },
-      "annotations": {},
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
       "_meta": {
-        "stp/safety": "unclassified"
+        "stp/safety": "destructive",
+        "stp/inform": true
       }
     },
     {
@@ -1684,9 +1779,14 @@
           }
         }
       },
-      "annotations": {},
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
       "_meta": {
-        "stp/safety": "unclassified"
+        "stp/safety": "write",
+        "stp/inform": true
       }
     },
     {
@@ -2075,9 +2175,14 @@
           }
         }
       },
-      "annotations": {},
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
       "_meta": {
-        "stp/safety": "unclassified"
+        "stp/safety": "write",
+        "stp/inform": true
       }
     },
     {
@@ -2093,9 +2198,14 @@
         },
         "additionalProperties": false
       },
-      "annotations": {},
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
       "_meta": {
-        "stp/safety": "unclassified"
+        "stp/safety": "destructive",
+        "stp/inform": true
       }
     },
     {
@@ -2177,9 +2287,14 @@
           }
         }
       },
-      "annotations": {},
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
       "_meta": {
-        "stp/safety": "unclassified"
+        "stp/safety": "write",
+        "stp/inform": true
       }
     },
     {
@@ -2265,9 +2380,14 @@
           }
         }
       },
-      "annotations": {},
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
       "_meta": {
-        "stp/safety": "unclassified"
+        "stp/safety": "write",
+        "stp/inform": true
       }
     },
     {
@@ -2283,9 +2403,14 @@
         },
         "additionalProperties": false
       },
-      "annotations": {},
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
       "_meta": {
-        "stp/safety": "unclassified"
+        "stp/safety": "destructive",
+        "stp/inform": true
       }
     },
     {
@@ -2455,9 +2580,14 @@
           }
         }
       },
-      "annotations": {},
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
       "_meta": {
-        "stp/safety": "unclassified"
+        "stp/safety": "write",
+        "stp/inform": true
       }
     },
     {
@@ -2634,9 +2764,14 @@
           }
         }
       },
-      "annotations": {},
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
       "_meta": {
-        "stp/safety": "unclassified"
+        "stp/safety": "write",
+        "stp/inform": true
       }
     },
     {
@@ -2652,9 +2787,14 @@
         },
         "additionalProperties": false
       },
-      "annotations": {},
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
       "_meta": {
-        "stp/safety": "unclassified"
+        "stp/safety": "destructive",
+        "stp/inform": true
       }
     },
     {
@@ -2678,9 +2818,353 @@
         },
         "additionalProperties": false
       },
-      "annotations": {},
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
       "_meta": {
-        "stp/safety": "unclassified"
+        "stp/safety": "write",
+        "stp/inform": true
+      }
+    },
+    {
+      "name": "SetCoaTaskOrg",
+      "description": "Choose the Task Organization (TO) used for COAs. Without coaPoid: makes the TO (toPoid) the default for its affiliation - exactly the same as SetDefaultTaskOrg with poid = toPoid. With coaPoid: ties the TO to that one COA for the TO's affiliation - while that COA is current it uses this TO instead of the affiliation default, and a later SetCoaTaskOrg for the same COA and affiliation replaces the binding. An unknown coaPoid or toPoid, or a toPoid that is not a TO, is refused (success=false with the reason). Answers null on success. Engines before STP-1077 refuse coaPoid with success=false, \"per-COA task org is not supported yet\", and change nothing.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "toPoid": {
+            "type": "string",
+            "description": "Unique id of the TO to use."
+          },
+          "coaPoid": {
+            "type": "string",
+            "description": "Optional. The COA the TO is tied to. Omit it to set the default TO for the TO's affiliation instead."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "_meta": {
+        "stp/safety": "write"
+      }
+    },
+    {
+      "name": "ResetCoaTaskOrg",
+      "description": "Clear a Task Organization (TO) selection; the TO itself is not deleted. Without coaPoid: unsets the default TO for affiliation, which is then required - exactly the same as ResetDefaultTaskOrg. With coaPoid: removes the TO tied to that COA for affiliation, or for every affiliation when affiliation is omitted, so the COA falls back to the affiliation default; clearing a binding that does not exist succeeds. An unknown coaPoid is refused (success=false with the reason). Answers null on success. Engines before STP-1077 refuse coaPoid with success=false, \"per-COA task org is not supported yet\", and change nothing.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "affiliation": {
+            "$ref": "#/$defs/Affiliation",
+            "description": "Affiliation whose TO selection is cleared. Required when coaPoid is omitted; with coaPoid, omit it to clear the COA's TO for every affiliation."
+          },
+          "coaPoid": {
+            "type": "string",
+            "description": "Optional. The COA whose TO is cleared. Omit it to reset the default TO for affiliation instead."
+          }
+        },
+        "additionalProperties": false,
+        "$defs": {
+          "Affiliation": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "unknown",
+              "assumed_friend",
+              "friend",
+              "neutral",
+              "suspect",
+              "hostile"
+            ],
+            "description": "Affiliation used for Symbols, COAs and TOs."
+          }
+        }
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "_meta": {
+        "stp/safety": "write"
+      }
+    },
+    {
+      "name": "ImportCoaContent",
+      "description": "Load a COA and its units, graphics and tasks from STP object-set text, typically produced by GetCoaContent, into the active scenario. Poids are kept exactly as they are in the content: the content is not used as a template and no new ids are generated. Returns the imported COA's poid (the poid of the coa object in the content); use it with SetCurrentCoa to work on the COA. Task-organization data is not part of COA content; load it with ImportTaskOrgContent. An object in the content whose poid already exists in the scenario REPLACES the resident object (its previous version stays in the undo history); objects not in the content are left alone, and a content object carrying the deletion version (fsdb_version 0) deletes that poid.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "string",
+            "description": "COA content as STP object-set text (object_set([...])), as returned by GetCoaContent."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "_meta": {
+        "stp/safety": "destructive"
+      }
+    },
+    {
+      "name": "GetCoaContent",
+      "description": "Return a COA and its units, graphics and tasks as STP object-set text (object_set([...])), ready to be saved and later loaded back with ImportCoaContent. The text does NOT include task-organization units or relationships; save those separately with GetTaskOrgContent. Read-only: nothing changes and no event follows.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "poid": {
+            "type": "string",
+            "description": "Unique id of the COA to export."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false
+      },
+      "_meta": {
+        "stp/safety": "read"
+      }
+    },
+    {
+      "name": "SetCurrentCoa",
+      "description": "Make a COA the current one. Sketch and speech recognition, edits and imports apply to the current COA from then on, so select the COA before working on it. Answers null on success. If the COA is already current the call succeeds immediately and nothing is emitted; otherwise the engine emits CoaSwitched with the newly current COA. A missing or blank poid is refused (success=false).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "poid": {
+            "type": "string",
+            "description": "Unique id of the COA to make current. Required; blank is refused."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "_meta": {
+        "stp/safety": "write"
+      }
+    },
+    {
+      "name": "AddCoa",
+      "description": "Add a Course of Action (COA) - an alternative plan for one affiliation - to the active scenario. Use it to create a new, empty COA; its units, graphics and tasks are then drawn or spoken while it is current (see SetCurrentCoa), or come in with ImportCoaContent instead of this call. Fire and forget: there is no result. On success the engine emits CoaAdded with the COA's poid and definition; treat that event, not this call, as the confirmation.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "coa": {
+            "$ref": "#/$defs/StpCoa",
+            "description": "COA definition to add (name, affiliation, creatorRole)."
+          }
+        },
+        "additionalProperties": false,
+        "$defs": {
+          "Affiliation": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "unknown",
+              "assumed_friend",
+              "friend",
+              "neutral",
+              "suspect",
+              "hostile"
+            ],
+            "description": "Affiliation used for Symbols, COAs and TOs."
+          },
+          "StpCoa": {
+            "description": "Course of Action (COA) definition.",
+            "properties": {
+              "fsTYPE": {
+                "type": "string",
+                "enum": [
+                  "coa"
+                ],
+                "description": "Item type identifier for COA."
+              },
+              "name": {
+                "type": "string",
+                "description": "COA name."
+              },
+              "poid": {
+                "type": "string",
+                "description": "Unique id of the COA."
+              },
+              "affiliation": {
+                "$ref": "#/$defs/Affiliation"
+              },
+              "creatorRole": {
+                "type": "string",
+                "description": "Role that created the COA (S2, S3, S4, FSO, ENG)."
+              },
+              "state": {
+                "$ref": "#/$defs/TaskOrgState",
+                "description": "State details associated with this COA."
+              }
+            }
+          },
+          "TaskOrgState": {
+            "description": "State details associated with a TO at a point in time.",
+            "properties": {
+              "fsTYPE": {
+                "type": "string",
+                "enum": [
+                  "task_org_state"
+                ],
+                "description": "Item type identifier for task org state."
+              },
+              "date": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Version date/time (UTC)."
+              },
+              "userRole": {
+                "type": "string",
+                "description": "Role associated with this state snapshot."
+              }
+            }
+          }
+        }
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "_meta": {
+        "stp/safety": "write",
+        "stp/inform": true
+      }
+    },
+    {
+      "name": "UpdateCoa",
+      "description": "Change the definition of an existing COA (for example its name), identified by poid. Use it to edit the COA object itself, not its units, graphics or tasks - those have their own Update* methods. Fire and forget: there is no result. On success the engine emits CoaModified with the COA's new state.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "poid": {
+            "type": "string",
+            "description": "Unique id of the COA to update."
+          },
+          "coa": {
+            "$ref": "#/$defs/StpCoa",
+            "description": "New COA definition."
+          }
+        },
+        "additionalProperties": false,
+        "$defs": {
+          "Affiliation": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "unknown",
+              "assumed_friend",
+              "friend",
+              "neutral",
+              "suspect",
+              "hostile"
+            ],
+            "description": "Affiliation used for Symbols, COAs and TOs."
+          },
+          "StpCoa": {
+            "description": "Course of Action (COA) definition.",
+            "properties": {
+              "fsTYPE": {
+                "type": "string",
+                "enum": [
+                  "coa"
+                ],
+                "description": "Item type identifier for COA."
+              },
+              "name": {
+                "type": "string",
+                "description": "COA name."
+              },
+              "poid": {
+                "type": "string",
+                "description": "Unique id of the COA."
+              },
+              "affiliation": {
+                "$ref": "#/$defs/Affiliation"
+              },
+              "creatorRole": {
+                "type": "string",
+                "description": "Role that created the COA (S2, S3, S4, FSO, ENG)."
+              },
+              "state": {
+                "$ref": "#/$defs/TaskOrgState",
+                "description": "State details associated with this COA."
+              }
+            }
+          },
+          "TaskOrgState": {
+            "description": "State details associated with a TO at a point in time.",
+            "properties": {
+              "fsTYPE": {
+                "type": "string",
+                "enum": [
+                  "task_org_state"
+                ],
+                "description": "Item type identifier for task org state."
+              },
+              "date": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Version date/time (UTC)."
+              },
+              "userRole": {
+                "type": "string",
+                "description": "Role associated with this state snapshot."
+              }
+            }
+          }
+        }
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "_meta": {
+        "stp/safety": "write",
+        "stp/inform": true
+      }
+    },
+    {
+      "name": "DeleteCoa",
+      "description": "Delete a COA, identified by poid, from the active scenario. Fire and forget: there is no result. On success the engine emits CoaDeleted.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "poid": {
+            "type": "string",
+            "description": "Unique id of the COA to delete."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "_meta": {
+        "stp/safety": "destructive",
+        "stp/inform": true
       }
     },
     {
@@ -2713,9 +3197,13 @@
           }
         }
       },
-      "annotations": {},
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
       "_meta": {
-        "stp/safety": "unclassified"
+        "stp/safety": "write"
       }
     },
     {
@@ -2736,9 +3224,12 @@
         },
         "additionalProperties": false
       },
-      "annotations": {},
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false
+      },
       "_meta": {
-        "stp/safety": "unclassified",
+        "stp/safety": "read",
         "stp/descriptionStatus": "draft"
       }
     },
@@ -2770,47 +3261,47 @@
           "options": {
             "type": "object",
             "properties": {
-              "resturl": {
+              "restUrl": {
                 "type": "string",
                 "description": "C2SIM REST endpoint, host:port/path, e.g. http://10.2.10.30:8080/C2SIMServer."
               },
-              "restpassword": {
+              "restPassword": {
                 "type": "string",
                 "description": "C2SIM REST endpoint password. Applied to this call only; it is never stored."
               },
-              "stompurl": {
+              "stompUrl": {
                 "type": "string",
                 "description": "STOMP endpoint, host:port/destination. Used to build this call's REST client; it does NOT move the engine's long-lived notification subscription."
               },
-              "serverprotocol": {
+              "serverProtocol": {
                 "type": "string",
                 "description": "C2SIM server protocol version."
               },
-              "systemname": {
+              "systemName": {
                 "type": "string",
                 "description": "Value of SystemEntityList/SystemName in the generated Initialization document."
               },
-              "resetbeforeinitialize": {
+              "resetBeforeInitialize": {
                 "type": "boolean",
                 "description": "Force the C2SIM server to Uninitialized before pushing Initialization, so it is not merged with a previous one."
               },
-              "runafterinitialize": {
+              "runAfterInitialize": {
                 "type": "boolean",
                 "description": "Switch the C2SIM server to Running immediately after pushing Initialization."
               },
-              "fullto": {
+              "fullTO": {
                 "type": "boolean",
                 "description": "Include the full Task Org, including entities not placed on the map. When false, only placed elements and their subordinates."
               },
-              "schemaversion": {
+              "schemaVersion": {
                 "type": "string",
                 "description": "Schema version hint (1.0.0 / 1.0.1 / 1.0.2). All inputs generate 1.0.2 unified output."
               },
-              "addorphantgtoinitialization": {
+              "addOrphanTgToInitialization": {
                 "type": "boolean",
                 "description": "Include tactical graphics that are not part of any task in the Initialization document."
               },
-              "placealltgininitialization": {
+              "placeAllTgInInitialization": {
                 "type": "boolean",
                 "description": "Place tactical graphics in the Initialization document instead of the Order document."
               },
@@ -2828,84 +3319,87 @@
               },
               "rulesOfEngagement": {
                 "type": "string",
-                "description": "Default rules of engagement.",
+                "description": "Default rules of engagement. The value is matched CASE-SENSITIVELY against the engine's ROE members, unlike the key; any other value (for example the pre-0.6.17 SDK spellings ROEHold / ROEFree / ROETight) is not applied - the engine logs a warning and keeps its configured default.",
                 "enum": [
                   "Hold",
                   "Free",
                   "Tight"
                 ]
               },
-              "updateunitpositions": {
+              "updateUnitPositions": {
                 "type": "boolean",
                 "description": "Use Position Report information to update units. ACCEPTED BUT INERT for a single call: it is read only by the engine's inbound report handler, which has no per-call context."
               },
-              "exportfiledir": {
+              "exportFileDir": {
                 "type": "string",
                 "description": "Default document export folder."
               },
-              "validationschema": {
+              "validationSchema": {
                 "type": "string",
                 "description": "Path to a schema file to validate generated XML against; empty for no validation."
               },
-              "startdate": {
+              "startDate": {
                 "type": "string",
                 "description": "Mission start date. ACCEPTED BUT INERT: nothing in the C2SIM bridge reads it.",
                 "format": "date-time"
               },
-              "phaseduration": {
+              "phaseDuration": {
                 "type": "integer",
                 "description": "Duration of each STP phase, in minutes."
               },
-              "fromsenderuuid": {
+              "fromSenderUUID": {
                 "type": "string",
                 "description": "Sender unique id."
               },
-              "toreceiveruuid": {
+              "toReceiverUUID": {
                 "type": "string",
                 "description": "Receiver unique id."
               },
-              "friendfstname": {
+              "friendFstName": {
                 "type": "string",
                 "description": "Friendly forces name."
               },
-              "friendfstuuid": {
+              "friendFstUUID": {
                 "type": "string",
                 "description": "Friendly forces unique id."
               },
-              "hostilefstname": {
+              "hostileFstName": {
                 "type": "string",
                 "description": "Hostile forces name."
               },
-              "hostilefstuuid": {
+              "hostileFstUUID": {
                 "type": "string",
                 "description": "Hostile forces unique id."
               },
-              "neutralfstname": {
+              "neutralFstName": {
                 "type": "string",
                 "description": "Neutral forces name."
               },
-              "neutralfstuuid": {
+              "neutralFstUUID": {
                 "type": "string",
                 "description": "Neutral forces unique id."
               },
-              "unknownfstname": {
+              "unknownFstName": {
                 "type": "string",
                 "description": "Unknown forces name. ACCEPTED BUT INERT: nothing in the C2SIM bridge reads it."
               },
-              "unknownfstuuid": {
+              "unknownFstUUID": {
                 "type": "string",
                 "description": "Unknown forces unique id. ACCEPTED BUT INERT: nothing in the C2SIM bridge reads it."
               }
             },
             "additionalProperties": false,
-            "description": "Generation options. Applied to THIS CALL ONLY - options no longer persist into the engine's shared configuration, so nothing one caller passes affects any later call or any other session (STP-687). The key set is definite and enumerated below, NOT implementation-defined. An unknown or misspelled key fails the call with success = false and nothing applied, rather than being silently ignored. Key names are compared CASE-INSENSITIVELY, so the camelCase spellings used by the JS SDK's StpC2SIMOptions (for example restUrl for resturl) are equivalent to the canonical names listed here. Three properties of the engine's configuration are deliberately NOT settable over the wire because they are not operator-settable either - stphost and stpport drive the engine's own long-lived connection, and backgroundmode is set by the host process."
+            "description": "Generation options. Applied to THIS CALL ONLY - options no longer persist into the engine's shared configuration, so nothing one caller passes affects any later call or any other session (STP-687). The key set is definite and enumerated below, NOT implementation-defined. An unknown or misspelled key fails the call with success = false and nothing applied, rather than being silently ignored. Keys are listed in the camelCase spelling clients send - the field names of the JS SDK's StpC2SIMOptions (for example restUrl) - so a strict, case-sensitive JSON Schema validator accepts what the SDK sends (STP-694). The engine itself compares key names CASE-INSENSITIVELY and also accepts any other casing of a listed key (restUrl, resturl and RESTURL set the same option). Three properties of the engine's configuration are deliberately NOT settable over the wire because they are not operator-settable either - stphost and stpport drive the engine's own long-lived connection, and backgroundmode is set by the host process."
           }
         },
         "additionalProperties": false
       },
-      "annotations": {},
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false
+      },
       "_meta": {
-        "stp/safety": "unclassified",
+        "stp/safety": "read",
         "stp/descriptionStatus": "draft"
       }
     },
@@ -2922,9 +3416,12 @@
         },
         "additionalProperties": false
       },
-      "annotations": {},
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false
+      },
       "_meta": {
-        "stp/safety": "unclassified",
+        "stp/safety": "read",
         "stp/descriptionStatus": "draft"
       }
     },
@@ -2936,9 +3433,12 @@
         "properties": {},
         "additionalProperties": false
       },
-      "annotations": {},
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false
+      },
       "_meta": {
-        "stp/safety": "unclassified",
+        "stp/safety": "read",
         "stp/descriptionStatus": "draft"
       }
     },
@@ -2955,15 +3455,18 @@
         },
         "additionalProperties": false
       },
-      "annotations": {},
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false
+      },
       "_meta": {
-        "stp/safety": "unclassified",
+        "stp/safety": "read",
         "stp/descriptionStatus": "draft"
       }
     },
     {
       "name": "ImportCoaFromObjectSet",
-      "description": "Import a new COA from an in-memory object set (array of STP objects), using fresh unique IDs. Object-set equivalent of ImportCoaContent.",
+      "description": "Import a COA from an in-memory object set (array of STP objects). Poids are kept exactly as they are in the objects; no new ids are generated. Object-set equivalent of ImportCoaContent. An object in the content whose poid already exists in the scenario REPLACES the resident object (its previous version stays in the undo history); objects not in the content are left alone, and a content object carrying the deletion version (fsdb_version 0) deletes that poid.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -2978,15 +3481,19 @@
         },
         "additionalProperties": false
       },
-      "annotations": {},
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
       "_meta": {
-        "stp/safety": "unclassified",
+        "stp/safety": "destructive",
         "stp/descriptionStatus": "draft"
       }
     },
     {
       "name": "ImportPlanDataFromObjectSet",
-      "description": "Import additional content into the current scenario from an in-memory object set (array of STP objects). Object-set equivalent of ImportPlanData.",
+      "description": "Import additional content into the current scenario from an in-memory object set (array of STP objects). Object-set equivalent of ImportPlanData. An object in the content whose poid already exists in the scenario REPLACES the resident object (its previous version stays in the undo history); objects not in the content are left alone, and a content object carrying the deletion version (fsdb_version 0) deletes that poid. Afterwards the default friend and hostile task orgs are re-selected, preferring task orgs this content just loaded.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -3001,15 +3508,19 @@
         },
         "additionalProperties": false
       },
-      "annotations": {},
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
       "_meta": {
-        "stp/safety": "unclassified",
+        "stp/safety": "destructive",
         "stp/descriptionStatus": "draft"
       }
     },
     {
       "name": "ImportTaskOrgFromObjectSet",
-      "description": "Import a Task Organization from an in-memory object set (array of STP objects), using fresh unique IDs. Object-set equivalent of ImportTaskOrgContent.",
+      "description": "Import a Task Organization from an in-memory object set (array of STP objects). Poids are kept exactly as they are in the objects; no new ids are generated. Object-set equivalent of ImportTaskOrgContent. An object in the content whose poid already exists in the scenario REPLACES the resident object (its previous version stays in the undo history); objects not in the content are left alone, and a content object carrying the deletion version (fsdb_version 0) deletes that poid.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -3024,9 +3535,13 @@
         },
         "additionalProperties": false
       },
-      "annotations": {},
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
       "_meta": {
-        "stp/safety": "unclassified",
+        "stp/safety": "destructive",
         "stp/descriptionStatus": "draft"
       }
     },
@@ -3047,62 +3562,66 @@
         },
         "additionalProperties": false
       },
-      "annotations": {},
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
       "_meta": {
-        "stp/safety": "unclassified",
+        "stp/safety": "destructive",
         "stp/descriptionStatus": "draft"
       }
     },
     {
       "name": "PullC2SIMInitialization",
-      "description": "Pull C2SIM initialization content (e.g. order of battle) from the connected C2SIM infrastructure.",
+      "description": "Fetch the C2SIM initialization (for example the order of battle) from the external C2SIM server named by options: the engine joins that server's session and reads its status. Returns the initialization XML and the server status; nothing is loaded into the STP scenario - convert or import the content separately if you want it there.",
       "inputSchema": {
         "type": "object",
         "properties": {
           "options": {
             "type": "object",
             "properties": {
-              "resturl": {
+              "restUrl": {
                 "type": "string",
                 "description": "C2SIM REST endpoint, host:port/path, e.g. http://10.2.10.30:8080/C2SIMServer."
               },
-              "restpassword": {
+              "restPassword": {
                 "type": "string",
                 "description": "C2SIM REST endpoint password. Applied to this call only; it is never stored."
               },
-              "stompurl": {
+              "stompUrl": {
                 "type": "string",
                 "description": "STOMP endpoint, host:port/destination. Used to build this call's REST client; it does NOT move the engine's long-lived notification subscription."
               },
-              "serverprotocol": {
+              "serverProtocol": {
                 "type": "string",
                 "description": "C2SIM server protocol version."
               },
-              "systemname": {
+              "systemName": {
                 "type": "string",
                 "description": "Value of SystemEntityList/SystemName in the generated Initialization document."
               },
-              "resetbeforeinitialize": {
+              "resetBeforeInitialize": {
                 "type": "boolean",
                 "description": "Force the C2SIM server to Uninitialized before pushing Initialization, so it is not merged with a previous one."
               },
-              "runafterinitialize": {
+              "runAfterInitialize": {
                 "type": "boolean",
                 "description": "Switch the C2SIM server to Running immediately after pushing Initialization."
               },
-              "fullto": {
+              "fullTO": {
                 "type": "boolean",
                 "description": "Include the full Task Org, including entities not placed on the map. When false, only placed elements and their subordinates."
               },
-              "schemaversion": {
+              "schemaVersion": {
                 "type": "string",
                 "description": "Schema version hint (1.0.0 / 1.0.1 / 1.0.2). All inputs generate 1.0.2 unified output."
               },
-              "addorphantgtoinitialization": {
+              "addOrphanTgToInitialization": {
                 "type": "boolean",
                 "description": "Include tactical graphics that are not part of any task in the Initialization document."
               },
-              "placealltgininitialization": {
+              "placeAllTgInInitialization": {
                 "type": "boolean",
                 "description": "Place tactical graphics in the Initialization document instead of the Order document."
               },
@@ -3120,90 +3639,94 @@
               },
               "rulesOfEngagement": {
                 "type": "string",
-                "description": "Default rules of engagement.",
+                "description": "Default rules of engagement. The value is matched CASE-SENSITIVELY against the engine's ROE members, unlike the key; any other value (for example the pre-0.6.17 SDK spellings ROEHold / ROEFree / ROETight) is not applied - the engine logs a warning and keeps its configured default.",
                 "enum": [
                   "Hold",
                   "Free",
                   "Tight"
                 ]
               },
-              "updateunitpositions": {
+              "updateUnitPositions": {
                 "type": "boolean",
                 "description": "Use Position Report information to update units. ACCEPTED BUT INERT for a single call: it is read only by the engine's inbound report handler, which has no per-call context."
               },
-              "exportfiledir": {
+              "exportFileDir": {
                 "type": "string",
                 "description": "Default document export folder."
               },
-              "validationschema": {
+              "validationSchema": {
                 "type": "string",
                 "description": "Path to a schema file to validate generated XML against; empty for no validation."
               },
-              "startdate": {
+              "startDate": {
                 "type": "string",
                 "description": "Mission start date. ACCEPTED BUT INERT: nothing in the C2SIM bridge reads it.",
                 "format": "date-time"
               },
-              "phaseduration": {
+              "phaseDuration": {
                 "type": "integer",
                 "description": "Duration of each STP phase, in minutes."
               },
-              "fromsenderuuid": {
+              "fromSenderUUID": {
                 "type": "string",
                 "description": "Sender unique id."
               },
-              "toreceiveruuid": {
+              "toReceiverUUID": {
                 "type": "string",
                 "description": "Receiver unique id."
               },
-              "friendfstname": {
+              "friendFstName": {
                 "type": "string",
                 "description": "Friendly forces name."
               },
-              "friendfstuuid": {
+              "friendFstUUID": {
                 "type": "string",
                 "description": "Friendly forces unique id."
               },
-              "hostilefstname": {
+              "hostileFstName": {
                 "type": "string",
                 "description": "Hostile forces name."
               },
-              "hostilefstuuid": {
+              "hostileFstUUID": {
                 "type": "string",
                 "description": "Hostile forces unique id."
               },
-              "neutralfstname": {
+              "neutralFstName": {
                 "type": "string",
                 "description": "Neutral forces name."
               },
-              "neutralfstuuid": {
+              "neutralFstUUID": {
                 "type": "string",
                 "description": "Neutral forces unique id."
               },
-              "unknownfstname": {
+              "unknownFstName": {
                 "type": "string",
                 "description": "Unknown forces name. ACCEPTED BUT INERT: nothing in the C2SIM bridge reads it."
               },
-              "unknownfstuuid": {
+              "unknownFstUUID": {
                 "type": "string",
                 "description": "Unknown forces unique id. ACCEPTED BUT INERT: nothing in the C2SIM bridge reads it."
               }
             },
             "additionalProperties": false,
-            "description": "Pull options. Applied to THIS CALL ONLY - options no longer persist into the engine's shared configuration, so nothing one caller passes affects any later call or any other session (STP-687). The key set is definite and enumerated below, NOT implementation-defined. An unknown or misspelled key fails the call with success = false and nothing applied, rather than being silently ignored. Key names are compared CASE-INSENSITIVELY, so the camelCase spellings used by the JS SDK's StpC2SIMOptions (for example restUrl for resturl) are equivalent to the canonical names listed here. Three properties of the engine's configuration are deliberately NOT settable over the wire because they are not operator-settable either - stphost and stpport drive the engine's own long-lived connection, and backgroundmode is set by the host process."
+            "description": "Pull options. Applied to THIS CALL ONLY - options no longer persist into the engine's shared configuration, so nothing one caller passes affects any later call or any other session (STP-687). The key set is definite and enumerated below, NOT implementation-defined. An unknown or misspelled key fails the call with success = false and nothing applied, rather than being silently ignored. Keys are listed in the camelCase spelling clients send - the field names of the JS SDK's StpC2SIMOptions (for example restUrl) - so a strict, case-sensitive JSON Schema validator accepts what the SDK sends (STP-694). The engine itself compares key names CASE-INSENSITIVELY and also accepts any other casing of a listed key (restUrl, resturl and RESTURL set the same option). Three properties of the engine's configuration are deliberately NOT settable over the wire because they are not operator-settable either - stphost and stpport drive the engine's own long-lived connection, and backgroundmode is set by the host process."
           }
         },
         "additionalProperties": false
       },
-      "annotations": {},
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": true
+      },
       "_meta": {
-        "stp/safety": "unclassified",
+        "stp/safety": "write",
         "stp/descriptionStatus": "draft"
       }
     },
     {
       "name": "PushC2SIMContent",
-      "description": "Submit C2SIM-formatted content to STP for processing/import.",
+      "description": "Send C2SIM-formatted content (an initialization or an order, per dataType) to the EXTERNAL C2SIM server named by options. Nothing is imported into the STP scenario. Depending on options the engine first resets the server to its initializing state (clearing what it holds) and afterwards switches it to running, so this changes shared state outside STP.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -3218,47 +3741,47 @@
           "options": {
             "type": "object",
             "properties": {
-              "resturl": {
+              "restUrl": {
                 "type": "string",
                 "description": "C2SIM REST endpoint, host:port/path, e.g. http://10.2.10.30:8080/C2SIMServer."
               },
-              "restpassword": {
+              "restPassword": {
                 "type": "string",
                 "description": "C2SIM REST endpoint password. Applied to this call only; it is never stored."
               },
-              "stompurl": {
+              "stompUrl": {
                 "type": "string",
                 "description": "STOMP endpoint, host:port/destination. Used to build this call's REST client; it does NOT move the engine's long-lived notification subscription."
               },
-              "serverprotocol": {
+              "serverProtocol": {
                 "type": "string",
                 "description": "C2SIM server protocol version."
               },
-              "systemname": {
+              "systemName": {
                 "type": "string",
                 "description": "Value of SystemEntityList/SystemName in the generated Initialization document."
               },
-              "resetbeforeinitialize": {
+              "resetBeforeInitialize": {
                 "type": "boolean",
                 "description": "Force the C2SIM server to Uninitialized before pushing Initialization, so it is not merged with a previous one."
               },
-              "runafterinitialize": {
+              "runAfterInitialize": {
                 "type": "boolean",
                 "description": "Switch the C2SIM server to Running immediately after pushing Initialization."
               },
-              "fullto": {
+              "fullTO": {
                 "type": "boolean",
                 "description": "Include the full Task Org, including entities not placed on the map. When false, only placed elements and their subordinates."
               },
-              "schemaversion": {
+              "schemaVersion": {
                 "type": "string",
                 "description": "Schema version hint (1.0.0 / 1.0.1 / 1.0.2). All inputs generate 1.0.2 unified output."
               },
-              "addorphantgtoinitialization": {
+              "addOrphanTgToInitialization": {
                 "type": "boolean",
                 "description": "Include tactical graphics that are not part of any task in the Initialization document."
               },
-              "placealltgininitialization": {
+              "placeAllTgInInitialization": {
                 "type": "boolean",
                 "description": "Place tactical graphics in the Initialization document instead of the Order document."
               },
@@ -3276,90 +3799,94 @@
               },
               "rulesOfEngagement": {
                 "type": "string",
-                "description": "Default rules of engagement.",
+                "description": "Default rules of engagement. The value is matched CASE-SENSITIVELY against the engine's ROE members, unlike the key; any other value (for example the pre-0.6.17 SDK spellings ROEHold / ROEFree / ROETight) is not applied - the engine logs a warning and keeps its configured default.",
                 "enum": [
                   "Hold",
                   "Free",
                   "Tight"
                 ]
               },
-              "updateunitpositions": {
+              "updateUnitPositions": {
                 "type": "boolean",
                 "description": "Use Position Report information to update units. ACCEPTED BUT INERT for a single call: it is read only by the engine's inbound report handler, which has no per-call context."
               },
-              "exportfiledir": {
+              "exportFileDir": {
                 "type": "string",
                 "description": "Default document export folder."
               },
-              "validationschema": {
+              "validationSchema": {
                 "type": "string",
                 "description": "Path to a schema file to validate generated XML against; empty for no validation."
               },
-              "startdate": {
+              "startDate": {
                 "type": "string",
                 "description": "Mission start date. ACCEPTED BUT INERT: nothing in the C2SIM bridge reads it.",
                 "format": "date-time"
               },
-              "phaseduration": {
+              "phaseDuration": {
                 "type": "integer",
                 "description": "Duration of each STP phase, in minutes."
               },
-              "fromsenderuuid": {
+              "fromSenderUUID": {
                 "type": "string",
                 "description": "Sender unique id."
               },
-              "toreceiveruuid": {
+              "toReceiverUUID": {
                 "type": "string",
                 "description": "Receiver unique id."
               },
-              "friendfstname": {
+              "friendFstName": {
                 "type": "string",
                 "description": "Friendly forces name."
               },
-              "friendfstuuid": {
+              "friendFstUUID": {
                 "type": "string",
                 "description": "Friendly forces unique id."
               },
-              "hostilefstname": {
+              "hostileFstName": {
                 "type": "string",
                 "description": "Hostile forces name."
               },
-              "hostilefstuuid": {
+              "hostileFstUUID": {
                 "type": "string",
                 "description": "Hostile forces unique id."
               },
-              "neutralfstname": {
+              "neutralFstName": {
                 "type": "string",
                 "description": "Neutral forces name."
               },
-              "neutralfstuuid": {
+              "neutralFstUUID": {
                 "type": "string",
                 "description": "Neutral forces unique id."
               },
-              "unknownfstname": {
+              "unknownFstName": {
                 "type": "string",
                 "description": "Unknown forces name. ACCEPTED BUT INERT: nothing in the C2SIM bridge reads it."
               },
-              "unknownfstuuid": {
+              "unknownFstUUID": {
                 "type": "string",
                 "description": "Unknown forces unique id. ACCEPTED BUT INERT: nothing in the C2SIM bridge reads it."
               }
             },
             "additionalProperties": false,
-            "description": "Push options. Applied to THIS CALL ONLY - options no longer persist into the engine's shared configuration, so nothing one caller passes affects any later call or any other session (STP-687). The key set is definite and enumerated below, NOT implementation-defined. An unknown or misspelled key fails the call with success = false and nothing applied, rather than being silently ignored. Key names are compared CASE-INSENSITIVELY, so the camelCase spellings used by the JS SDK's StpC2SIMOptions (for example restUrl for resturl) are equivalent to the canonical names listed here. Three properties of the engine's configuration are deliberately NOT settable over the wire because they are not operator-settable either - stphost and stpport drive the engine's own long-lived connection, and backgroundmode is set by the host process."
+            "description": "Push options. Applied to THIS CALL ONLY - options no longer persist into the engine's shared configuration, so nothing one caller passes affects any later call or any other session (STP-687). The key set is definite and enumerated below, NOT implementation-defined. An unknown or misspelled key fails the call with success = false and nothing applied, rather than being silently ignored. Keys are listed in the camelCase spelling clients send - the field names of the JS SDK's StpC2SIMOptions (for example restUrl) - so a strict, case-sensitive JSON Schema validator accepts what the SDK sends (STP-694). The engine itself compares key names CASE-INSENSITIVELY and also accepts any other casing of a listed key (restUrl, resturl and RESTURL set the same option). Three properties of the engine's configuration are deliberately NOT settable over the wire because they are not operator-settable either - stphost and stpport drive the engine's own long-lived connection, and backgroundmode is set by the host process."
           }
         },
         "additionalProperties": false
       },
-      "annotations": {},
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": true
+      },
       "_meta": {
-        "stp/safety": "unclassified",
+        "stp/safety": "destructive",
         "stp/descriptionStatus": "draft"
       }
     },
     {
       "name": "SyncScenarioSessionFromObjectSet",
-      "description": "Load a scenario from an in-memory object set and update the session state with detected differences. Object-set equivalent of SyncScenarioSession.",
+      "description": "Merge a scenario into the active session from an in-memory object set and update the session state with the differences. Object-set equivalent of SyncScenarioSession, with the same merge rules. An object in the content whose poid already exists in the scenario REPLACES the resident object (its previous version stays in the undo history); objects not in the content are left alone, and a content object carrying the deletion version (fsdb_version 0) deletes that poid. Afterwards the default friend and hostile task orgs are re-selected, preferring task orgs this content just loaded.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -3374,9 +3901,13 @@
         },
         "additionalProperties": false
       },
-      "annotations": {},
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
       "_meta": {
-        "stp/safety": "unclassified",
+        "stp/safety": "destructive",
         "stp/descriptionStatus": "draft"
       }
     },
@@ -3393,9 +3924,14 @@
         },
         "additionalProperties": false
       },
-      "annotations": {},
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
       "_meta": {
-        "stp/safety": "unclassified"
+        "stp/safety": "write",
+        "stp/inform": true
       }
     },
     {
@@ -3406,9 +3942,14 @@
         "properties": {},
         "additionalProperties": false
       },
-      "annotations": {},
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
       "_meta": {
-        "stp/safety": "unclassified"
+        "stp/safety": "write",
+        "stp/inform": true
       }
     },
     {
@@ -3424,9 +3965,14 @@
         },
         "additionalProperties": false
       },
-      "annotations": {},
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
       "_meta": {
-        "stp/safety": "unclassified"
+        "stp/safety": "write",
+        "stp/inform": true
       }
     },
     {
@@ -3437,9 +3983,14 @@
         "properties": {},
         "additionalProperties": false
       },
-      "annotations": {},
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
       "_meta": {
-        "stp/safety": "unclassified"
+        "stp/safety": "write",
+        "stp/inform": true
       }
     },
     {
@@ -3477,9 +4028,14 @@
         },
         "additionalProperties": false
       },
-      "annotations": {},
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
       "_meta": {
-        "stp/safety": "unclassified"
+        "stp/safety": "write",
+        "stp/inform": true
       }
     },
     {
@@ -3495,9 +4051,14 @@
         },
         "additionalProperties": false
       },
-      "annotations": {},
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
       "_meta": {
-        "stp/safety": "unclassified"
+        "stp/safety": "write",
+        "stp/inform": true
       }
     },
     {
@@ -3536,9 +4097,14 @@
           }
         }
       },
-      "annotations": {},
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
       "_meta": {
-        "stp/safety": "unclassified"
+        "stp/safety": "write",
+        "stp/inform": true
       }
     },
     {
@@ -3554,9 +4120,14 @@
         },
         "additionalProperties": false
       },
-      "annotations": {},
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
       "_meta": {
-        "stp/safety": "unclassified"
+        "stp/safety": "write",
+        "stp/inform": true
       }
     },
     {
@@ -3567,9 +4138,14 @@
         "properties": {},
         "additionalProperties": false
       },
-      "annotations": {},
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
       "_meta": {
-        "stp/safety": "unclassified"
+        "stp/safety": "write",
+        "stp/inform": true
       }
     },
     {
@@ -3585,9 +4161,14 @@
         },
         "additionalProperties": false
       },
-      "annotations": {},
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
       "_meta": {
-        "stp/safety": "unclassified"
+        "stp/safety": "write",
+        "stp/inform": true
       }
     },
     {
@@ -3598,9 +4179,14 @@
         "properties": {},
         "additionalProperties": false
       },
-      "annotations": {},
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
       "_meta": {
-        "stp/safety": "unclassified"
+        "stp/safety": "destructive",
+        "stp/inform": true
       }
     },
     {
@@ -3611,9 +4197,12 @@
         "properties": {},
         "additionalProperties": false
       },
-      "annotations": {},
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false
+      },
       "_meta": {
-        "stp/safety": "unclassified"
+        "stp/safety": "read"
       }
     },
     {
@@ -3624,9 +4213,12 @@
         "properties": {},
         "additionalProperties": false
       },
-      "annotations": {},
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false
+      },
       "_meta": {
-        "stp/safety": "unclassified"
+        "stp/safety": "read"
       }
     },
     {
@@ -3637,9 +4229,12 @@
         "properties": {},
         "additionalProperties": false
       },
-      "annotations": {},
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false
+      },
       "_meta": {
-        "stp/safety": "unclassified"
+        "stp/safety": "read"
       }
     },
     {
@@ -3655,9 +4250,12 @@
         },
         "additionalProperties": false
       },
-      "annotations": {},
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false
+      },
       "_meta": {
-        "stp/safety": "unclassified"
+        "stp/safety": "read"
       }
     },
     {
@@ -3668,9 +4266,12 @@
         "properties": {},
         "additionalProperties": false
       },
-      "annotations": {},
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false
+      },
       "_meta": {
-        "stp/safety": "unclassified"
+        "stp/safety": "read"
       }
     },
     {
@@ -3686,45 +4287,16 @@
         },
         "additionalProperties": false
       },
-      "annotations": {},
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false
+      },
       "_meta": {
-        "stp/safety": "unclassified"
+        "stp/safety": "read"
       }
     }
   ],
   "excluded": [
-    {
-      "name": "SetCoaTaskOrg",
-      "reason": "not dispatched by the engine (x-engineDispatch: none); the call answers 'No handler'"
-    },
-    {
-      "name": "ResetCoaTaskOrg",
-      "reason": "not dispatched by the engine (x-engineDispatch: none); the call answers 'No handler'"
-    },
-    {
-      "name": "ImportCoaContent",
-      "reason": "not dispatched by the engine (x-engineDispatch: none); the call answers 'No handler'"
-    },
-    {
-      "name": "GetCoaContent",
-      "reason": "not dispatched by the engine (x-engineDispatch: none); the call answers 'No handler'"
-    },
-    {
-      "name": "SetCurrentCoa",
-      "reason": "not dispatched by the engine (x-engineDispatch: none); the call answers 'No handler'"
-    },
-    {
-      "name": "AddCoa",
-      "reason": "not dispatched by the engine (x-engineDispatch: none); the call answers 'No handler'"
-    },
-    {
-      "name": "UpdateCoa",
-      "reason": "not dispatched by the engine (x-engineDispatch: none); the call answers 'No handler'"
-    },
-    {
-      "name": "DeleteCoa",
-      "reason": "not dispatched by the engine (x-engineDispatch: none); the call answers 'No handler'"
-    },
     {
       "name": "Register",
       "reason": "transport-layer message, built and consumed by the SDK connectors only"

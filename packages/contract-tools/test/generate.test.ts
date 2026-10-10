@@ -12,9 +12,9 @@ const result = generateTools(contract);
 
 // Floors, as in STP's tools/check-openrpc-surface.sh: a generator that quietly
 // stops producing tools must read as broken, never as a smaller API.
-// 2026-10-10, contract 0.4.0: 72 methods -> 62 tools + 10 excluded, 29 events.
-const TOOL_FLOOR = 55;
-const EVENT_FLOOR = 25;
+// 2026-10-10, contract 0.7.0: 72 methods -> 70 tools + 2 excluded (transport), 32 events.
+const TOOL_FLOOR = 66;
+const EVENT_FLOOR = 28;
 
 describe("pinned contract", () => {
   it("matches its pin", () => {
@@ -37,6 +37,16 @@ describe("generateTools", () => {
     const undispatched = contract.methods.filter((m) => m["x-engineDispatch"] === "none").map((m) => m.name);
     const toolNames = new Set(result.tools.map((t) => t.name));
     for (const name of undispatched) expect(toolNames.has(name)).toBe(false);
+  });
+
+  it("classifies the pinned contract as the STP-1059 slice did", () => {
+    const by = (name: string) => result.tools.find((t) => t.name === name)!;
+    expect(by("GetScenarioContent").annotations.readOnlyHint).toBe(true);
+    expect(by("DeleteSymbol").annotations.destructiveHint).toBe(true);
+    expect(by("ImportCoaContent").annotations.destructiveHint).toBe(true);
+    expect(by("AddSymbol")._meta["stp/inform"]).toBe(true);
+    expect(by("PushC2SIMContent").annotations).toMatchObject({ destructiveHint: true, openWorldHint: true });
+    expect(by("PullC2SIMInitialization").annotations.openWorldHint).toBe(true);
   });
 
   it("never exposes a transport-layer message", () => {
@@ -94,7 +104,10 @@ describe("toolFromMethod", () => {
 
   it("refuses a reference to a missing component", () => {
     expect(() =>
-      toolFromMethod({ name: "M", params: [{ name: "x", schema: { $ref: "#/components/schemas/Nope" } }] }, tiny),
+      toolFromMethod(
+        { name: "M", params: [{ name: "x", schema: { $ref: "#/components/schemas/Nope" } }], "x-stpSafety": "read" },
+        tiny,
+      ),
     ).toThrow(/missing component schema 'Nope'/);
   });
 
@@ -102,7 +115,16 @@ describe("toolFromMethod", () => {
     expect(() => toolFromMethod({ name: "M", params: [], "x-stpSafety": "maybe" }, tiny)).toThrow(/unknown x-stpSafety/);
   });
 
-  it("leaves an unclassified method without annotations", () => {
-    expect(toolFromMethod({ name: "M", params: [] }, tiny).annotations).toEqual({});
+  it("refuses an unclassified method", () => {
+    expect(() => toolFromMethod({ name: "M", params: [] }, tiny)).toThrow(/no x-stpSafety/);
+  });
+
+  it("marks a call that reaches outside STP as open-world, and an inform as events-only", () => {
+    const tool = toolFromMethod(
+      { name: "M", params: [], "x-stpSafety": "write", "x-stpOpenWorld": true, "x-stpInform": true },
+      tiny,
+    );
+    expect(tool.annotations).toEqual({ readOnlyHint: false, destructiveHint: false, openWorldHint: true });
+    expect(tool._meta["stp/inform"]).toBe(true);
   });
 });

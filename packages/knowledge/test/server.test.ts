@@ -45,7 +45,7 @@ describe("knowledge server", () => {
     expect(names).not.toContain("Register");
     const addSymbol = body.methods.find((m: { name: string }) => m.name === "AddSymbol");
     expect(addSymbol).toMatchObject({ safety: "write", returns: "events only" });
-    expect(body.contract.version).toBe("0.9.0");
+    expect(body.contract.version).toBe("0.9.1");
     expect(body.docs.repo).toBe("hyssostech/stp-docs");
     expect(body.docs.ref).toMatch(/^[0-9a-f]{40}$/);
   });
@@ -143,7 +143,7 @@ describe("search_docs", () => {
     const { body, content, isError } = await call("search_docs", { query: "how do I load a scenario", k: 4 });
     expect(isError).toBe(false);
     expect(body.docs.ref).toBe(loadDocsPin().ref);
-    expect(body.contract.version).toBe("0.9.0");
+    expect(body.contract.version).toBe("0.9.1");
     expect(body.results.length).toBe(4);
     const top = body.results[0];
     expect(top.uri).toBe("stp-docs://guides/scenarios");

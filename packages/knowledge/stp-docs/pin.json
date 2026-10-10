@@ -1,0 +1,107 @@
+{
+  "repo": "hyssostech/stp-docs",
+  "path": "docs",
+  "ref": "aa83c5111f1f5bc0b2149e2a4bad9f204b9d60e2",
+  "license": "MIT",
+  "count": 22,
+  "excluded": [
+    {
+      "path": "docs/api/",
+      "reason": "generated TypeDoc reference for the JS SDK; measured to lower search recall (STP-1061), and the JSON-RPC contract is indexed instead"
+    },
+    {
+      "path": "docs/api-net/",
+      "reason": "generated reference for the .NET SDK; measured to lower search recall (STP-1061), and the JSON-RPC contract is indexed instead"
+    }
+  ],
+  "files": [
+    {
+      "path": "docs/getting-started.md",
+      "blob": "50cae93cd9233b341517c52e4b2ea8fc3d7b0da2"
+    },
+    {
+      "path": "docs/guides/c2sim.md",
+      "blob": "67b2a71c22ed2d0309342aea9d69f86faa832e43"
+    },
+    {
+      "path": "docs/guides/custom-commands.md",
+      "blob": "23b19e3a0e737ee3638cd76d90afa4da48f69007"
+    },
+    {
+      "path": "docs/guides/iframe-embedding.md",
+      "blob": "c3f3761f1aff8fefd6bf984253399574d56c600a"
+    },
+    {
+      "path": "docs/guides/integration-troubleshooting.md",
+      "blob": "9fc406cfa69e91309fa9bc5a46a59bc63e47a4ce"
+    },
+    {
+      "path": "docs/guides/roles.md",
+      "blob": "933e974a5c8ad317b67837638f6a13450f1dba46"
+    },
+    {
+      "path": "docs/guides/scenarios.md",
+      "blob": "35d0c900d4b9575e93856c8b8eb80974c2a17e31"
+    },
+    {
+      "path": "docs/guides/sessions.md",
+      "blob": "80d80e3623ea12598d4f5abc2f688d20916eed01"
+    },
+    {
+      "path": "docs/guides/silent-failures.md",
+      "blob": "28ba9b635978c806947779a9204b49069546e28f"
+    },
+    {
+      "path": "docs/guides/symbology-and-the-wire.md",
+      "blob": "464859992e4be33a19f0ac16edb83a97a57e0a27"
+    },
+    {
+      "path": "docs/guides/symbols-and-rendering.md",
+      "blob": "8583506bb2287c6bea4f052ca403a64631a0a541"
+    },
+    {
+      "path": "docs/guides/task-org.md",
+      "blob": "96bf05c4e558c0d7bf9c181cfe5673bfb1a9c949"
+    },
+    {
+      "path": "docs/guides/tasks.md",
+      "blob": "4a9b024133659b1d512a88a58ceaef058dfc1d3c"
+    },
+    {
+      "path": "docs/installation.md",
+      "blob": "dac66b98cbe35a3fa5291160432fd14fea3fb0ba"
+    },
+    {
+      "path": "docs/intro.md",
+      "blob": "e251e19bf8e5d7f7067bb339d0dd975cc2cd4070"
+    },
+    {
+      "path": "docs/plugins/connectors.md",
+      "blob": "99bfa722d1d046d8cca1f47e05db15a8f62f2a69"
+    },
+    {
+      "path": "docs/plugins/map-adapters.md",
+      "blob": "c0694e0d7f9d6c0747ec6c85ddf954c0aff31836"
+    },
+    {
+      "path": "docs/plugins/renderers.md",
+      "blob": "32feecd2da98ca0ece1bf49f38f075600a2297e2"
+    },
+    {
+      "path": "docs/plugins/speech.md",
+      "blob": "726b3709bf4aa8ea2d3e28a3f6bc0f52dcc477b0"
+    },
+    {
+      "path": "docs/reference/changelog.md",
+      "blob": "a4867a9dd0d69db808cd611aa356f94ee5693756"
+    },
+    {
+      "path": "docs/reference/json-api.md",
+      "blob": "188eb0b4db565cb726bc890bee7e8ca585188c72"
+    },
+    {
+      "path": "docs/reference/symbol-properties.md",
+      "blob": "9e4ce6b16bfed1ff22c03647331eb71e3bf911f1"
+    }
+  ]
+}

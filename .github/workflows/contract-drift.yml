@@ -4,7 +4,9 @@ name: Contract drift
 # (packages/contract-tools/contract). This reports when the published contract
 # (hyssostech/sketch-thru-plan-sdk-js, json-api/sketch-thru-plan-api.json) has
 # moved past the pin, so a re-pin is a reviewed change rather than a surprise.
-# Credential-free: the contract repo is public.
+# The docs corpus (packages/knowledge/stp-docs, from hyssostech/stp-docs) is pinned the same way and
+# checked by the second job.
+# Credential-free: both repos are public.
 
 on:
   schedule:
@@ -14,7 +16,9 @@ on:
     branches: [ main ]
     paths:
       - 'scripts/update-contract.mjs'
+      - 'scripts/update-docs.mjs'
       - 'packages/contract-tools/contract/**'
+      - 'packages/knowledge/stp-docs/**'
       - '.github/workflows/contract-drift.yml'
 
 permissions:
@@ -35,3 +39,16 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: node scripts/update-contract.mjs --check
+
+  docs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+      - name: Compare the pinned docs with the published ones
+        run: node scripts/update-docs.mjs --check

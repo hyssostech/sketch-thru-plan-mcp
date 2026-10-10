@@ -1,0 +1,590 @@
+{
+  "about": "Evaluation set for search_docs (STP-1061). Realistic developer/agent questions about STP, each with the resource URIs that answer it. A question is a hit when any expected URI is among the pages of the top 5 passages (recall@5). noGoodSource marks questions the pinned docs and contract do not answer well today; their expected list holds the closest partial sources (possibly none) and their gap note feeds STP-1062. generatedReference lists pages of the generated API reference (docs/api, docs/api-net, not bundled) that would also answer; it is used only to measure whether bundling that reference helps.",
+  "questions": [
+    {
+      "id": "install-npm",
+      "question": "How do I install the STP SDK with npm or a script tag?",
+      "expected": [
+        "stp-docs://installation"
+      ]
+    },
+    {
+      "id": "connect-websocket",
+      "question": "How do I connect my app to the STP engine over WebSockets?",
+      "expected": [
+        "stp-docs://getting-started",
+        "stp-docs://plugins/connectors"
+      ],
+      "generatedReference": [
+        "docs/api/classes/StpWebSocketsConnector.md"
+      ]
+    },
+    {
+      "id": "subscribe-before-connect",
+      "question": "Why must I subscribe to events before calling connect?",
+      "expected": [
+        "stp-docs://getting-started",
+        "stp-docs://guides/integration-troubleshooting"
+      ]
+    },
+    {
+      "id": "load-scenario",
+      "question": "How do I load a scenario?",
+      "expected": [
+        "stp-docs://guides/scenarios",
+        "stp-api://method/LoadNewScenario"
+      ]
+    },
+    {
+      "id": "save-scenario",
+      "question": "How do I save the current scenario to persistent storage?",
+      "expected": [
+        "stp-docs://guides/scenarios",
+        "stp-api://method/GetScenarioContent"
+      ]
+    },
+    {
+      "id": "join-vs-load",
+      "question": "What is the difference between joinScenarioSession and loadNewScenario?",
+      "expected": [
+        "stp-docs://guides/scenarios"
+      ]
+    },
+    {
+      "id": "sync-merge-rules",
+      "question": "How does syncScenarioSession merge offline content with the session?",
+      "expected": [
+        "stp-docs://guides/scenarios",
+        "stp-api://method/SyncScenarioSession"
+      ]
+    },
+    {
+      "id": "symboladded-payload",
+      "question": "What does SymbolAdded carry?",
+      "expected": [
+        "stp-api://event/SymbolAdded",
+        "stp-docs://reference/json-api",
+        "stp-docs://getting-started"
+      ],
+      "generatedReference": [
+        "docs/api/interfaces/SymbolAddedEvent.md"
+      ]
+    },
+    {
+      "id": "roles",
+      "question": "How do roles work and what changes when I switch role?",
+      "expected": [
+        "stp-docs://guides/roles"
+      ]
+    },
+    {
+      "id": "role-s2-task-org",
+      "question": "Which task org becomes active when I switch to the S2 role?",
+      "expected": [
+        "stp-docs://guides/roles",
+        "stp-docs://guides/task-org"
+      ]
+    },
+    {
+      "id": "role-switched-event",
+      "question": "Which event tells me that the active role changed?",
+      "expected": [
+        "stp-docs://guides/roles",
+        "stp-api://event/RoleSwitched"
+      ]
+    },
+    {
+      "id": "load-task-org",
+      "question": "How do I load an ORBAT and make it the active task org?",
+      "expected": [
+        "stp-docs://guides/task-org",
+        "stp-api://method/ImportTaskOrgContent",
+        "stp-api://method/SetDefaultTaskOrg"
+      ]
+    },
+    {
+      "id": "command-relationships",
+      "question": "What command relationships can a task org relationship have?",
+      "expected": [
+        "stp-docs://guides/task-org"
+      ],
+      "generatedReference": [
+        "docs/api/enumerations/CommandRelationship.md"
+      ]
+    },
+    {
+      "id": "c2sim-export",
+      "question": "How do I export C2SIM?",
+      "expected": [
+        "stp-docs://guides/c2sim",
+        "stp-api://method/GetC2SIMContent",
+        "stp-api://method/PushC2SIMContent"
+      ]
+    },
+    {
+      "id": "c2sim-import",
+      "question": "How do I import a C2SIM initialization into my scenario?",
+      "expected": [
+        "stp-docs://guides/c2sim",
+        "stp-api://method/PullC2SIMInitialization",
+        "stp-api://method/ConvertC2SIMContent"
+      ]
+    },
+    {
+      "id": "c2sim-options",
+      "question": "Which C2SIM proxy options are there, for example rules of engagement or the server URL?",
+      "expected": [
+        "stp-docs://guides/c2sim"
+      ],
+      "generatedReference": [
+        "docs/api/classes/StpC2SIMOptions.md"
+      ]
+    },
+    {
+      "id": "task-detection",
+      "question": "How does STP detect tasks from the symbols on the map?",
+      "expected": [
+        "stp-docs://guides/tasks"
+      ]
+    },
+    {
+      "id": "confirm-task",
+      "question": "How do I confirm one of the task alternates?",
+      "expected": [
+        "stp-docs://guides/tasks",
+        "stp-api://method/ConfirmTask"
+      ]
+    },
+    {
+      "id": "task-enums",
+      "question": "What values do TaskWhat, TaskHow and TaskWhy take?",
+      "expected": [
+        "stp-docs://guides/tasks"
+      ],
+      "generatedReference": [
+        "docs/api/enumerations/TaskWhat.md",
+        "docs/api/enumerations/TaskHow.md",
+        "docs/api/enumerations/TaskWhy.md"
+      ]
+    },
+    {
+      "id": "auto-tasking-off",
+      "question": "Can I turn off automatic task inference?",
+      "expected": [
+        "stp-api://method/SetAutoTasking"
+      ]
+    },
+    {
+      "id": "add-symbol",
+      "question": "How do I add a symbol programmatically without speech and sketch?",
+      "expected": [
+        "stp-docs://guides/symbols-and-rendering",
+        "stp-api://method/AddSymbol"
+      ]
+    },
+    {
+      "id": "render-2525",
+      "question": "How do I render MIL-STD-2525 symbols on the map?",
+      "expected": [
+        "stp-docs://guides/symbols-and-rendering",
+        "stp-docs://plugins/renderers"
+      ]
+    },
+    {
+      "id": "custom-map-adapter",
+      "question": "How do I build an adapter for my own mapping library?",
+      "expected": [
+        "stp-docs://plugins/map-adapters"
+      ]
+    },
+    {
+      "id": "intersected-poids",
+      "question": "What should intersectedPoids contain when I send ink?",
+      "expected": [
+        "stp-docs://plugins/map-adapters",
+        "stp-docs://getting-started",
+        "stp-api://method/SendInk"
+      ]
+    },
+    {
+      "id": "multi-stroke",
+      "question": "How do I let users draw a symbol with several strokes before STP interprets it?",
+      "expected": [
+        "stp-api://method/ChangeTimeOut"
+      ]
+    },
+    {
+      "id": "speech-strategies",
+      "question": "When should I start and stop speech recognition relative to the sketch?",
+      "expected": [
+        "stp-docs://plugins/speech"
+      ]
+    },
+    {
+      "id": "offline-speech",
+      "question": "Can speech recognition work offline without a cloud service?",
+      "expected": [
+        "stp-docs://plugins/speech"
+      ]
+    },
+    {
+      "id": "typed-speech",
+      "question": "How can I send typed text instead of real speech, for testing without a microphone?",
+      "expected": [
+        "stp-api://method/SendSimulatedSpeechRecognition",
+        "stp-docs://reference/json-api"
+      ]
+    },
+    {
+      "id": "custom-commands",
+      "question": "How do I define a custom voice command such as 'add imagery'?",
+      "expected": [
+        "stp-docs://guides/custom-commands"
+      ]
+    },
+    {
+      "id": "oncommand-vs-mapoperation",
+      "question": "What is the difference between onCommand, onMapOperation and onSymbolEdited?",
+      "expected": [
+        "stp-docs://guides/custom-commands"
+      ]
+    },
+    {
+      "id": "multiple-sessions",
+      "question": "Can several independent sessions share one STP engine?",
+      "expected": [
+        "stp-docs://guides/sessions"
+      ]
+    },
+    {
+      "id": "session-id-resolution",
+      "question": "How is the session id chosen when I connect?",
+      "expected": [
+        "stp-docs://guides/sessions"
+      ]
+    },
+    {
+      "id": "secure-websocket",
+      "question": "How do I add authentication to the WebSocket connection?",
+      "expected": [
+        "stp-docs://plugins/connectors"
+      ]
+    },
+    {
+      "id": "iframe-microphone",
+      "question": "How do I embed an STP app in an iframe and still get microphone access?",
+      "expected": [
+        "stp-docs://guides/iframe-embedding"
+      ]
+    },
+    {
+      "id": "no-response",
+      "question": "Why did my request get no response?",
+      "expected": [
+        "stp-docs://guides/integration-troubleshooting"
+      ]
+    },
+    {
+      "id": "coa-calls-fail",
+      "question": "Why does AddCoa or SetCurrentCoa fail with an empty error?",
+      "expected": [
+        "stp-docs://guides/integration-troubleshooting",
+        "stp-api://method/AddCoa",
+        "stp-api://method/SetCurrentCoa"
+      ]
+    },
+    {
+      "id": "null-affiliation",
+      "question": "Why do symbols arrive with affiliation or echelon null?",
+      "expected": [
+        "stp-docs://guides/symbology-and-the-wire",
+        "stp-docs://guides/silent-failures"
+      ]
+    },
+    {
+      "id": "empty-payload",
+      "question": "Why did posting an empty payload clear my whole scenario?",
+      "expected": [
+        "stp-docs://guides/silent-failures"
+      ]
+    },
+    {
+      "id": "replace-append",
+      "question": "What is the difference between replace, append and the default load mode?",
+      "expected": [
+        "stp-docs://guides/silent-failures"
+      ]
+    },
+    {
+      "id": "deleted-still-present",
+      "question": "Why does a deleted symbol still show up in GetScenarioContent?",
+      "expected": [
+        "stp-docs://guides/integration-troubleshooting"
+      ]
+    },
+    {
+      "id": "inkprocessed-params",
+      "question": "Why does reading params on InkProcessed throw?",
+      "expected": [
+        "stp-docs://guides/integration-troubleshooting",
+        "stp-api://event/InkProcessed"
+      ]
+    },
+    {
+      "id": "orphan-symbol-task-org",
+      "question": "Why does a symbol I added through the API not appear under its parent unit in the task organization?",
+      "expected": [
+        "stp-docs://guides/integration-troubleshooting"
+      ]
+    },
+    {
+      "id": "jsonrpc-format",
+      "question": "What does a JSON-RPC message to and from STP look like?",
+      "expected": [
+        "stp-docs://reference/json-api"
+      ]
+    },
+    {
+      "id": "sidc-structure",
+      "question": "How is the 2525D SIDC split into partA and partB?",
+      "expected": [
+        "stp-docs://reference/symbol-properties",
+        "stp-docs://guides/symbology-and-the-wire"
+      ],
+      "generatedReference": [
+        "docs/api/classes/Sidc.md"
+      ]
+    },
+    {
+      "id": "choose-alternate",
+      "question": "How do I pick a different N-best alternate for a recognized symbol?",
+      "expected": [
+        "stp-docs://reference/symbol-properties",
+        "stp-docs://guides/symbols-and-rendering",
+        "stp-api://method/ChooseAlternate"
+      ]
+    },
+    {
+      "id": "extensions-roundtrip",
+      "question": "Can I attach my own custom data to a symbol and get it back from STP?",
+      "expected": [
+        "stp-docs://reference/symbol-properties",
+        "stp-docs://reference/changelog"
+      ],
+      "generatedReference": [
+        "docs/api/classes/StpItem.md"
+      ]
+    },
+    {
+      "id": "undo",
+      "question": "How do I undo the last change to a symbol?",
+      "expected": [
+        "stp-api://method/UndoLastOp"
+      ]
+    },
+    {
+      "id": "stp-messages",
+      "question": "How do I show STP's system messages and warnings to the user?",
+      "expected": [
+        "stp-docs://getting-started",
+        "stp-api://event/StpMessage"
+      ],
+      "generatedReference": [
+        "docs/api/interfaces/StpMessage.md",
+        "docs/api/enumerations/StpMessageLevel.md"
+      ]
+    },
+    {
+      "id": "prerequisites",
+      "question": "What do I need before I can run an STP app (engine version, microphone, speech key)?",
+      "expected": [
+        "stp-docs://intro",
+        "stp-docs://getting-started"
+      ]
+    },
+    {
+      "id": "connect-params",
+      "question": "What parameters does StpRecognizer connect take and what does it return?",
+      "expected": [
+        "stp-docs://guides/sessions",
+        "stp-docs://getting-started"
+      ],
+      "generatedReference": [
+        "docs/api/classes/StpRecognizer.md"
+      ]
+    },
+    {
+      "id": "connector-interface",
+      "question": "Which methods must a custom IStpConnector implement?",
+      "expected": [
+        "stp-docs://plugins/connectors"
+      ],
+      "generatedReference": [
+        "docs/api/interfaces/IStpConnector.md"
+      ]
+    },
+    {
+      "id": "blank-plan",
+      "question": "How do I start over with a blank plan?",
+      "expected": [
+        "stp-docs://guides/scenarios",
+        "stp-api://method/CreateNewScenario"
+      ]
+    },
+    {
+      "id": "clear-ink",
+      "question": "How do I know when STP has finished with a stroke so I can erase the drawing?",
+      "expected": [
+        "stp-docs://getting-started",
+        "stp-api://event/InkProcessed",
+        "stp-docs://plugins/map-adapters"
+      ]
+    },
+    {
+      "id": "basemaps",
+      "question": "Which basemap libraries can users sketch on?",
+      "expected": [
+        "stp-docs://plugins/map-adapters",
+        "stp-docs://installation"
+      ]
+    },
+    {
+      "id": "speak-designator",
+      "question": "How do I place a unit just by saying its designator, like 'Alpha Three One'?",
+      "expected": [
+        "stp-docs://guides/task-org"
+      ]
+    },
+    {
+      "id": "arcgis-pro-units",
+      "question": "Units I push to ArcGIS Pro do not show up on the map. Why?",
+      "expected": [
+        "stp-docs://guides/integration-troubleshooting"
+      ]
+    },
+    {
+      "id": "sitaware-500",
+      "question": "A push to SitaWare fails with HTTP 500. What should I check?",
+      "expected": [
+        "stp-docs://guides/integration-troubleshooting"
+      ]
+    },
+    {
+      "id": "confidence",
+      "question": "What does the confidence value on a recognized symbol mean?",
+      "expected": [
+        "stp-docs://reference/symbol-properties",
+        "stp-docs://guides/symbols-and-rendering"
+      ]
+    },
+    {
+      "id": "tabs-different-roles",
+      "question": "Can two browser tabs work on the same plan with different roles?",
+      "expected": [
+        "stp-docs://guides/sessions"
+      ]
+    },
+    {
+      "id": "coa-management",
+      "question": "How do I create a course of action and switch between COAs from my app?",
+      "expected": [
+        "stp-docs://guides/integration-troubleshooting",
+        "stp-api://method/AddCoa",
+        "stp-api://method/SetCurrentCoa"
+      ],
+      "noGoodSource": true,
+      "gap": "No guide on COAs. The docs only say the COA methods are not dispatched by the engine; what an integration should do instead (and what CoaSwitched/SetRole do to COAs) is not explained.",
+      "generatedReference": [
+        "docs/api/classes/StpCoa.md"
+      ]
+    },
+    {
+      "id": "event-ordering",
+      "question": "In what order do events arrive after I load a scenario - NewScenario, SymbolAdded, TaskAdded, TaskOrg events?",
+      "expected": [],
+      "noGoodSource": true,
+      "gap": "Event ordering (after a load, a join, a sync or an undo) is not documented anywhere."
+    },
+    {
+      "id": "error-codes",
+      "question": "Which JSON-RPC error codes can STP return and what does each mean?",
+      "expected": [
+        "stp-docs://reference/json-api"
+      ],
+      "noGoodSource": true,
+      "gap": "json-api shows one error example (-32601); there is no list of error codes or of when STP answers with an error versus success=false."
+    },
+    {
+      "id": "refused-vs-timeout",
+      "question": "How do I tell a refused request from one that timed out?",
+      "expected": [
+        "stp-docs://guides/integration-troubleshooting"
+      ],
+      "noGoodSource": true,
+      "gap": "Refusals ('No handler') are covered, but timeout behaviour (default 30 s in the JS SDK, what happens to a late reply, retries) and how to distinguish the two are not."
+    },
+    {
+      "id": "reconnect",
+      "question": "How should my app reconnect after the WebSocket connection drops?",
+      "expected": [],
+      "noGoodSource": true,
+      "gap": "Connection loss and reconnection (re-registering, re-joining the scenario, missed events) are not documented."
+    },
+    {
+      "id": "dotnet-quickstart",
+      "question": "How do I connect and receive symbol events with the .NET SDK?",
+      "expected": [
+        "stp-docs://guides/integration-troubleshooting"
+      ],
+      "noGoodSource": true,
+      "gap": "All guides are written for the JavaScript SDK; the .NET SDK has only its generated reference (ConnectAndRegisterAsync etc.), no guide.",
+      "generatedReference": [
+        "docs/api-net/stpsdk.stprecognizer.md"
+      ]
+    },
+    {
+      "id": "safety-classes",
+      "question": "Which API methods only read state and which ones modify or delete the scenario?",
+      "expected": [],
+      "noGoodSource": true,
+      "gap": "Neither the docs nor the contract classify methods as read / write / destructive yet (x-stpSafety, STP-1059)."
+    },
+    {
+      "id": "concurrent-edits",
+      "question": "What happens when two clients edit the same symbol at the same time?",
+      "expected": [
+        "stp-docs://guides/scenarios"
+      ],
+      "noGoodSource": true,
+      "gap": "Only the sync rules (newer timestamp wins) are described; concurrent live edits, locking and conflict notification are not."
+    },
+    {
+      "id": "engine-install",
+      "question": "How do I install and run the STP engine itself, for example in Docker or on Linux?",
+      "expected": [
+        "stp-docs://intro"
+      ],
+      "noGoodSource": true,
+      "gap": "The docs assume an engine is already running (Windows server, v5.9.9+); installing, configuring and hosting the engine is not covered."
+    },
+    {
+      "id": "symbol-times",
+      "question": "How do I set the time window or phase of a symbol or task for synchronization?",
+      "expected": [
+        "stp-docs://guides/symbols-and-rendering",
+        "stp-docs://guides/tasks"
+      ],
+      "noGoodSource": true,
+      "gap": "timeFrom/timeTo and startTime/endTime are listed as properties, but phases, time formats and how timing drives C2SIM orders are not explained."
+    },
+    {
+      "id": "rest-connector",
+      "question": "What endpoints does the REST connector expose and how do I post symbols to it?",
+      "expected": [
+        "stp-docs://guides/silent-failures"
+      ],
+      "noGoodSource": true,
+      "gap": "The REST connector is referred to (POST /symbols, ?replace=true, ?append=true) but has no reference page of its endpoints and payloads."
+    }
+  ]
+}

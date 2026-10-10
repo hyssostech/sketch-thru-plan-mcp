@@ -1,5 +1,5 @@
 {
-  "contractVersion": "0.7.0",
+  "contractVersion": "0.8.0",
   "tools": [
     {
       "name": "SendPenDown",
@@ -136,7 +136,72 @@
       },
       "_meta": {
         "stp/safety": "write",
-        "stp/inform": true
+        "stp/inform": true,
+        "stp/emits": [
+          {
+            "event": "InkProcessed",
+            "when": "if",
+            "condition": "the sketch this stroke belongs to is finished (segmentation timeout or RecognizeNow), integrated or discarded",
+            "to": "caller"
+          },
+          {
+            "event": "SpeechRecognized",
+            "when": "may",
+            "condition": "speech integrates with the sketch: the single phrase that integrated",
+            "to": "caller"
+          },
+          {
+            "event": "SymbolAdded",
+            "when": "may",
+            "condition": "the sketch, alone or with speech, is recognized as a symbol",
+            "to": "session"
+          },
+          {
+            "event": "SymbolModified",
+            "when": "may",
+            "condition": "the gesture moves or changes an existing symbol",
+            "to": "session"
+          },
+          {
+            "event": "SymbolDeleted",
+            "when": "may",
+            "condition": "the gesture deletes a symbol",
+            "to": "session"
+          },
+          {
+            "event": "TaskAdded",
+            "when": "may",
+            "condition": "sketch and speech express a task, or automatic tasking infers one",
+            "to": "session"
+          },
+          {
+            "event": "SymbolEdited",
+            "when": "may",
+            "condition": "the gesture selects or edits a symbol",
+            "to": "caller"
+          },
+          {
+            "event": "MapOperation",
+            "when": "may",
+            "condition": "the gesture is a map operation, such as a zoom",
+            "to": "caller"
+          },
+          {
+            "event": "Command",
+            "when": "may",
+            "condition": "the gesture or utterance is a command",
+            "to": "session"
+          },
+          {
+            "event": "SpeechRecognized",
+            "when": "may",
+            "condition": "a command: every client receives its phrase",
+            "to": "session"
+          }
+        ],
+        "stp/knownIssues": [
+          "STP-1080"
+        ]
       }
     },
     {
@@ -191,7 +256,80 @@
       },
       "_meta": {
         "stp/safety": "write",
-        "stp/inform": true
+        "stp/inform": true,
+        "stp/emits": [
+          {
+            "event": "SpeechParsed",
+            "when": "always",
+            "to": "caller"
+          },
+          {
+            "event": "InkProcessed",
+            "when": "may",
+            "condition": "the speech integrates with pending ink",
+            "to": "caller"
+          },
+          {
+            "event": "SpeechRecognized",
+            "when": "if",
+            "condition": "the speech integrates into a symbol, task or edit: the single phrase that integrated, not the hypotheses sent",
+            "to": "caller"
+          },
+          {
+            "event": "SpeechRecognized",
+            "when": "if",
+            "condition": "the speech is a command: every client receives its phrase",
+            "to": "session"
+          },
+          {
+            "event": "SpeechDiscarded",
+            "when": "if",
+            "condition": "the speech integrates with nothing before the recognizer's timeout",
+            "to": "caller"
+          },
+          {
+            "event": "SymbolAdded",
+            "when": "may",
+            "condition": "the speech, alone or with a sketch, creates a symbol",
+            "to": "session"
+          },
+          {
+            "event": "SymbolModified",
+            "when": "may",
+            "condition": "the speech changes an existing symbol",
+            "to": "session"
+          },
+          {
+            "event": "SymbolDeleted",
+            "when": "may",
+            "condition": "the speech deletes a symbol",
+            "to": "session"
+          },
+          {
+            "event": "TaskAdded",
+            "when": "may",
+            "condition": "the speech expresses a task, or automatic tasking infers one",
+            "to": "session"
+          },
+          {
+            "event": "SymbolEdited",
+            "when": "may",
+            "condition": "speech and gesture select or edit a symbol",
+            "to": "caller"
+          },
+          {
+            "event": "MapOperation",
+            "when": "may",
+            "condition": "speech and gesture are a map operation, such as a zoom",
+            "to": "caller"
+          },
+          {
+            "event": "Command",
+            "when": "may",
+            "condition": "the utterance is a command",
+            "to": "session"
+          }
+        ]
       }
     },
     {
@@ -219,12 +357,85 @@
       },
       "_meta": {
         "stp/safety": "write",
-        "stp/inform": true
+        "stp/inform": true,
+        "stp/emits": [
+          {
+            "event": "SpeechParsed",
+            "when": "always",
+            "to": "caller"
+          },
+          {
+            "event": "InkProcessed",
+            "when": "may",
+            "condition": "the speech integrates with pending ink",
+            "to": "caller"
+          },
+          {
+            "event": "SpeechRecognized",
+            "when": "if",
+            "condition": "the speech integrates into a symbol, task or edit: the single phrase that integrated, not the hypotheses sent",
+            "to": "caller"
+          },
+          {
+            "event": "SpeechRecognized",
+            "when": "if",
+            "condition": "the speech is a command: every client receives its phrase",
+            "to": "session"
+          },
+          {
+            "event": "SpeechDiscarded",
+            "when": "if",
+            "condition": "the speech integrates with nothing before the recognizer's timeout",
+            "to": "caller"
+          },
+          {
+            "event": "SymbolAdded",
+            "when": "may",
+            "condition": "the speech, alone or with a sketch, creates a symbol",
+            "to": "session"
+          },
+          {
+            "event": "SymbolModified",
+            "when": "may",
+            "condition": "the speech changes an existing symbol",
+            "to": "session"
+          },
+          {
+            "event": "SymbolDeleted",
+            "when": "may",
+            "condition": "the speech deletes a symbol",
+            "to": "session"
+          },
+          {
+            "event": "TaskAdded",
+            "when": "may",
+            "condition": "the speech expresses a task, or automatic tasking infers one",
+            "to": "session"
+          },
+          {
+            "event": "SymbolEdited",
+            "when": "may",
+            "condition": "speech and gesture select or edit a symbol",
+            "to": "caller"
+          },
+          {
+            "event": "MapOperation",
+            "when": "may",
+            "condition": "speech and gesture are a map operation, such as a zoom",
+            "to": "caller"
+          },
+          {
+            "event": "Command",
+            "when": "may",
+            "condition": "the utterance is a command",
+            "to": "session"
+          }
+        ]
       }
     },
     {
       "name": "CreateNewScenario",
-      "description": "Create and load a new scenario, replacing any previous content.",
+      "description": "Create and load a new scenario, replacing any previous content. Other clients of the session receive NewScenario; the caller does not.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -241,12 +452,38 @@
         "openWorldHint": false
       },
       "_meta": {
-        "stp/safety": "destructive"
+        "stp/safety": "destructive",
+        "stp/emits": [
+          {
+            "event": "NewScenario",
+            "when": "if",
+            "condition": "the session has other clients: each of them receives it; the caller never does",
+            "to": "session"
+          },
+          {
+            "event": "RoleSwitched",
+            "when": "if",
+            "condition": "re-announces each OTHER client's role, if it has one; the caller keeps its role and hears nothing",
+            "to": "session"
+          },
+          {
+            "event": "CoaSwitched",
+            "when": "if",
+            "condition": "a COA was current: the reset clears it (CoaSwitched with no COA)",
+            "to": "caller"
+          },
+          {
+            "event": "TaskOrgSwitched",
+            "when": "if",
+            "condition": "the caller's current task org changes (the reset clears the default task orgs)",
+            "to": "caller"
+          }
+        ]
       }
     },
     {
       "name": "LoadNewScenario",
-      "description": "Load a scenario from a serialized content string (object_set([...])). Replaces previous content.",
+      "description": "Load a scenario from a serialized content string (object_set([...])). Replaces previous content. Other clients of the session receive NewScenario; the caller does not.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -263,7 +500,120 @@
         "openWorldHint": false
       },
       "_meta": {
-        "stp/safety": "destructive"
+        "stp/safety": "destructive",
+        "stp/emits": [
+          {
+            "event": "NewScenario",
+            "when": "if",
+            "condition": "the session has other clients: each of them receives it; the caller never does",
+            "to": "session"
+          },
+          {
+            "event": "RoleSwitched",
+            "when": "if",
+            "condition": "re-announces each OTHER client's role, if it has one; the caller keeps its role and hears nothing",
+            "to": "session"
+          },
+          {
+            "event": "CoaSwitched",
+            "when": "if",
+            "condition": "a COA was current: the reset clears it (CoaSwitched with no COA)",
+            "to": "caller"
+          },
+          {
+            "event": "TaskOrgSwitched",
+            "when": "if",
+            "condition": "the caller's current task org changes (the reset clears the default task orgs, and they are re-selected after the load)",
+            "to": "caller"
+          },
+          {
+            "event": "SymbolAdded",
+            "when": "may",
+            "condition": "one per symbol in the content, also one that replaces a resident symbol (never SymbolModified)",
+            "to": "session"
+          },
+          {
+            "event": "TaskAdded",
+            "when": "may",
+            "condition": "one per task in the content, also one that replaces a resident task (never TaskModified)",
+            "to": "session"
+          },
+          {
+            "event": "TaskOrgAdded",
+            "when": "may",
+            "condition": "one per task org in the content, also one that replaces a resident task org (never TaskOrgModified)",
+            "to": "session"
+          },
+          {
+            "event": "TaskOrgUnitAdded",
+            "when": "may",
+            "condition": "one per task org unit in the content, also one that replaces a resident task org unit (never TaskOrgUnitModified)",
+            "to": "session"
+          },
+          {
+            "event": "TaskOrgRelationshipAdded",
+            "when": "may",
+            "condition": "one per task org relationship in the content, also one that replaces a resident task org relationship (never TaskOrgRelationshipModified)",
+            "to": "session"
+          },
+          {
+            "event": "CoaAdded",
+            "when": "may",
+            "condition": "one per COA in the content, also one that replaces a resident COA (never CoaModified)",
+            "to": "session"
+          },
+          {
+            "event": "SymbolDeleted",
+            "when": "may",
+            "condition": "one per symbol in the content carrying the deletion version (fsdb_version 0)",
+            "to": "session"
+          },
+          {
+            "event": "TaskDeleted",
+            "when": "may",
+            "condition": "one per task in the content carrying the deletion version (fsdb_version 0)",
+            "to": "session"
+          },
+          {
+            "event": "TaskOrgDeleted",
+            "when": "may",
+            "condition": "one per task org in the content carrying the deletion version (fsdb_version 0)",
+            "to": "session"
+          },
+          {
+            "event": "TaskOrgUnitDeleted",
+            "when": "may",
+            "condition": "one per task org unit in the content carrying the deletion version (fsdb_version 0)",
+            "to": "session"
+          },
+          {
+            "event": "TaskOrgRelationshipDeleted",
+            "when": "may",
+            "condition": "one per task org relationship in the content carrying the deletion version (fsdb_version 0)",
+            "to": "session"
+          },
+          {
+            "event": "CoaDeleted",
+            "when": "may",
+            "condition": "one per COA in the content carrying the deletion version (fsdb_version 0)",
+            "to": "session"
+          },
+          {
+            "event": "InkProcessed",
+            "when": "may",
+            "condition": "one per imported symbol, just before its SymbolAdded",
+            "to": "caller"
+          },
+          {
+            "event": "SpeechRecognized",
+            "when": "may",
+            "condition": "an imported symbol carries a speech phrase",
+            "to": "caller"
+          }
+        ],
+        "stp/knownIssues": [
+          "STP-1078"
+        ]
       }
     },
     {
@@ -285,7 +635,102 @@
         "openWorldHint": false
       },
       "_meta": {
-        "stp/safety": "destructive"
+        "stp/safety": "destructive",
+        "stp/emits": [
+          {
+            "event": "SymbolAdded",
+            "when": "may",
+            "condition": "one per symbol in the content, also one that replaces a resident symbol (never SymbolModified)",
+            "to": "session"
+          },
+          {
+            "event": "TaskAdded",
+            "when": "may",
+            "condition": "one per task in the content, also one that replaces a resident task (never TaskModified)",
+            "to": "session"
+          },
+          {
+            "event": "TaskOrgAdded",
+            "when": "may",
+            "condition": "one per task org in the content, also one that replaces a resident task org (never TaskOrgModified)",
+            "to": "session"
+          },
+          {
+            "event": "TaskOrgUnitAdded",
+            "when": "may",
+            "condition": "one per task org unit in the content, also one that replaces a resident task org unit (never TaskOrgUnitModified)",
+            "to": "session"
+          },
+          {
+            "event": "TaskOrgRelationshipAdded",
+            "when": "may",
+            "condition": "one per task org relationship in the content, also one that replaces a resident task org relationship (never TaskOrgRelationshipModified)",
+            "to": "session"
+          },
+          {
+            "event": "CoaAdded",
+            "when": "may",
+            "condition": "one per COA in the content, also one that replaces a resident COA (never CoaModified)",
+            "to": "session"
+          },
+          {
+            "event": "SymbolDeleted",
+            "when": "may",
+            "condition": "one per symbol in the content carrying the deletion version (fsdb_version 0)",
+            "to": "session"
+          },
+          {
+            "event": "TaskDeleted",
+            "when": "may",
+            "condition": "one per task in the content carrying the deletion version (fsdb_version 0)",
+            "to": "session"
+          },
+          {
+            "event": "TaskOrgDeleted",
+            "when": "may",
+            "condition": "one per task org in the content carrying the deletion version (fsdb_version 0)",
+            "to": "session"
+          },
+          {
+            "event": "TaskOrgUnitDeleted",
+            "when": "may",
+            "condition": "one per task org unit in the content carrying the deletion version (fsdb_version 0)",
+            "to": "session"
+          },
+          {
+            "event": "TaskOrgRelationshipDeleted",
+            "when": "may",
+            "condition": "one per task org relationship in the content carrying the deletion version (fsdb_version 0)",
+            "to": "session"
+          },
+          {
+            "event": "CoaDeleted",
+            "when": "may",
+            "condition": "one per COA in the content carrying the deletion version (fsdb_version 0)",
+            "to": "session"
+          },
+          {
+            "event": "InkProcessed",
+            "when": "may",
+            "condition": "one per imported symbol, just before its SymbolAdded",
+            "to": "caller"
+          },
+          {
+            "event": "SpeechRecognized",
+            "when": "may",
+            "condition": "an imported symbol carries a speech phrase",
+            "to": "caller"
+          },
+          {
+            "event": "TaskOrgSwitched",
+            "when": "if",
+            "condition": "the default task orgs re-selected afterwards change the caller's current task org",
+            "to": "caller"
+          }
+        ],
+        "stp/knownIssues": [
+          "STP-1078"
+        ]
       }
     },
     {
@@ -306,7 +751,7 @@
     },
     {
       "name": "JoinScenarioSession",
-      "description": "Replay the current scenario to this client as if its objects had just arrived live (the usual Added events, deleted objects skipped), so a client can rebuild its local state. Changes nothing on the server.",
+      "description": "Replay the current scenario to this client only, as if its objects had just arrived live (SymbolAdded, TaskAdded, TaskOrgUnitAdded, TaskOrgRelationshipAdded, CoaAdded; deleted objects skipped), so a client can rebuild its local state. Task orgs themselves are not replayed (no TaskOrgAdded): list them with GetScenarioTaskOrgList. Changes nothing on the server.",
       "inputSchema": {
         "type": "object",
         "properties": {},
@@ -317,7 +762,51 @@
         "openWorldHint": false
       },
       "_meta": {
-        "stp/safety": "read"
+        "stp/safety": "read",
+        "stp/emits": [
+          {
+            "event": "SymbolAdded",
+            "when": "may",
+            "condition": "one per live symbol in the scenario",
+            "to": "caller"
+          },
+          {
+            "event": "TaskAdded",
+            "when": "may",
+            "condition": "one per live task in the scenario",
+            "to": "caller"
+          },
+          {
+            "event": "TaskOrgUnitAdded",
+            "when": "may",
+            "condition": "one per live task org unit in the scenario",
+            "to": "caller"
+          },
+          {
+            "event": "TaskOrgRelationshipAdded",
+            "when": "may",
+            "condition": "one per live task org relationship in the scenario",
+            "to": "caller"
+          },
+          {
+            "event": "CoaAdded",
+            "when": "may",
+            "condition": "one per live COA in the scenario",
+            "to": "caller"
+          },
+          {
+            "event": "InkProcessed",
+            "when": "may",
+            "condition": "one per replayed symbol this client created, just before its SymbolAdded",
+            "to": "caller"
+          },
+          {
+            "event": "SpeechRecognized",
+            "when": "may",
+            "condition": "a replayed symbol this client created carries a speech phrase",
+            "to": "caller"
+          }
+        ]
       }
     },
     {
@@ -339,7 +828,132 @@
         "openWorldHint": false
       },
       "_meta": {
-        "stp/safety": "destructive"
+        "stp/safety": "destructive",
+        "stp/emits": [
+          {
+            "event": "SymbolAdded",
+            "when": "may",
+            "condition": "replay first, as JoinScenarioSession: one per live symbol in the scenario",
+            "to": "caller"
+          },
+          {
+            "event": "TaskAdded",
+            "when": "may",
+            "condition": "replay first, as JoinScenarioSession: one per live task in the scenario",
+            "to": "caller"
+          },
+          {
+            "event": "TaskOrgUnitAdded",
+            "when": "may",
+            "condition": "replay first, as JoinScenarioSession: one per live task org unit in the scenario",
+            "to": "caller"
+          },
+          {
+            "event": "TaskOrgRelationshipAdded",
+            "when": "may",
+            "condition": "replay first, as JoinScenarioSession: one per live task org relationship in the scenario",
+            "to": "caller"
+          },
+          {
+            "event": "CoaAdded",
+            "when": "may",
+            "condition": "replay first, as JoinScenarioSession: one per live COA in the scenario",
+            "to": "caller"
+          },
+          {
+            "event": "SymbolAdded",
+            "when": "may",
+            "condition": "one per symbol in the content, also one that replaces a resident symbol (never SymbolModified)",
+            "to": "session"
+          },
+          {
+            "event": "TaskAdded",
+            "when": "may",
+            "condition": "one per task in the content, also one that replaces a resident task (never TaskModified)",
+            "to": "session"
+          },
+          {
+            "event": "TaskOrgAdded",
+            "when": "may",
+            "condition": "one per task org in the content, also one that replaces a resident task org (never TaskOrgModified)",
+            "to": "session"
+          },
+          {
+            "event": "TaskOrgUnitAdded",
+            "when": "may",
+            "condition": "one per task org unit in the content, also one that replaces a resident task org unit (never TaskOrgUnitModified)",
+            "to": "session"
+          },
+          {
+            "event": "TaskOrgRelationshipAdded",
+            "when": "may",
+            "condition": "one per task org relationship in the content, also one that replaces a resident task org relationship (never TaskOrgRelationshipModified)",
+            "to": "session"
+          },
+          {
+            "event": "CoaAdded",
+            "when": "may",
+            "condition": "one per COA in the content, also one that replaces a resident COA (never CoaModified)",
+            "to": "session"
+          },
+          {
+            "event": "SymbolDeleted",
+            "when": "may",
+            "condition": "one per symbol in the content carrying the deletion version (fsdb_version 0)",
+            "to": "session"
+          },
+          {
+            "event": "TaskDeleted",
+            "when": "may",
+            "condition": "one per task in the content carrying the deletion version (fsdb_version 0)",
+            "to": "session"
+          },
+          {
+            "event": "TaskOrgDeleted",
+            "when": "may",
+            "condition": "one per task org in the content carrying the deletion version (fsdb_version 0)",
+            "to": "session"
+          },
+          {
+            "event": "TaskOrgUnitDeleted",
+            "when": "may",
+            "condition": "one per task org unit in the content carrying the deletion version (fsdb_version 0)",
+            "to": "session"
+          },
+          {
+            "event": "TaskOrgRelationshipDeleted",
+            "when": "may",
+            "condition": "one per task org relationship in the content carrying the deletion version (fsdb_version 0)",
+            "to": "session"
+          },
+          {
+            "event": "CoaDeleted",
+            "when": "may",
+            "condition": "one per COA in the content carrying the deletion version (fsdb_version 0)",
+            "to": "session"
+          },
+          {
+            "event": "InkProcessed",
+            "when": "may",
+            "condition": "one per replayed symbol this client created and per imported symbol, just before its SymbolAdded",
+            "to": "caller"
+          },
+          {
+            "event": "SpeechRecognized",
+            "when": "may",
+            "condition": "a replayed or imported symbol of this client carries a speech phrase",
+            "to": "caller"
+          },
+          {
+            "event": "TaskOrgSwitched",
+            "when": "if",
+            "condition": "the default task orgs re-selected afterwards change the caller's current task org",
+            "to": "caller"
+          }
+        ],
+        "stp/knownIssues": [
+          "STP-1078"
+        ]
       }
     },
     {
@@ -704,7 +1318,31 @@
       },
       "_meta": {
         "stp/safety": "write",
-        "stp/inform": true
+        "stp/inform": true,
+        "stp/emits": [
+          {
+            "event": "InkProcessed",
+            "when": "always",
+            "to": "caller"
+          },
+          {
+            "event": "SpeechRecognized",
+            "when": "if",
+            "condition": "the symbol carries a speech phrase",
+            "to": "caller"
+          },
+          {
+            "event": "SymbolAdded",
+            "when": "always",
+            "to": "session"
+          },
+          {
+            "event": "TaskAdded",
+            "when": "may",
+            "condition": "automatic tasking infers a task from the symbol",
+            "to": "session"
+          }
+        ]
       }
     },
     {
@@ -1057,7 +1695,32 @@
       },
       "_meta": {
         "stp/safety": "write",
-        "stp/inform": true
+        "stp/inform": true,
+        "stp/emits": [
+          {
+            "event": "InkProcessed",
+            "when": "if",
+            "condition": "the caller created the symbol",
+            "to": "caller"
+          },
+          {
+            "event": "SpeechRecognized",
+            "when": "if",
+            "condition": "the caller created the symbol and it carries a speech phrase",
+            "to": "caller"
+          },
+          {
+            "event": "SymbolModified",
+            "when": "always",
+            "to": "session"
+          },
+          {
+            "event": "SymbolDeleted",
+            "when": "if",
+            "condition": "the poid names a deleted symbol: SymbolDeleted instead of SymbolModified",
+            "to": "session"
+          }
+        ]
       }
     },
     {
@@ -1080,7 +1743,14 @@
       },
       "_meta": {
         "stp/safety": "destructive",
-        "stp/inform": true
+        "stp/inform": true,
+        "stp/emits": [
+          {
+            "event": "SymbolDeleted",
+            "when": "always",
+            "to": "session"
+          }
+        ]
       }
     },
     {
@@ -1107,7 +1777,21 @@
       },
       "_meta": {
         "stp/safety": "write",
-        "stp/inform": true
+        "stp/inform": true,
+        "stp/emits": [
+          {
+            "event": "TaskModified",
+            "when": "if",
+            "condition": "the poid is a task the caller created: choosing its alternate also confirms it",
+            "to": "session"
+          },
+          {
+            "event": "SymbolAdded",
+            "when": "may",
+            "condition": "a chosen task alternate needs tactical graphics, which are created",
+            "to": "session"
+          }
+        ]
       }
     },
     {
@@ -1129,7 +1813,81 @@
         "openWorldHint": false
       },
       "_meta": {
-        "stp/safety": "destructive"
+        "stp/safety": "destructive",
+        "stp/emits": [
+          {
+            "event": "TaskOrgAdded",
+            "when": "may",
+            "condition": "one per task org in the content, also one that replaces a resident task org (never TaskOrgModified)",
+            "to": "session"
+          },
+          {
+            "event": "TaskOrgUnitAdded",
+            "when": "may",
+            "condition": "one per task org unit in the content, also one that replaces a resident task org unit (never TaskOrgUnitModified)",
+            "to": "session"
+          },
+          {
+            "event": "TaskOrgRelationshipAdded",
+            "when": "may",
+            "condition": "one per task org relationship in the content, also one that replaces a resident task org relationship (never TaskOrgRelationshipModified)",
+            "to": "session"
+          },
+          {
+            "event": "SymbolAdded",
+            "when": "may",
+            "condition": "one per symbol in the content, also one that replaces a resident symbol (never SymbolModified)",
+            "to": "session"
+          },
+          {
+            "event": "TaskAdded",
+            "when": "may",
+            "condition": "one per task in the content, also one that replaces a resident task (never TaskModified); automatic tasking may add more",
+            "to": "session"
+          },
+          {
+            "event": "TaskOrgDeleted",
+            "when": "may",
+            "condition": "one per task org in the content carrying the deletion version (fsdb_version 0)",
+            "to": "session"
+          },
+          {
+            "event": "TaskOrgUnitDeleted",
+            "when": "may",
+            "condition": "one per task org unit in the content carrying the deletion version (fsdb_version 0)",
+            "to": "session"
+          },
+          {
+            "event": "TaskOrgRelationshipDeleted",
+            "when": "may",
+            "condition": "one per task org relationship in the content carrying the deletion version (fsdb_version 0)",
+            "to": "session"
+          },
+          {
+            "event": "SymbolDeleted",
+            "when": "may",
+            "condition": "one per symbol in the content carrying the deletion version (fsdb_version 0)",
+            "to": "session"
+          },
+          {
+            "event": "TaskDeleted",
+            "when": "may",
+            "condition": "one per task in the content carrying the deletion version (fsdb_version 0)",
+            "to": "session"
+          },
+          {
+            "event": "InkProcessed",
+            "when": "may",
+            "condition": "one per imported symbol, just before its SymbolAdded",
+            "to": "caller"
+          },
+          {
+            "event": "SpeechRecognized",
+            "when": "may",
+            "condition": "an imported symbol carries a speech phrase",
+            "to": "caller"
+          }
+        ]
       }
     },
     {
@@ -1172,7 +1930,15 @@
         "openWorldHint": false
       },
       "_meta": {
-        "stp/safety": "write"
+        "stp/safety": "write",
+        "stp/emits": [
+          {
+            "event": "TaskOrgSwitched",
+            "when": "if",
+            "condition": "the caller's current task org changes as a result",
+            "to": "caller"
+          }
+        ]
       }
     },
     {
@@ -1209,7 +1975,15 @@
         "openWorldHint": false
       },
       "_meta": {
-        "stp/safety": "write"
+        "stp/safety": "write",
+        "stp/emits": [
+          {
+            "event": "TaskOrgSwitched",
+            "when": "if",
+            "condition": "the caller's current task org changes as a result",
+            "to": "caller"
+          }
+        ]
       }
     },
     {
@@ -1288,7 +2062,14 @@
       },
       "_meta": {
         "stp/safety": "write",
-        "stp/inform": true
+        "stp/inform": true,
+        "stp/emits": [
+          {
+            "event": "TaskOrgAdded",
+            "when": "always",
+            "to": "session"
+          }
+        ]
       }
     },
     {
@@ -1371,7 +2152,20 @@
       },
       "_meta": {
         "stp/safety": "write",
-        "stp/inform": true
+        "stp/inform": true,
+        "stp/emits": [
+          {
+            "event": "TaskOrgModified",
+            "when": "always",
+            "to": "session"
+          },
+          {
+            "event": "TaskOrgDeleted",
+            "when": "if",
+            "condition": "the poid names a deleted task org: TaskOrgDeleted instead of TaskOrgModified",
+            "to": "session"
+          }
+        ]
       }
     },
     {
@@ -1394,7 +2188,20 @@
       },
       "_meta": {
         "stp/safety": "destructive",
-        "stp/inform": true
+        "stp/inform": true,
+        "stp/emits": [
+          {
+            "event": "TaskOrgDeleted",
+            "when": "always",
+            "to": "session"
+          },
+          {
+            "event": "TaskOrgSwitched",
+            "when": "may",
+            "condition": "the deleted task org was the caller's current one",
+            "to": "caller"
+          }
+        ]
       }
     },
     {
@@ -1786,7 +2593,14 @@
       },
       "_meta": {
         "stp/safety": "write",
-        "stp/inform": true
+        "stp/inform": true,
+        "stp/emits": [
+          {
+            "event": "TaskOrgUnitAdded",
+            "when": "always",
+            "to": "session"
+          }
+        ]
       }
     },
     {
@@ -2182,7 +2996,20 @@
       },
       "_meta": {
         "stp/safety": "write",
-        "stp/inform": true
+        "stp/inform": true,
+        "stp/emits": [
+          {
+            "event": "TaskOrgUnitModified",
+            "when": "always",
+            "to": "session"
+          },
+          {
+            "event": "TaskOrgUnitDeleted",
+            "when": "if",
+            "condition": "the poid names a deleted task org unit: TaskOrgUnitDeleted instead of TaskOrgUnitModified",
+            "to": "session"
+          }
+        ]
       }
     },
     {
@@ -2205,7 +3032,14 @@
       },
       "_meta": {
         "stp/safety": "destructive",
-        "stp/inform": true
+        "stp/inform": true,
+        "stp/emits": [
+          {
+            "event": "TaskOrgUnitDeleted",
+            "when": "always",
+            "to": "session"
+          }
+        ]
       }
     },
     {
@@ -2294,7 +3128,17 @@
       },
       "_meta": {
         "stp/safety": "write",
-        "stp/inform": true
+        "stp/inform": true,
+        "stp/emits": [
+          {
+            "event": "TaskOrgRelationshipAdded",
+            "when": "always",
+            "to": "session"
+          }
+        ],
+        "stp/knownIssues": [
+          "STP-1080"
+        ]
       }
     },
     {
@@ -2387,7 +3231,17 @@
       },
       "_meta": {
         "stp/safety": "write",
-        "stp/inform": true
+        "stp/inform": true,
+        "stp/emits": [
+          {
+            "event": "TaskOrgRelationshipModified",
+            "when": "always",
+            "to": "session"
+          }
+        ],
+        "stp/knownIssues": [
+          "STP-1080"
+        ]
       }
     },
     {
@@ -2410,7 +3264,17 @@
       },
       "_meta": {
         "stp/safety": "destructive",
-        "stp/inform": true
+        "stp/inform": true,
+        "stp/emits": [
+          {
+            "event": "TaskOrgRelationshipDeleted",
+            "when": "always",
+            "to": "session"
+          }
+        ],
+        "stp/knownIssues": [
+          "STP-1080"
+        ]
       }
     },
     {
@@ -2587,7 +3451,14 @@
       },
       "_meta": {
         "stp/safety": "write",
-        "stp/inform": true
+        "stp/inform": true,
+        "stp/emits": [
+          {
+            "event": "TaskAdded",
+            "when": "always",
+            "to": "session"
+          }
+        ]
       }
     },
     {
@@ -2771,7 +3642,24 @@
       },
       "_meta": {
         "stp/safety": "write",
-        "stp/inform": true
+        "stp/inform": true,
+        "stp/emits": [
+          {
+            "event": "TaskModified",
+            "when": "if",
+            "condition": "the poid names an existing task",
+            "to": "session"
+          },
+          {
+            "event": "TaskAdded",
+            "when": "if",
+            "condition": "the poid is unknown: the task is added",
+            "to": "session"
+          }
+        ],
+        "stp/knownIssues": [
+          "STP-1080"
+        ]
       }
     },
     {
@@ -2794,7 +3682,14 @@
       },
       "_meta": {
         "stp/safety": "destructive",
-        "stp/inform": true
+        "stp/inform": true,
+        "stp/emits": [
+          {
+            "event": "TaskDeleted",
+            "when": "always",
+            "to": "session"
+          }
+        ]
       }
     },
     {
@@ -2825,7 +3720,24 @@
       },
       "_meta": {
         "stp/safety": "write",
-        "stp/inform": true
+        "stp/inform": true,
+        "stp/emits": [
+          {
+            "event": "TaskModified",
+            "when": "if",
+            "condition": "nBestIndex 0: every time; another alternate: only when the caller created the task",
+            "to": "session"
+          },
+          {
+            "event": "SymbolAdded",
+            "when": "may",
+            "condition": "the confirmed alternate needs tactical graphics, which are created",
+            "to": "session"
+          }
+        ],
+        "stp/knownIssues": [
+          "STP-1080"
+        ]
       }
     },
     {
@@ -2851,7 +3763,24 @@
         "openWorldHint": false
       },
       "_meta": {
-        "stp/safety": "write"
+        "stp/safety": "write",
+        "stp/emits": [
+          {
+            "event": "TaskOrgSwitched",
+            "when": "if",
+            "condition": "the caller's current task org changes as a result",
+            "to": "caller"
+          },
+          {
+            "event": "StpMessage",
+            "when": "if",
+            "condition": "the call is refused",
+            "to": "caller"
+          }
+        ],
+        "stp/knownIssues": [
+          "STP-1077"
+        ]
       }
     },
     {
@@ -2892,7 +3821,24 @@
         "openWorldHint": false
       },
       "_meta": {
-        "stp/safety": "write"
+        "stp/safety": "write",
+        "stp/emits": [
+          {
+            "event": "TaskOrgSwitched",
+            "when": "if",
+            "condition": "the caller's current task org changes as a result",
+            "to": "caller"
+          },
+          {
+            "event": "StpMessage",
+            "when": "if",
+            "condition": "the call is refused",
+            "to": "caller"
+          }
+        ],
+        "stp/knownIssues": [
+          "STP-1077"
+        ]
       }
     },
     {
@@ -2914,7 +3860,60 @@
         "openWorldHint": false
       },
       "_meta": {
-        "stp/safety": "destructive"
+        "stp/safety": "destructive",
+        "stp/emits": [
+          {
+            "event": "CoaAdded",
+            "when": "may",
+            "condition": "one per COA in the content, also one that replaces a resident COA (never CoaModified)",
+            "to": "session"
+          },
+          {
+            "event": "SymbolAdded",
+            "when": "may",
+            "condition": "one per symbol in the content, also one that replaces a resident symbol (never SymbolModified)",
+            "to": "session"
+          },
+          {
+            "event": "TaskAdded",
+            "when": "may",
+            "condition": "one per task in the content, also one that replaces a resident task (never TaskModified); automatic tasking may add more",
+            "to": "session"
+          },
+          {
+            "event": "CoaDeleted",
+            "when": "may",
+            "condition": "one per COA in the content carrying the deletion version (fsdb_version 0)",
+            "to": "session"
+          },
+          {
+            "event": "SymbolDeleted",
+            "when": "may",
+            "condition": "one per symbol in the content carrying the deletion version (fsdb_version 0)",
+            "to": "session"
+          },
+          {
+            "event": "TaskDeleted",
+            "when": "may",
+            "condition": "one per task in the content carrying the deletion version (fsdb_version 0)",
+            "to": "session"
+          },
+          {
+            "event": "InkProcessed",
+            "when": "may",
+            "condition": "one per imported symbol, just before its SymbolAdded",
+            "to": "caller"
+          },
+          {
+            "event": "SpeechRecognized",
+            "when": "may",
+            "condition": "an imported symbol carries a speech phrase",
+            "to": "caller"
+          }
+        ],
+        "stp/knownIssues": [
+          "STP-1078"
+        ]
       }
     },
     {
@@ -2957,7 +3956,30 @@
         "openWorldHint": false
       },
       "_meta": {
-        "stp/safety": "write"
+        "stp/safety": "write",
+        "stp/emits": [
+          {
+            "event": "CoaSwitched",
+            "when": "if",
+            "condition": "the COA was not already current",
+            "to": "caller"
+          },
+          {
+            "event": "TaskOrgSwitched",
+            "when": "if",
+            "condition": "the switch changes the caller's current task org",
+            "to": "caller"
+          },
+          {
+            "event": "StpMessage",
+            "when": "if",
+            "condition": "the call is refused",
+            "to": "caller"
+          }
+        ],
+        "stp/knownIssues": [
+          "STP-1079"
+        ]
       }
     },
     {
@@ -3047,7 +4069,23 @@
       },
       "_meta": {
         "stp/safety": "write",
-        "stp/inform": true
+        "stp/inform": true,
+        "stp/emits": [
+          {
+            "event": "CoaAdded",
+            "when": "always",
+            "to": "session"
+          },
+          {
+            "event": "StpMessage",
+            "when": "if",
+            "condition": "the call is refused",
+            "to": "caller"
+          }
+        ],
+        "stp/knownIssues": [
+          "STP-1078"
+        ]
       }
     },
     {
@@ -3141,7 +4179,23 @@
       },
       "_meta": {
         "stp/safety": "write",
-        "stp/inform": true
+        "stp/inform": true,
+        "stp/emits": [
+          {
+            "event": "CoaModified",
+            "when": "always",
+            "to": "session"
+          },
+          {
+            "event": "StpMessage",
+            "when": "if",
+            "condition": "the call is refused",
+            "to": "caller"
+          }
+        ],
+        "stp/knownIssues": [
+          "STP-1078"
+        ]
       }
     },
     {
@@ -3164,7 +4218,24 @@
       },
       "_meta": {
         "stp/safety": "destructive",
-        "stp/inform": true
+        "stp/inform": true,
+        "stp/emits": [
+          {
+            "event": "CoaDeleted",
+            "when": "always",
+            "to": "session"
+          },
+          {
+            "event": "StpMessage",
+            "when": "if",
+            "condition": "the call is refused",
+            "to": "caller"
+          }
+        ],
+        "stp/knownIssues": [
+          "STP-1078",
+          "STP-1079"
+        ]
       }
     },
     {
@@ -3203,7 +4274,30 @@
         "openWorldHint": false
       },
       "_meta": {
-        "stp/safety": "write"
+        "stp/safety": "write",
+        "stp/emits": [
+          {
+            "event": "RoleSwitched",
+            "when": "if",
+            "condition": "the role changes",
+            "to": "caller"
+          },
+          {
+            "event": "CoaSwitched",
+            "when": "if",
+            "condition": "the caller's current COA changes with the role",
+            "to": "caller"
+          },
+          {
+            "event": "TaskOrgSwitched",
+            "when": "if",
+            "condition": "the caller's current task org changes with the role",
+            "to": "caller"
+          }
+        ],
+        "stp/knownIssues": [
+          "STP-1079"
+        ]
       }
     },
     {
@@ -3488,6 +4582,59 @@
       },
       "_meta": {
         "stp/safety": "destructive",
+        "stp/emits": [
+          {
+            "event": "CoaAdded",
+            "when": "may",
+            "condition": "one per COA in the content, also one that replaces a resident COA (never CoaModified)",
+            "to": "session"
+          },
+          {
+            "event": "SymbolAdded",
+            "when": "may",
+            "condition": "one per symbol in the content, also one that replaces a resident symbol (never SymbolModified)",
+            "to": "session"
+          },
+          {
+            "event": "TaskAdded",
+            "when": "may",
+            "condition": "one per task in the content, also one that replaces a resident task (never TaskModified); automatic tasking may add more",
+            "to": "session"
+          },
+          {
+            "event": "CoaDeleted",
+            "when": "may",
+            "condition": "one per COA in the content carrying the deletion version (fsdb_version 0)",
+            "to": "session"
+          },
+          {
+            "event": "SymbolDeleted",
+            "when": "may",
+            "condition": "one per symbol in the content carrying the deletion version (fsdb_version 0)",
+            "to": "session"
+          },
+          {
+            "event": "TaskDeleted",
+            "when": "may",
+            "condition": "one per task in the content carrying the deletion version (fsdb_version 0)",
+            "to": "session"
+          },
+          {
+            "event": "InkProcessed",
+            "when": "may",
+            "condition": "one per imported symbol, just before its SymbolAdded",
+            "to": "caller"
+          },
+          {
+            "event": "SpeechRecognized",
+            "when": "may",
+            "condition": "an imported symbol carries a speech phrase",
+            "to": "caller"
+          }
+        ],
+        "stp/knownIssues": [
+          "STP-1078"
+        ],
         "stp/descriptionStatus": "draft"
       }
     },
@@ -3515,6 +4662,101 @@
       },
       "_meta": {
         "stp/safety": "destructive",
+        "stp/emits": [
+          {
+            "event": "SymbolAdded",
+            "when": "may",
+            "condition": "one per symbol in the content, also one that replaces a resident symbol (never SymbolModified)",
+            "to": "session"
+          },
+          {
+            "event": "TaskAdded",
+            "when": "may",
+            "condition": "one per task in the content, also one that replaces a resident task (never TaskModified)",
+            "to": "session"
+          },
+          {
+            "event": "TaskOrgAdded",
+            "when": "may",
+            "condition": "one per task org in the content, also one that replaces a resident task org (never TaskOrgModified)",
+            "to": "session"
+          },
+          {
+            "event": "TaskOrgUnitAdded",
+            "when": "may",
+            "condition": "one per task org unit in the content, also one that replaces a resident task org unit (never TaskOrgUnitModified)",
+            "to": "session"
+          },
+          {
+            "event": "TaskOrgRelationshipAdded",
+            "when": "may",
+            "condition": "one per task org relationship in the content, also one that replaces a resident task org relationship (never TaskOrgRelationshipModified)",
+            "to": "session"
+          },
+          {
+            "event": "CoaAdded",
+            "when": "may",
+            "condition": "one per COA in the content, also one that replaces a resident COA (never CoaModified)",
+            "to": "session"
+          },
+          {
+            "event": "SymbolDeleted",
+            "when": "may",
+            "condition": "one per symbol in the content carrying the deletion version (fsdb_version 0)",
+            "to": "session"
+          },
+          {
+            "event": "TaskDeleted",
+            "when": "may",
+            "condition": "one per task in the content carrying the deletion version (fsdb_version 0)",
+            "to": "session"
+          },
+          {
+            "event": "TaskOrgDeleted",
+            "when": "may",
+            "condition": "one per task org in the content carrying the deletion version (fsdb_version 0)",
+            "to": "session"
+          },
+          {
+            "event": "TaskOrgUnitDeleted",
+            "when": "may",
+            "condition": "one per task org unit in the content carrying the deletion version (fsdb_version 0)",
+            "to": "session"
+          },
+          {
+            "event": "TaskOrgRelationshipDeleted",
+            "when": "may",
+            "condition": "one per task org relationship in the content carrying the deletion version (fsdb_version 0)",
+            "to": "session"
+          },
+          {
+            "event": "CoaDeleted",
+            "when": "may",
+            "condition": "one per COA in the content carrying the deletion version (fsdb_version 0)",
+            "to": "session"
+          },
+          {
+            "event": "InkProcessed",
+            "when": "may",
+            "condition": "one per imported symbol, just before its SymbolAdded",
+            "to": "caller"
+          },
+          {
+            "event": "SpeechRecognized",
+            "when": "may",
+            "condition": "an imported symbol carries a speech phrase",
+            "to": "caller"
+          },
+          {
+            "event": "TaskOrgSwitched",
+            "when": "if",
+            "condition": "the default task orgs re-selected afterwards change the caller's current task org",
+            "to": "caller"
+          }
+        ],
+        "stp/knownIssues": [
+          "STP-1078"
+        ],
         "stp/descriptionStatus": "draft"
       }
     },
@@ -3542,12 +4784,86 @@
       },
       "_meta": {
         "stp/safety": "destructive",
+        "stp/emits": [
+          {
+            "event": "TaskOrgAdded",
+            "when": "may",
+            "condition": "one per task org in the content, also one that replaces a resident task org (never TaskOrgModified)",
+            "to": "session"
+          },
+          {
+            "event": "TaskOrgUnitAdded",
+            "when": "may",
+            "condition": "one per task org unit in the content, also one that replaces a resident task org unit (never TaskOrgUnitModified)",
+            "to": "session"
+          },
+          {
+            "event": "TaskOrgRelationshipAdded",
+            "when": "may",
+            "condition": "one per task org relationship in the content, also one that replaces a resident task org relationship (never TaskOrgRelationshipModified)",
+            "to": "session"
+          },
+          {
+            "event": "SymbolAdded",
+            "when": "may",
+            "condition": "one per symbol in the content, also one that replaces a resident symbol (never SymbolModified)",
+            "to": "session"
+          },
+          {
+            "event": "TaskAdded",
+            "when": "may",
+            "condition": "one per task in the content, also one that replaces a resident task (never TaskModified); automatic tasking may add more",
+            "to": "session"
+          },
+          {
+            "event": "TaskOrgDeleted",
+            "when": "may",
+            "condition": "one per task org in the content carrying the deletion version (fsdb_version 0)",
+            "to": "session"
+          },
+          {
+            "event": "TaskOrgUnitDeleted",
+            "when": "may",
+            "condition": "one per task org unit in the content carrying the deletion version (fsdb_version 0)",
+            "to": "session"
+          },
+          {
+            "event": "TaskOrgRelationshipDeleted",
+            "when": "may",
+            "condition": "one per task org relationship in the content carrying the deletion version (fsdb_version 0)",
+            "to": "session"
+          },
+          {
+            "event": "SymbolDeleted",
+            "when": "may",
+            "condition": "one per symbol in the content carrying the deletion version (fsdb_version 0)",
+            "to": "session"
+          },
+          {
+            "event": "TaskDeleted",
+            "when": "may",
+            "condition": "one per task in the content carrying the deletion version (fsdb_version 0)",
+            "to": "session"
+          },
+          {
+            "event": "InkProcessed",
+            "when": "may",
+            "condition": "one per imported symbol, just before its SymbolAdded",
+            "to": "caller"
+          },
+          {
+            "event": "SpeechRecognized",
+            "when": "may",
+            "condition": "an imported symbol carries a speech phrase",
+            "to": "caller"
+          }
+        ],
         "stp/descriptionStatus": "draft"
       }
     },
     {
       "name": "LoadNewScenarioFromObjectSet",
-      "description": "Create and load a new scenario from an in-memory object set (array of STP objects), replacing any previous content. Object-set equivalent of LoadNewScenario.",
+      "description": "Create and load a new scenario from an in-memory object set (array of STP objects), replacing any previous content. Object-set equivalent of LoadNewScenario. Other clients of the session receive NewScenario; the caller does not.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -3569,6 +4885,119 @@
       },
       "_meta": {
         "stp/safety": "destructive",
+        "stp/emits": [
+          {
+            "event": "NewScenario",
+            "when": "if",
+            "condition": "the session has other clients: each of them receives it; the caller never does",
+            "to": "session"
+          },
+          {
+            "event": "RoleSwitched",
+            "when": "if",
+            "condition": "re-announces each OTHER client's role, if it has one; the caller keeps its role and hears nothing",
+            "to": "session"
+          },
+          {
+            "event": "CoaSwitched",
+            "when": "if",
+            "condition": "a COA was current: the reset clears it (CoaSwitched with no COA)",
+            "to": "caller"
+          },
+          {
+            "event": "TaskOrgSwitched",
+            "when": "if",
+            "condition": "the caller's current task org changes (the reset clears the default task orgs, and they are re-selected after the load)",
+            "to": "caller"
+          },
+          {
+            "event": "SymbolAdded",
+            "when": "may",
+            "condition": "one per symbol in the content, also one that replaces a resident symbol (never SymbolModified)",
+            "to": "session"
+          },
+          {
+            "event": "TaskAdded",
+            "when": "may",
+            "condition": "one per task in the content, also one that replaces a resident task (never TaskModified)",
+            "to": "session"
+          },
+          {
+            "event": "TaskOrgAdded",
+            "when": "may",
+            "condition": "one per task org in the content, also one that replaces a resident task org (never TaskOrgModified)",
+            "to": "session"
+          },
+          {
+            "event": "TaskOrgUnitAdded",
+            "when": "may",
+            "condition": "one per task org unit in the content, also one that replaces a resident task org unit (never TaskOrgUnitModified)",
+            "to": "session"
+          },
+          {
+            "event": "TaskOrgRelationshipAdded",
+            "when": "may",
+            "condition": "one per task org relationship in the content, also one that replaces a resident task org relationship (never TaskOrgRelationshipModified)",
+            "to": "session"
+          },
+          {
+            "event": "CoaAdded",
+            "when": "may",
+            "condition": "one per COA in the content, also one that replaces a resident COA (never CoaModified)",
+            "to": "session"
+          },
+          {
+            "event": "SymbolDeleted",
+            "when": "may",
+            "condition": "one per symbol in the content carrying the deletion version (fsdb_version 0)",
+            "to": "session"
+          },
+          {
+            "event": "TaskDeleted",
+            "when": "may",
+            "condition": "one per task in the content carrying the deletion version (fsdb_version 0)",
+            "to": "session"
+          },
+          {
+            "event": "TaskOrgDeleted",
+            "when": "may",
+            "condition": "one per task org in the content carrying the deletion version (fsdb_version 0)",
+            "to": "session"
+          },
+          {
+            "event": "TaskOrgUnitDeleted",
+            "when": "may",
+            "condition": "one per task org unit in the content carrying the deletion version (fsdb_version 0)",
+            "to": "session"
+          },
+          {
+            "event": "TaskOrgRelationshipDeleted",
+            "when": "may",
+            "condition": "one per task org relationship in the content carrying the deletion version (fsdb_version 0)",
+            "to": "session"
+          },
+          {
+            "event": "CoaDeleted",
+            "when": "may",
+            "condition": "one per COA in the content carrying the deletion version (fsdb_version 0)",
+            "to": "session"
+          },
+          {
+            "event": "InkProcessed",
+            "when": "may",
+            "condition": "one per imported symbol, just before its SymbolAdded",
+            "to": "caller"
+          },
+          {
+            "event": "SpeechRecognized",
+            "when": "may",
+            "condition": "an imported symbol carries a speech phrase",
+            "to": "caller"
+          }
+        ],
+        "stp/knownIssues": [
+          "STP-1078"
+        ],
         "stp/descriptionStatus": "draft"
       }
     },
@@ -3881,6 +5310,14 @@
       },
       "_meta": {
         "stp/safety": "destructive",
+        "stp/emits": [
+          {
+            "event": "SymbolReport",
+            "when": "may",
+            "condition": "later, while a pushed order runs on the C2SIM server with updateUnitPositions on: unit position reports",
+            "to": "session"
+          }
+        ],
         "stp/descriptionStatus": "draft"
       }
     },
@@ -3908,6 +5345,131 @@
       },
       "_meta": {
         "stp/safety": "destructive",
+        "stp/emits": [
+          {
+            "event": "SymbolAdded",
+            "when": "may",
+            "condition": "replay first, as JoinScenarioSession: one per live symbol in the scenario",
+            "to": "caller"
+          },
+          {
+            "event": "TaskAdded",
+            "when": "may",
+            "condition": "replay first, as JoinScenarioSession: one per live task in the scenario",
+            "to": "caller"
+          },
+          {
+            "event": "TaskOrgUnitAdded",
+            "when": "may",
+            "condition": "replay first, as JoinScenarioSession: one per live task org unit in the scenario",
+            "to": "caller"
+          },
+          {
+            "event": "TaskOrgRelationshipAdded",
+            "when": "may",
+            "condition": "replay first, as JoinScenarioSession: one per live task org relationship in the scenario",
+            "to": "caller"
+          },
+          {
+            "event": "CoaAdded",
+            "when": "may",
+            "condition": "replay first, as JoinScenarioSession: one per live COA in the scenario",
+            "to": "caller"
+          },
+          {
+            "event": "SymbolAdded",
+            "when": "may",
+            "condition": "one per symbol in the content, also one that replaces a resident symbol (never SymbolModified)",
+            "to": "session"
+          },
+          {
+            "event": "TaskAdded",
+            "when": "may",
+            "condition": "one per task in the content, also one that replaces a resident task (never TaskModified)",
+            "to": "session"
+          },
+          {
+            "event": "TaskOrgAdded",
+            "when": "may",
+            "condition": "one per task org in the content, also one that replaces a resident task org (never TaskOrgModified)",
+            "to": "session"
+          },
+          {
+            "event": "TaskOrgUnitAdded",
+            "when": "may",
+            "condition": "one per task org unit in the content, also one that replaces a resident task org unit (never TaskOrgUnitModified)",
+            "to": "session"
+          },
+          {
+            "event": "TaskOrgRelationshipAdded",
+            "when": "may",
+            "condition": "one per task org relationship in the content, also one that replaces a resident task org relationship (never TaskOrgRelationshipModified)",
+            "to": "session"
+          },
+          {
+            "event": "CoaAdded",
+            "when": "may",
+            "condition": "one per COA in the content, also one that replaces a resident COA (never CoaModified)",
+            "to": "session"
+          },
+          {
+            "event": "SymbolDeleted",
+            "when": "may",
+            "condition": "one per symbol in the content carrying the deletion version (fsdb_version 0)",
+            "to": "session"
+          },
+          {
+            "event": "TaskDeleted",
+            "when": "may",
+            "condition": "one per task in the content carrying the deletion version (fsdb_version 0)",
+            "to": "session"
+          },
+          {
+            "event": "TaskOrgDeleted",
+            "when": "may",
+            "condition": "one per task org in the content carrying the deletion version (fsdb_version 0)",
+            "to": "session"
+          },
+          {
+            "event": "TaskOrgUnitDeleted",
+            "when": "may",
+            "condition": "one per task org unit in the content carrying the deletion version (fsdb_version 0)",
+            "to": "session"
+          },
+          {
+            "event": "TaskOrgRelationshipDeleted",
+            "when": "may",
+            "condition": "one per task org relationship in the content carrying the deletion version (fsdb_version 0)",
+            "to": "session"
+          },
+          {
+            "event": "CoaDeleted",
+            "when": "may",
+            "condition": "one per COA in the content carrying the deletion version (fsdb_version 0)",
+            "to": "session"
+          },
+          {
+            "event": "InkProcessed",
+            "when": "may",
+            "condition": "one per replayed symbol this client created and per imported symbol, just before its SymbolAdded",
+            "to": "caller"
+          },
+          {
+            "event": "SpeechRecognized",
+            "when": "may",
+            "condition": "a replayed or imported symbol of this client carries a speech phrase",
+            "to": "caller"
+          },
+          {
+            "event": "TaskOrgSwitched",
+            "when": "if",
+            "condition": "the default task orgs re-selected afterwards change the caller's current task org",
+            "to": "caller"
+          }
+        ],
+        "stp/knownIssues": [
+          "STP-1078"
+        ],
         "stp/descriptionStatus": "draft"
       }
     },
@@ -3954,7 +5516,7 @@
     },
     {
       "name": "SetSpeechListening",
-      "description": "Turn speech capture on or off for this client. Fire and forget; STP reports the resulting state through the AudioCapture event.",
+      "description": "Turn speech capture on or off for this client. Fire and forget; no event reports the resulting state.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -3990,7 +5552,72 @@
       },
       "_meta": {
         "stp/safety": "write",
-        "stp/inform": true
+        "stp/inform": true,
+        "stp/emits": [
+          {
+            "event": "InkProcessed",
+            "when": "if",
+            "condition": "strokes were pending: their sketch is integrated or discarded",
+            "to": "caller"
+          },
+          {
+            "event": "SpeechRecognized",
+            "when": "may",
+            "condition": "speech integrates with the sketch: the single phrase that integrated",
+            "to": "caller"
+          },
+          {
+            "event": "SymbolAdded",
+            "when": "may",
+            "condition": "the sketch, alone or with speech, is recognized as a symbol",
+            "to": "session"
+          },
+          {
+            "event": "SymbolModified",
+            "when": "may",
+            "condition": "the gesture moves or changes an existing symbol",
+            "to": "session"
+          },
+          {
+            "event": "SymbolDeleted",
+            "when": "may",
+            "condition": "the gesture deletes a symbol",
+            "to": "session"
+          },
+          {
+            "event": "TaskAdded",
+            "when": "may",
+            "condition": "sketch and speech express a task, or automatic tasking infers one",
+            "to": "session"
+          },
+          {
+            "event": "SymbolEdited",
+            "when": "may",
+            "condition": "the gesture selects or edits a symbol",
+            "to": "caller"
+          },
+          {
+            "event": "MapOperation",
+            "when": "may",
+            "condition": "the gesture is a map operation, such as a zoom",
+            "to": "caller"
+          },
+          {
+            "event": "Command",
+            "when": "may",
+            "condition": "the gesture or utterance is a command",
+            "to": "session"
+          },
+          {
+            "event": "SpeechRecognized",
+            "when": "may",
+            "condition": "a command: every client receives its phrase",
+            "to": "session"
+          }
+        ],
+        "stp/knownIssues": [
+          "STP-1080"
+        ]
       }
     },
     {
@@ -4145,7 +5772,27 @@
       },
       "_meta": {
         "stp/safety": "write",
-        "stp/inform": true
+        "stp/inform": true,
+        "stp/emits": [
+          {
+            "event": "RoleSwitched",
+            "when": "if",
+            "condition": "a role was set (RoleSwitched with no role)",
+            "to": "caller"
+          },
+          {
+            "event": "CoaSwitched",
+            "when": "if",
+            "condition": "the caller's current COA changes with the role",
+            "to": "caller"
+          },
+          {
+            "event": "TaskOrgSwitched",
+            "when": "if",
+            "condition": "the caller's current task org changes with the role",
+            "to": "caller"
+          }
+        ]
       }
     },
     {
@@ -4168,12 +5815,89 @@
       },
       "_meta": {
         "stp/safety": "write",
-        "stp/inform": true
+        "stp/inform": true,
+        "stp/emits": [
+          {
+            "event": "SymbolAdded",
+            "when": "may",
+            "condition": "the undone operation deleted a symbol (isUndo = true)",
+            "to": "session"
+          },
+          {
+            "event": "SymbolModified",
+            "when": "may",
+            "condition": "the undone operation changed a symbol (isUndo = true)",
+            "to": "session"
+          },
+          {
+            "event": "SymbolDeleted",
+            "when": "may",
+            "condition": "the undone operation added a symbol (isUndo = true)",
+            "to": "session"
+          },
+          {
+            "event": "TaskAdded",
+            "when": "may",
+            "condition": "the undone operation deleted a task (isUndo = true)",
+            "to": "session"
+          },
+          {
+            "event": "TaskModified",
+            "when": "may",
+            "condition": "the undone operation changed a task (isUndo = true)",
+            "to": "session"
+          },
+          {
+            "event": "TaskDeleted",
+            "when": "may",
+            "condition": "the undone operation added a task (isUndo = true)",
+            "to": "session"
+          },
+          {
+            "event": "TaskOrgUnitAdded",
+            "when": "may",
+            "condition": "the undone operation deleted a task org unit (isUndo = true)",
+            "to": "session"
+          },
+          {
+            "event": "TaskOrgUnitModified",
+            "when": "may",
+            "condition": "the undone operation changed a task org unit (isUndo = true)",
+            "to": "session"
+          },
+          {
+            "event": "TaskOrgUnitDeleted",
+            "when": "may",
+            "condition": "the undone operation added a task org unit (isUndo = true)",
+            "to": "session"
+          },
+          {
+            "event": "TaskOrgRelationshipAdded",
+            "when": "may",
+            "condition": "the undone operation deleted a task org relationship (isUndo = true)",
+            "to": "session"
+          },
+          {
+            "event": "TaskOrgRelationshipModified",
+            "when": "may",
+            "condition": "the undone operation changed a task org relationship (isUndo = true)",
+            "to": "session"
+          },
+          {
+            "event": "TaskOrgRelationshipDeleted",
+            "when": "may",
+            "condition": "the undone operation added a task org relationship (isUndo = true)",
+            "to": "session"
+          }
+        ],
+        "stp/knownIssues": [
+          "STP-1080"
+        ]
       }
     },
     {
       "name": "ResetStpScenario",
-      "description": "Discard the current scenario contents on the server, leaving the scenario itself in place. Returns no value.",
+      "description": "Discard the current scenario contents on the server, leaving the scenario itself in place. Returns no value. No Deleted event is sent per object; other clients of the session receive NewScenario, the caller does not.",
       "inputSchema": {
         "type": "object",
         "properties": {},
@@ -4186,7 +5910,33 @@
       },
       "_meta": {
         "stp/safety": "destructive",
-        "stp/inform": true
+        "stp/inform": true,
+        "stp/emits": [
+          {
+            "event": "NewScenario",
+            "when": "if",
+            "condition": "the session has other clients: each of them receives it; the caller never does",
+            "to": "session"
+          },
+          {
+            "event": "RoleSwitched",
+            "when": "if",
+            "condition": "re-announces each OTHER client's role, if it has one; the caller keeps its role and hears nothing",
+            "to": "session"
+          },
+          {
+            "event": "CoaSwitched",
+            "when": "if",
+            "condition": "a COA was current: the reset clears it (CoaSwitched with no COA)",
+            "to": "caller"
+          },
+          {
+            "event": "TaskOrgSwitched",
+            "when": "if",
+            "condition": "the caller's current task org changes (the reset clears the default task orgs)",
+            "to": "caller"
+          }
+        ]
       }
     },
     {

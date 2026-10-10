@@ -69,6 +69,8 @@ function methodEntry(method: ContractMethod, generated: GenerationResult) {
     method,
     safety: safetyClass(method),
     returns: method["x-stpInform"] === true ? "events only" : "result",
+    emits: method["x-stpEmits"] ?? [],
+    ...(method["x-stpKnownIssues"]?.length ? { known_issues: method["x-stpKnownIssues"] } : {}),
     available: reason === null,
     ...(reason === null ? {} : { unavailable_because: reason }),
     ...(tool ? { input_schema: tool.inputSchema } : {}),

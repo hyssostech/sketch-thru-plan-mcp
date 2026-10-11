@@ -6,6 +6,9 @@ sidebar_position: 2
 
 # Installation
 
+This page installs the JavaScript SDK. Your app also needs a running STP
+engine to connect to: see [Installing and running the STP engine](./running-stp.md).
+
 ## npm
 
 ```bash

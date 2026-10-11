@@ -552,10 +552,30 @@
       "id": "engine-install",
       "question": "How do I install and run the STP engine itself, for example in Docker or on Linux?",
       "expected": [
-        "stp-docs://intro"
-      ],
-      "noGoodSource": true,
-      "gap": "The docs assume an engine is already running (Windows server, v5.9.9+); installing, configuring and hosting the engine is not covered. Left open on purpose in STP-1062: whether and how to document engine installation is a product decision, not a docs gap to fill here."
+        "stp-docs://running-stp"
+      ]
+    },
+    {
+      "id": "engine-ports",
+      "question": "Which ports does the STP engine listen on, and which ones must be open for SDK clients?",
+      "expected": [
+        "stp-docs://running-stp"
+      ]
+    },
+    {
+      "id": "engine-health",
+      "question": "How do I check that the STP engine is up and ready to accept connections?",
+      "expected": [
+        "stp-docs://running-stp"
+      ]
+    },
+    {
+      "id": "engine-remote-connect",
+      "question": "My app on another machine cannot connect to the STP engine. What should I check?",
+      "expected": [
+        "stp-docs://running-stp",
+        "stp-docs://guides/connection-lifecycle"
+      ]
     },
     {
       "id": "symbol-times",

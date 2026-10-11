@@ -175,6 +175,8 @@ its own gap detection; see [REST connector](../reference/rest-connector.md#event
 
 ## See also
 
+- [Installing and running the STP engine](../running-stp.md#the-app-cannot-connect):
+  when the first connection fails
 - [Sessions](./sessions.md): how the session id is chosen
 - [Errors, refusals and timeouts](./errors-and-timeouts.md)
 - [Integration troubleshooting](./integration-troubleshooting.md#events-never-arrive-although-isconnected-is-true-net):

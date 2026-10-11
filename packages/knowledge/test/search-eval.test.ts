@@ -11,10 +11,12 @@ import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { createKnowledgeServer } from "../src/server.js";
 
 /**
- * Measured 69/69 = 1.000 on the answerable questions (docs 6ff9eeb, contract 0.9.1; STP-1062: the COA guide and the
- * method safety page answer coa-management and safety-classes, and no-response also accepts errors-and-timeouts, the
- * page that covers requests with no reply). Was 65/67 = 0.970 at docs 938e3ef with contract 0.9.1, 66/67 = 0.985
- * with contract 0.4.0, 58/59 = 0.983 at docs aa83c51 with floor 0.95. The floor allows one miss more than measured.
+ * Measured 73/73 = 1.000 on the answerable questions (docs 25745ea, contract 0.9.1; STP-1062: the running-stp page
+ * answers engine-install, the last question that had no good source, and three new engine questions). Was 69/69 = 1.000
+ * at docs 6ff9eeb (the COA guide and the method safety page answer coa-management and safety-classes, and no-response
+ * also accepts errors-and-timeouts, the page that covers requests with no reply), 65/67 = 0.970 at docs 938e3ef with
+ * contract 0.9.1, 66/67 = 0.985 with contract 0.4.0, 58/59 = 0.983 at docs aa83c51 with floor 0.95. The floor allows
+ * one miss more than measured.
  */
 const RECALL_FLOOR = 0.98;
 const K = 5;

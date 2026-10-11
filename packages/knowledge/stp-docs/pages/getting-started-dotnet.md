@@ -12,6 +12,9 @@ this site use the JavaScript SDK. The .NET SDK has the same concepts (connector,
 recognizer, events, requests), and its API reference is under
 [.NET API](/docs/category/net-api).
 
+You need a running STP engine to connect to. See
+[Installing and running the STP engine](./running-stp.md).
+
 ## Install
 
 ```bash

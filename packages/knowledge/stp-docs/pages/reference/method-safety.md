@@ -17,7 +17,7 @@ This page answers these questions:
 Each method in the
 [OpenRPC contract](https://github.com/hyssostech/sketch-thru-plan-sdk-js/tree/main/json-api/sketch-thru-plan-api.json)
 carries this information in extension fields whose names start with `x-`. The
-tables below are generated from contract version 0.9.1. They leave out the
+tables below are generated from contract version 0.9.3. They leave out the
 two transport messages, `Register` and `Request` (marked `"x-layer":
 "transport"`), which the SDK connectors send for you.
 
@@ -45,7 +45,7 @@ Every method has one of three classes:
   resident object with the same poid), and pushing to an external C2SIM
   server (which can reset that server).
 
-Contract 0.9.1 has 16 read, 35 write and 19 destructive methods.
+Contract 0.9.3 has 16 read, 35 write and 19 destructive methods.
 
 A client that must not change anything calls only `read` methods. A client
 that acts for a user, such as an AI agent, should ask the user before every
@@ -66,9 +66,9 @@ produces events: it replays the current scenario to your client only.
 | `GetCoaContent` | `content` (string) |  |
 | `ConvertC2SIMContent` | `content` (string) |  |
 | `GetC2SIMContent` | `content` (string) |  |
-| `GetCoaObjectSet` | `objects` (array) | STP-1090 |
-| `GetScenarioObjectSet` | `objects` (array) | STP-1090 |
-| `GetTaskOrgObjectSet` | `objects` (array) | STP-1090 |
+| `GetCoaObjectSet` | `objects` (array) |  |
+| `GetScenarioObjectSet` | `objects` (array) |  |
+| `GetTaskOrgObjectSet` | `objects` (array) |  |
 | `GetActiveScenarioDescription` | `scenario` (object) |  |
 | `GetAllObjects` | `objects` (array) |  |
 | `GetDeletedObjects` | `objects` (array) |  |
@@ -80,14 +80,14 @@ produces events: it replays the current scenario to your client only.
 
 These 35 methods change the scenario or the session. "Call" says whether the
 method is a request (it gets a reply) or an inform (fire and forget), and for
-an inform which event always confirms it. An event marked "intended, not sent
-yet" is listed in the contract but held back by a known issue: read the state
-back instead.
+an inform which event always confirms it. An event the contract lists but a
+known issue holds back is marked "intended, not sent yet": read the state back
+instead. No method in contract 0.9.3 has one.
 
 | Method | Call | Known issues |
 |---|---|---|
 | `SendPenDown` | inform; no event |  |
-| `SendInk` | inform; events depend on the outcome | STP-1080 |
+| `SendInk` | inform; events depend on the outcome |  |
 | `SendSpeechRecognition` | inform; confirmed by `SpeechParsed` |  |
 | `SendSimulatedSpeechRecognition` | inform; confirmed by `SpeechParsed` |  |
 | `AddSymbol` | inform; confirmed by `InkProcessed`, `SymbolAdded` |  |
@@ -99,11 +99,11 @@ back instead.
 | `UpdateTaskOrg` | inform; confirmed by `TaskOrgModified` | STP-1091 |
 | `AddTaskOrgUnit` | inform; confirmed by `TaskOrgUnitAdded` | STP-1091 |
 | `UpdateTaskOrgUnit` | inform; confirmed by `TaskOrgUnitModified` |  |
-| `AddTaskOrgRelationship` | inform; `TaskOrgRelationshipAdded` intended, not sent yet (STP-1089) | STP-1080, STP-1089 |
-| `UpdateTaskOrgRelationship` | inform; `TaskOrgRelationshipModified` intended, not sent yet (STP-1089) | STP-1080, STP-1089 |
+| `AddTaskOrgRelationship` | inform; confirmed by `TaskOrgRelationshipAdded` |  |
+| `UpdateTaskOrgRelationship` | inform; confirmed by `TaskOrgRelationshipModified` |  |
 | `AddTask` | inform; confirmed by `TaskAdded` | STP-1091 |
-| `UpdateTask` | inform; events depend on the outcome | STP-1080, STP-1091 |
-| `ConfirmTask` | inform; events depend on the outcome | STP-1080 |
+| `UpdateTask` | inform; events depend on the outcome | STP-1091 |
+| `ConfirmTask` | inform; events depend on the outcome |  |
 | `SetCoaTaskOrg` | request | STP-1077, STP-1091 |
 | `ResetCoaTaskOrg` | request | STP-1077 |
 | `SetCurrentCoa` | request |  |
@@ -114,13 +114,13 @@ back instead.
 | `ChangeTimeOut` | inform; no event |  |
 | `ResetSegmentationTimeout` | inform; no event |  |
 | `SetSpeechListening` | inform; no event |  |
-| `RecognizeNow` | inform; events depend on the outcome | STP-1080 |
+| `RecognizeNow` | inform; events depend on the outcome |  |
 | `SendListen` | inform; no event |  |
 | `SendAudioCaptureState` | inform; no event |  |
 | `AdvertiseViewport` | inform; no event |  |
 | `SetAutoTasking` | inform; no event |  |
 | `ResetRole` | inform; events depend on the outcome |  |
-| `UndoLastOp` | inform; events depend on the outcome | STP-1080 |
+| `UndoLastOp` | inform; events depend on the outcome |  |
 
 ### Destructive methods
 
@@ -141,16 +141,16 @@ which a client can show the user before the call.
 | `ImportTaskOrgContent` | request | Imports task org content; an imported object REPLACES a resident one with the same poid. |  |
 | `DeleteTaskOrg` | inform; confirmed by `TaskOrgDeleted` | Deletes the task org `poid`. |  |
 | `DeleteTaskOrgUnit` | inform; confirmed by `TaskOrgUnitDeleted` | Deletes the task org unit `poid`. |  |
-| `DeleteTaskOrgRelationship` | inform; `TaskOrgRelationshipDeleted` intended, not sent yet (STP-1089) | Deletes the task org relationship `poid`. | STP-1080, STP-1089 |
+| `DeleteTaskOrgRelationship` | inform; confirmed by `TaskOrgRelationshipDeleted` | Deletes the task org relationship `poid`. |  |
 | `DeleteTask` | inform; confirmed by `TaskDeleted` | Deletes the task `poid`. |  |
 | `ImportCoaContent` | request | Imports COA content; an imported object REPLACES a resident one with the same poid. |  |
 | `DeleteCoa` | inform; confirmed by `CoaDeleted` | Deletes the COA `poid`. |  |
-| `ImportCoaFromObjectSet` | request | Imports the objects given; an imported object REPLACES a resident one with the same poid. | STP-1090 |
-| `ImportPlanDataFromObjectSet` | request | Imports the objects given into the current scenario; an imported object REPLACES a resident one with the same poid. | STP-1090 |
-| `ImportTaskOrgFromObjectSet` | request | Imports the task org objects given; an imported object REPLACES a resident one with the same poid. | STP-1090 |
-| `LoadNewScenarioFromObjectSet` | request | Replaces the session's current scenario, and every object in it, with the objects given. | STP-1090 |
+| `ImportCoaFromObjectSet` | request | Imports the objects given; an imported object REPLACES a resident one with the same poid. |  |
+| `ImportPlanDataFromObjectSet` | request | Imports the objects given into the current scenario; an imported object REPLACES a resident one with the same poid. |  |
+| `ImportTaskOrgFromObjectSet` | request | Imports the task org objects given; an imported object REPLACES a resident one with the same poid. |  |
+| `LoadNewScenarioFromObjectSet` | request | Replaces the session's current scenario, and every object in it, with the objects given. |  |
 | `PushC2SIMContent` | request | Sends C2SIM content of type `dataType` to the external C2SIM server, which can reset that server's state. |  |
-| `SyncScenarioSessionFromObjectSet` | request | Merges the objects given into the current scenario; an object given REPLACES a resident one with the same poid. | STP-1090 |
+| `SyncScenarioSessionFromObjectSet` | request | Merges the objects given into the current scenario; an object given REPLACES a resident one with the same poid. |  |
 | `ResetStpScenario` | inform; events depend on the outcome | Discards the session's current scenario and every object in it. |  |
 
 Two points are easy to miss:
@@ -181,7 +181,7 @@ A method marked `"x-stpInform": true` is fire and forget: the engine sends no
 reply, and the outcome arrives only as events. For example `AddCoa` is
 confirmed by `CoaAdded`, and `DeleteSymbol` by `SymbolDeleted`. Every other
 method has a `result` and gets a reply, which is `success: false` with the
-reason when STP refuses the call. Contract 0.9.1 has 35 informs.
+reason when STP refuses the call. Contract 0.9.3 has 35 informs.
 
 An inform that STP cannot apply is often ignored without a message. When the
 confirming event does not arrive, read the state back, for example with
@@ -231,22 +231,21 @@ also announce a refusal with it.
 `x-stpKnownIssues` lists filed engine issues, by ticket key, that make
 today's engine behave differently from the method's description or its
 `x-stpEmits`: an event that never arrives, or a call accepted although its
-target does not exist. A key is removed from the contract once the fix ships.
-The method's description says what to do in the meantime.
+target does not exist. While a key is listed, the method's description says
+what to do in the meantime. A key is removed from the contract once the fix
+ships, and the description then says how engines before the fix behave: STP-1080
+and STP-1089 were removed in contract 0.9.2, STP-1090 in 0.9.3.
 
 | Key | What it affects | Methods |
 |---|---|---|
 | STP-1077 | Task organizations per COA: `coaPoid` is refused by engines before the fix | `SetCoaTaskOrg`, `ResetCoaTaskOrg` |
-| STP-1080 | Events not sent after an undo, a discarded sketch, a task update or confirmation, and task-organization relationship changes | `SendInk`, `RecognizeNow`, `UpdateTask`, `ConfirmTask`, `UndoLastOp`, `AddTaskOrgRelationship`, `UpdateTaskOrgRelationship`, `DeleteTaskOrgRelationship` |
-| STP-1089 | No `TaskOrgRelationshipAdded`, `TaskOrgRelationshipModified` or `TaskOrgRelationshipDeleted`; check with `GetTaskOrgContent` | `AddTaskOrgRelationship`, `UpdateTaskOrgRelationship`, `DeleteTaskOrgRelationship` |
-| STP-1090 | The JSON object-set output cannot be imported back; use the text forms (`GetScenarioContent`, `GetCoaContent`, `GetTaskOrgContent`) | `GetScenarioObjectSet`, `GetCoaObjectSet`, `GetTaskOrgObjectSet`, `ImportCoaFromObjectSet`, `ImportPlanDataFromObjectSet`, `ImportTaskOrgFromObjectSet`, `LoadNewScenarioFromObjectSet`, `SyncScenarioSessionFromObjectSet` |
 | STP-1091 | Writes that do not check their target: an unknown poid or value is accepted | `SetDefaultTaskOrg`, `ResetDefaultTaskOrg`, `UpdateTaskOrg`, `AddTaskOrgUnit`, `AddTask`, `UpdateTask`, `SetCoaTaskOrg`, `SetRole` |
 
 ## Bad input: `x-stpEdgeCases`
 
 `x-stpEdgeCases` records what the engine did, on a live capture, with bad or
 unusual input: a missing or unknown poid, no active scenario, malformed
-content, an inform sent through `Request`, and so on. Contract 0.9.1 has 197
+content, an inform sent through `Request`, and so on. Contract 0.9.3 has 239
 cases. Each case has:
 
 - `when`: the input;

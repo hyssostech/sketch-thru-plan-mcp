@@ -170,11 +170,13 @@ asks for:
 - a relationship (`toRelationship`) carries `parent` and `child`, the poids of
   two units (from `TaskOrgUnitAdded`), its `relationship` kind, and `parentTO`.
 
-**Relationship events are not sent yet.** Even on current engines,
+**Relationship events on older engines.** Current engines send
 `TaskOrgRelationshipAdded`, `TaskOrgRelationshipModified` and
-`TaskOrgRelationshipDeleted` do not arrive after a relationship call (see
-STP-1089). Confirm a relationship change with `getTaskOrgContent` for the
-task org; a deleted relationship is listed by `getDeletedObjects`.
+`TaskOrgRelationshipDeleted` to every client in the session after a
+relationship call. Engines before STP-1089 store the change but send none of
+these events; with them, confirm a relationship change with
+`getTaskOrgContent` for the task org (a deleted relationship is listed by
+`getDeletedObjects`).
 
 ## Indexing into `params` throws on `InkProcessed`, `SpeechDiscarded`, `NewScenario`
 

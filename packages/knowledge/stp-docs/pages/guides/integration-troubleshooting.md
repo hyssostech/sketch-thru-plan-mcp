@@ -17,67 +17,74 @@ and the check that tells you which one you are looking at.
 
 ## A call throws with no useful message
 
-**Symptom.** A JSON-RPC call throws `StpException` with an empty message on
-the .NET SDK. On the JavaScript SDK the returned promise rejects with `null` -
-no `Error` object, no text - or, for the fire-and-forget calls such as
-`AddCoa`, simply nothing happens. The call is well-formed - the same shape
+**Symptom.** A JSON-RPC call fails although it is well-formed - the same shape
 that works for other methods - and there is nothing in your own code to fix.
+On older SDKs the failure carries no text: the .NET SDK throws `StpException`
+with an empty message, and the JavaScript SDK rejects the promise with `null`.
+For a fire-and-forget call, simply nothing happens.
 
-**Cause.** The method has no handler in the engine's WebSocketsBridge
-dispatcher. A request for a method the dispatcher does not recognize still
-gets a reply - `RequestResponse` with `success:false` and `result:null` - it
-is simply refused rather than acted on. Both SDKs build their failure from
-the `result` payload, and it is null: .NET wraps it in an `StpException` with
-an empty message, JavaScript rejects the promise with it as-is.
+**Cause.** The engine does not dispatch the method. A request for a method the
+engine does not recognize still gets a reply - `RequestResponse` with
+`success: false` - it is refused rather than acted on. Current engines put the
+reason in `result` (`No handler for method '...' - the WebSocketsBridge does
+not dispatch it`) and also send it as an `StpMessage` warning, so a refused
+fire-and-forget call can be seen too. Older engines send `result: null`, which
+older SDKs turn into the empty failure described above.
 
-On current releases, this is not method-specific noise; it is a fixed list.
-The methods below are dispatched by the SDK but never reach the engine:
+**Which methods.** The methods the engine dispatches are the ones in the
+[OpenRPC contract](../reference/json-api.md#openrpc-schema). A method that is
+not in the contract is refused this way. With HyssosTech.Sdk.STP 0.6.1 and a
+current engine, these .NET SDK methods send such a method:
 
-.NET SDK (`HyssosTech.Sdk.STP`):
+| .NET SDK method | Wire method | Use instead |
+|---|---|---|
+| `CreateCoaAsync`, `CreateDefaultCoaAsync` | `CreateCoa`, `CreateDefaultCoa` | `AddCoa`, confirmed by `OnCoaAdded` |
+| `RequestActiveCoasAsync`, `GetScenarioCoasAsync` | `GetActiveCoaList`, `GetScenarioCoaList` | `JoinScenarioSessionAsync`, which replays one `OnCoaAdded` per COA |
+| `GetCurrentCoaPoidAsync` | `GetCurrentCoaPoid` | `OnCoaSwitched`, which reports your current COA |
+| `GetCoaObjectsAsync` | `GetCoaObjects` | `GetCoaObjectSetAsync` |
+| `SwitchRoleAndCoa`, `SwitchRoleAndCoaAsync` | `SwitchRoleAndCoa` | `SetRoleAsync`, then `SetCoaAsync` |
+| `SwitchTaskConfirmationAsync` (obsolete) | `SwitchTaskConfirmation` | `ConfirmTask` |
 
-```
-CreateCoa, CreateDefaultCoa, DeleteCoa, GetActiveCoaList,
-GetActiveScenarioDescription, GetAllObjects, GetCoaContent, GetCoaObjects,
-GetCurrentCoaPoid, GetDeletedObjects, GetPoidObject, GetScenarioCoaList,
-GetScenarioTaskOrgList, GetTaskOrgObjects, ImportCoaContent,
-ResetStpScenario, SetCurrentCoa, SwitchRoleAndCoa, SwitchTaskConfirmation
-```
+Every method of the JavaScript SDK sends a method that is in the contract.
 
-JavaScript SDK (`sketch-thru-plan-sdk`):
+Earlier versions of this page listed more methods. Current engines dispatch
+all of them:
 
-```
-AddCoa, UpdateCoa, DeleteCoa, SetCurrentCoa, GetCoaContent,
-ImportCoaContent, SetCoaTaskOrg
-```
+- the eight course-of-action (COA) methods: `AddCoa`, `UpdateCoa`,
+  `DeleteCoa`, `SetCurrentCoa`, `GetCoaContent`, `ImportCoaContent`,
+  `SetCoaTaskOrg` and `ResetCoaTaskOrg`. They no longer answer "No handler";
+  see [Courses of action (COAs)](./coas.md) for how to use them;
+- `GetActiveScenarioDescription`, `GetAllObjects`, `GetDeletedObjects`,
+  `GetPoidObject`, `GetScenarioTaskOrgList`, `GetTaskOrgObjects` and
+  `ResetStpScenario`.
 
-These calls cannot succeed on current releases. Most of them are the COA
-(course of action) surface - if your integration switches or manages COAs
-through the SDK rather than through the STP client UI, expect to hit this
-list.
+An older engine may still answer the COA methods with "No handler". A
+current engine can still refuse a COA call for a reason of its own, and says
+which: for example `SetCoaTaskOrg` with a `coaPoid` is refused by engines
+before STP-1077 with "per-COA task org is not supported yet". That is a
+refusal of the call, not a missing handler.
 
 :::note
-Newer releases report the refusal with text: since JavaScript SDK 0.6.15 the
-promise rejects with an `Error`, and since .NET SDK 0.5.0 the `StpException`
-carries a message. Recent engines also name the method in the reply. See
-[Errors, refusals and timeouts](./errors-and-timeouts.md).
+Since JavaScript SDK 0.6.15 a refused request rejects with an `Error` that
+carries the reason, and since .NET SDK 0.5.0 the `StpException` carries a
+message. See [Errors, refusals and timeouts](./errors-and-timeouts.md).
 :::
 
-**How to tell.** Two independent checks, either is sufficient:
+**How to tell.** Either check is sufficient:
 
-1. The engine's own log records the refusal as `No handler for <message>` at
-   warning level, at the moment the call was made.
-2. In the JSON-RPC contract (`json-api/sketch-thru-plan-api.json`, mirrored in
-   [the JSON API reference](../reference/json-api.md)), a method the engine
-   does not dispatch carries `"x-engineDispatch": "none"`. If you can inspect
-   the contract entry for the method you called, this settles it without
-   needing engine log access.
+1. Read the refusal. On current engines it names the method:
+   `No handler for method '<name>'`, in the reply and in an `StpMessage`
+   warning. The engine's own log records the same line at warning level.
+2. Look the method up in the JSON-RPC contract
+   (`json-api/sketch-thru-plan-api.json`, see
+   [the JSON API reference](../reference/json-api.md)). If it is not there, the
+   engine does not dispatch it. A method listed in the contract but not
+   dispatched would carry `"x-engineDispatch": "none"`; since contract 0.6.0
+   no method does.
 
 **What to do.** There is no client-side workaround for a method the engine
-will not dispatch - do not retry, and do not treat the empty message as a
-transient error. If your integration depends on one of these calls, route
-around it: for COA management specifically, that usually means driving the
-change through the STP client rather than the SDK, or restructuring the
-integration so it does not need the call.
+will not dispatch. Do not retry, and do not treat the refusal as a transient
+error. Use the replacement in the table above.
 
 ## `GetScenarioObjectSetContentAsync` / `GetTaskOrgObjectSetAsync` / `GetCoaObjectSetAsync` throw a deserialization exception (.NET)
 
@@ -127,6 +134,47 @@ event is dropped every time, not occasionally.
 register separately) - either via the constructor/hooks parameter the SDK
 exposes for this, or with `+=` ahead of the connect call. Adding a handler
 later requires disconnecting and reconnecting to re-register.
+
+## Task org units or relationships you add never appear
+
+**Symptom.** You add or update a task-organization unit or relationship
+through the SDK (`addTaskOrgUnit`, `updateTaskOrgUnit`,
+`addTaskOrgRelationship`, `updateTaskOrgRelationship`, or `AddTaskOrgUnit`
+and so on in .NET). No error comes back, no `TaskOrgUnitAdded` or
+`TaskOrgUnitModified` arrives, and `getTaskOrgContent` for the task org does
+not show the change.
+
+**Cause.** Both SDKs send the unit as `toUnit` and the relationship as
+`toRelationship`, the names the contract uses. Engines before STP-1088 read
+the unit only under the name `taskOrgUnit`, and the relationship only as
+`taskOrgRelationship` with its task org as `parentPoid`. They dropped what
+the SDKs sent, without a reply or a message.
+
+Current engines read `toUnit` and `toRelationship`, and a relationship names
+its task org in `parentTO`. They also no longer drop a message they cannot
+read: a request is answered with `success: false` and the reason
+(`Could not read '<method>': ...`), and an inform is announced with an
+`StpMessage` warning carrying the same text.
+
+**How to tell.** Read the task org back with `getTaskOrgContent(toPoid)`
+(`GetTaskOrgContentAsync` in .NET). If the unit is not there, and neither a
+`TaskOrgUnitAdded` nor an `StpMessage` warning arrived, the engine is most
+likely older than STP-1088.
+
+**What to do.** Use a current engine, and fill in the references the contract
+asks for:
+
+- a unit (`toUnit`) carries `parentTO`, the poid of its task org (from
+  `TaskOrgAdded` or `getScenarioTaskOrgList`). Known issue STP-1091: an
+  unknown `parentTO` is accepted and leaves an orphan unit, so check the poid;
+- a relationship (`toRelationship`) carries `parent` and `child`, the poids of
+  two units (from `TaskOrgUnitAdded`), its `relationship` kind, and `parentTO`.
+
+**Relationship events are not sent yet.** Even on current engines,
+`TaskOrgRelationshipAdded`, `TaskOrgRelationshipModified` and
+`TaskOrgRelationshipDeleted` do not arrive after a relationship call (see
+STP-1089). Confirm a relationship change with `getTaskOrgContent` for the
+task org; a deleted relationship is listed by `getDeletedObjects`.
 
 ## Indexing into `params` throws on `InkProcessed`, `SpeechDiscarded`, `NewScenario`
 

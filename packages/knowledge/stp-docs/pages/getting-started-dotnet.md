@@ -104,8 +104,14 @@ connect. Pass `exitAppIfNoConnection: false` to get `null` back instead.
 - **`OnSketchIntegrated` and `OnSketchDiscarded` are never raised over the
   WebSockets bridge.** The bridge reports both outcomes as `InkProcessed`
   (affected by the previous item).
-- **Course-of-action (COA) methods** may be refused by the engine. See
-  [Integration troubleshooting](./guides/integration-troubleshooting.md#a-call-throws-with-no-useful-message).
+- **Some course-of-action (COA) methods are refused by the engine** with "No
+  handler": `CreateCoaAsync`, `CreateDefaultCoaAsync`, `RequestActiveCoasAsync`,
+  `GetScenarioCoasAsync`, `GetCoaObjectsAsync`, `GetCurrentCoaPoidAsync` and
+  `SwitchRoleAndCoa(Async)`. See
+  [Integration troubleshooting](./guides/integration-troubleshooting.md#a-call-throws-with-no-useful-message)
+  for what to use instead.
+- **`GetCoaContentAsync` throws `JsonReaderException`** on the object-set text
+  STP returns. See [Courses of action (COAs)](./guides/coas.md#saving-getcoacontent).
 
 ## Next steps
 

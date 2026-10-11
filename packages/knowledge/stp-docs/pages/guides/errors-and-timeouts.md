@@ -26,7 +26,8 @@ in one of three ways:
 |---|---|
 | A **request** (a call that returns a value or a promise) | A `RequestResponse` message with `success: false`. The `result` field carries the reason as text. |
 | An **inform** (a fire-and-forget call such as `addSymbol` or `updateSymbol`) | No reply at all. Success shows up as an event (for example `SymbolModified`); a failure shows up as the absence of that event. |
-| A message STP cannot parse | No reply at all. To your code this looks like a timeout. |
+| A request STP cannot read (a missing `params` object, a value of the wrong type) | Current engines: a `RequestResponse` with `success: false` and the reason (`Could not read '<method>': ...`). Engines before STP-1088: no reply at all, which looks like a timeout to your code. |
+| An inform STP cannot read, or text that is not a JSON-RPC message | No reply. Current engines send an `StpMessage` warning with the reason; older engines say nothing. |
 
 ### What a request and its reply look like
 

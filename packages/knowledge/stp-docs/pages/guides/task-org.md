@@ -126,6 +126,7 @@ Extends `StpSymbol` with additional properties:
 | `unitType` | Function description, e.g. `MECHANIZED INFANTRY` |
 | `info` | Additional information |
 | `name` | Speech name pattern. Supports grouping `()`, alternatives `|`, and optionals `[]`. Example: `(ONE \| FIRST) [ROYAL] IRISH [GUARDS]` accepts "ONE IRISH", "FIRST ROYAL IRISH GUARDS", etc. |
+| `parentTO` | Unique id of the TO the unit belongs to |
 
 Plus all standard `StpSymbol` properties (`sidc`, `affiliation`, `echelon`, `designator1`, etc.).
 
@@ -137,6 +138,7 @@ Plus all standard `StpSymbol` properties (`sidc`, `affiliation`, `echelon`, `des
 | `parent` | Parent Task Org Unit unique id |
 | `child` | Child Task Org Unit unique id |
 | `relationship` | `CommandRelationship` enum value |
+| `parentTO` | Unique id of the TO the relationship belongs to |
 
 ### CommandRelationship Enum
 

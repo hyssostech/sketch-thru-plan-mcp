@@ -58,12 +58,13 @@ The SDK communicates with the STP Engine via a **connector plugin** (WebSocket b
 
 ## Prerequisites
 
-- **STP Engine** (v5.9.9+) running on an accessible Windows server (or localhost for development)
+- **STP Engine** (v5.9.9+) running on an accessible server or container (or localhost for development). See [Installing and running the STP engine](./running-stp.md)
 - A PC or Mac with a working **microphone**, mouse or stylus
 - A subscription key for a speech service (e.g., [Microsoft Azure Speech](https://docs.microsoft.com/azure/cognitive-services/speech-service/get-started)) if using speech input
 
 ## Next Steps
 
 - [Installation](./installation) — install the SDK via npm or CDN
+- [Running the STP engine](./running-stp.md) — install the engine in Docker or on Windows, and check that it is reachable
 - [Getting Started](./getting-started) — build your first STP-enabled app step by step
 - [Guides](./guides/symbols-and-rendering) — deeper topics: tasks, task orgs, roles, scenarios, sessions, and more

@@ -1,9 +1,9 @@
 {
   "repo": "hyssostech/stp-docs",
   "path": "docs",
-  "ref": "e2c9270882c9bda7d939e9d75d91f51c5a869de7",
+  "ref": "25745eafce30206a436332d4344bd96a4fc4bb5a",
   "license": "MIT",
-  "count": 30,
+  "count": 31,
   "excluded": [
     {
       "path": "docs/api/",
@@ -17,11 +17,11 @@
   "files": [
     {
       "path": "docs/getting-started-dotnet.md",
-      "blob": "5e4f20141be20d3fcc9c3dc787a8d4973019a214"
+      "blob": "e2b90f754e94b6b1e0d4dd80e7a5ceeaf4d39b79"
     },
     {
       "path": "docs/getting-started.md",
-      "blob": "cb302d13c030f235b947a27d1a9605707a4e8b9b"
+      "blob": "052c81745f56e95d48cdb887c1bfca43e43300fa"
     },
     {
       "path": "docs/guides/c2sim.md",
@@ -33,7 +33,7 @@
     },
     {
       "path": "docs/guides/connection-lifecycle.md",
-      "blob": "1ff03875bb756ebf1f74f64bd97646f41db0f270"
+      "blob": "8fa0b9c4403bd08509289aaf0b9aa388cdd8e66d"
     },
     {
       "path": "docs/guides/custom-commands.md",
@@ -93,11 +93,11 @@
     },
     {
       "path": "docs/installation.md",
-      "blob": "dac66b98cbe35a3fa5291160432fd14fea3fb0ba"
+      "blob": "009a46c551340223e4a6e1e57eee04527a5c3b8e"
     },
     {
       "path": "docs/intro.md",
-      "blob": "e251e19bf8e5d7f7067bb339d0dd975cc2cd4070"
+      "blob": "630e0197128c6327f9f1337dd0200d54f5d0e8fb"
     },
     {
       "path": "docs/plugins/connectors.md",
@@ -134,6 +134,10 @@
     {
       "path": "docs/reference/symbol-properties.md",
       "blob": "9e4ce6b16bfed1ff22c03647331eb71e3bf911f1"
+    },
+    {
+      "path": "docs/running-stp.md",
+      "blob": "9b50ea58149f9900115cf14b1c75edafdb4c4549"
     }
   ]
 }

@@ -147,8 +147,10 @@ describe("payload helpers", () => {
 });
 
 describe("configuration", () => {
-  it("defaults to the local engine", () => {
-    expect(configFromEnv({})).toEqual({ url: "ws://localhost:9599", timeoutS: 15 });
+  const READ_ONLY = { write: false, destructive: false, v10TimeoutS: 8 };
+
+  it("defaults to the local engine, read-only", () => {
+    expect(configFromEnv({})).toEqual({ url: "ws://localhost:9599", timeoutS: 15, ...READ_ONLY });
   });
 
   it("reads every variable", () => {
@@ -157,13 +159,24 @@ describe("configuration", () => {
       session: "S1",
       coa: "idC",
       timeoutS: 30,
+      ...READ_ONLY,
     });
-    expect(configFromEnv({ STP_SESSION: "  " })).toEqual({ url: "ws://localhost:9599", timeoutS: 15 });
+    expect(configFromEnv({ STP_SESSION: "  " })).toEqual({ url: "ws://localhost:9599", timeoutS: 15, ...READ_ONLY });
+    expect(
+      configFromEnv({ STP_WRITE: "1", STP_DESTRUCTIVE: "true", STP_V10_TIMEOUT_S: "2.5", STP_ACTION_LOG: "/tmp/actions.jsonl" }),
+    ).toEqual({ url: "ws://localhost:9599", timeoutS: 15, write: true, destructive: true, v10TimeoutS: 2.5, actionLog: "/tmp/actions.jsonl" });
+    expect(configFromEnv({ STP_WRITE: "0", STP_DESTRUCTIVE: "" })).toMatchObject({ write: false, destructive: false });
   });
 
   it("refuses bad values with the variable's name", () => {
     expect(() => configFromEnv({ STP_URL: "http://localhost:9599" })).toThrow(/STP_URL must be a ws:\/\/ or wss:\/\/ URL/);
     expect(() => configFromEnv({ STP_TIMEOUT_S: "soon" })).toThrow(/STP_TIMEOUT_S/);
     expect(() => configFromEnv({ STP_TIMEOUT_S: "-1" })).toThrow(/STP_TIMEOUT_S must be a positive number/);
+    expect(() => configFromEnv({ STP_WRITE: "yes" })).toThrow(/STP_WRITE must be 1 or 0/);
+    expect(() => configFromEnv({ STP_V10_TIMEOUT_S: "0" })).toThrow(/STP_V10_TIMEOUT_S must be a positive number/);
+  });
+
+  it("refuses destructive mode without write mode", () => {
+    expect(() => configFromEnv({ STP_DESTRUCTIVE: "1" })).toThrow(/STP_DESTRUCTIVE=1 needs STP_WRITE=1/);
   });
 });

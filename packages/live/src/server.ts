@@ -16,15 +16,22 @@ import {
   generateTools,
   loadContract,
   loadPin,
+  loadValidations,
+  loadValidationsPin,
   safetyClass,
   type Contract,
   type ContractPin,
   type GeneratedTool,
+  type ValidationRules,
+  type ValidationsPin,
 } from "stp-mcp-contract-tools";
-import type { LiveConfig } from "./config.js";
+import { ACTIONS_URI, ActionLog, MAX_ACTIONS } from "./actions.js";
+import { DEFAULT_V10_TIMEOUT_S, type LiveConfig } from "./config.js";
 import { StpConnection, StpError } from "./connection.js";
 import { CONTEXT_URI, LiveContext, MAX_ENTITIES, MAX_RECENT_EVENTS, RESOURCE_KINDS, entityUri, type EntityKind } from "./context.js";
 import { MAX_ANSWER_BYTES, capAnswer, stripPrologTerm } from "./payload.js";
+import type { WriteMode } from "./validate.js";
+import { createWriteCaller } from "./write.js";
 
 export interface LiveServerOptions {
   config: LiveConfig;
@@ -36,12 +43,22 @@ export interface LiveServerOptions {
   maxAnswerBytes?: number;
   /** Entity and recent-event caps of the live context. */
   contextCaps?: { entities: number; recentEvents: number };
+  /** The call-validation rules (default: the pinned sketch-thru-plan-validations.json). */
+  validations?: ValidationRules;
+  validationsPin?: ValidationsPin;
+  /** How long a fire-and-forget write with no expected event waits for a refusal (default 1 s). */
+  settleMs?: number;
+  /** Entries the action log keeps in memory (default 500). */
+  actionLogCap?: number;
 }
 
 export interface LiveServer {
   mcp: McpServer;
   connection: StpConnection;
   context: LiveContext;
+  actions: ActionLog;
+  /** off (read-only), write, or destructive (writes and destructive calls). */
+  mode: WriteMode;
   /** Closes the STP connection and stops pending notifications. */
   close(): Promise<void>;
 }
@@ -59,6 +76,9 @@ const PROLOG_TERM_NOTE =
 const NO_SCHEMA = { type: "object", properties: {}, additionalProperties: false } as const;
 const READ_ONLY = { readOnlyHint: true, openWorldHint: false } as const;
 
+/** How long a fire-and-forget write with no expected event waits for a refusal StpMessage. */
+export const SETTLE_MS = 1000;
+
 const LIVE_STATUS: Tool = {
   name: "live_status",
   title: "STP connection status",
@@ -66,9 +86,10 @@ const LIVE_STATUS: Tool = {
     "Check the connection to the running Sketch-thru-Plan engine before trusting other answers, or after an " +
     "error: the endpoint (STP_URL), whether it is connected now, the STP session joined and whether that session " +
     "has an active scenario, the last connection error and when it happened, how many engine events arrived, how " +
-    "often the server reconnected, and the contract version the tools were generated from. When disconnected, " +
-    "calling it makes one connection attempt, so it tells whether the engine is reachable right now. This server " +
-    "is read-only: it never changes the plan, the role or the current COA.",
+    "often the server reconnected, the contract version the tools were generated from, and writeMode. When " +
+    "disconnected, calling it makes one connection attempt, so it tells whether the engine is reachable right now. " +
+    "Unless writeMode says otherwise (STP_WRITE=1), this server is read-only: it never changes the plan, the role " +
+    "or the current COA.",
   inputSchema: NO_SCHEMA,
   annotations: READ_ONLY,
   _meta: { "stp/safety": "read" },
@@ -101,13 +122,24 @@ function refusal(message: string): CallToolResult {
   return { isError: true, content: [{ type: "text", text: message }] };
 }
 
-/** The read methods of the contract that the engine dispatches: the only ones this server exposes. */
+/** The read methods of the contract that the engine dispatches: the only ones a read-only server exposes. */
 export function readTools(contract: Contract): GeneratedTool[] {
+  return exposedTools(contract, "off");
+}
+
+/** The tools a mode exposes: the dispatched read methods, plus write ones in write mode, plus destructive ones. */
+export function exposedTools(contract: Contract, mode: WriteMode): GeneratedTool[] {
+  const allowed = new Set(mode === "off" ? ["read"] : mode === "write" ? ["read", "write"] : ["read", "write", "destructive"]);
   const generated = generateTools(contract).tools;
   return contract.methods
-    .filter((m) => exclusionReason(m) === null && safetyClass(m) === "read")
+    .filter((m) => exclusionReason(m) === null && allowed.has(safetyClass(m)))
     .map((m) => generated.find((t) => t.name === m.name)!)
-    .filter((t) => t._meta["stp/safety"] === "read");
+    .filter((t) => allowed.has(t._meta["stp/safety"]));
+}
+
+/** The server's write mode from its configuration: off unless STP_WRITE=1. */
+export function writeModeOf(config: LiveConfig): WriteMode {
+  return config.write ? (config.destructive ? "destructive" : "write") : "off";
 }
 
 /** Why an answer is empty, so an empty value never reads as "there is nothing". */
@@ -128,16 +160,23 @@ export function createLiveServer(options: LiveServerOptions): LiveServer {
   const { config } = options;
   const contract = options.contract ?? loadContract();
   const pin = options.pin ?? loadPin();
-  const tools = readTools(contract);
+  const rules = options.validations ?? loadValidations();
+  const rulesPin = options.validationsPin ?? loadValidationsPin();
+  const mode = writeModeOf(config);
+  const tools = exposedTools(contract, mode);
   const byName = new Map(tools.map((t) => [t.name, t]));
   const ajv = new AjvJsonSchemaValidator();
+  // Every dispatched method gets a validator, so a write called by name is checked like a listed one.
   const validators = new Map<string, JsonSchemaValidator<unknown>>(
-    tools.map((t) => [t.name, ajv.getValidator(t.inputSchema as JsonSchemaType)]),
+    generateTools(contract).tools.map((t) => [t.name, ajv.getValidator(t.inputSchema as JsonSchemaType)]),
   );
+  const v10TimeoutS = config.v10TimeoutS ?? DEFAULT_V10_TIMEOUT_S;
+  const actions = new ActionLog(config.actionLog, options.actionLogCap ?? MAX_ACTIONS);
   const contractRef = { version: contract.info.version, ref: pin.ref };
   const maxBytes = options.maxAnswerBytes ?? MAX_ANSWER_BYTES;
 
   const context = new LiveContext(options.contextCaps);
+  context.writer = mode !== "off";
   const connection = new StpConnection({
     url: config.url,
     session: config.session,
@@ -160,15 +199,28 @@ export function createLiveServer(options: LiveServerOptions): LiveServer {
     return refusal(`${message}\n\n[STP ${p.endpoint}, session ${p.session ?? "(none yet)"}, at ${p.answeredAt}]`);
   };
 
+  const instructions =
+    mode === "off"
+      ? "Read-only view of a running Sketch-thru-Plan (STP) engine. The tools ask the engine (each answer names " +
+        "the endpoint and time); live_context and the stp-live://context resource hold what the engine reported " +
+        "recently, including the last unit added. No tool here changes the plan. Errors explain what failed - " +
+        "check live_status when one mentions the connection."
+      : "View and change a running Sketch-thru-Plan (STP) engine. The read tools ask the engine; live_context and " +
+        "the stp-live://context resource hold what it reported recently, including the last unit added - take poids " +
+        "from there. Write tools (readOnlyHint false) change the scenario: each call is checked first (params, an " +
+        "active scenario, every poid it names) and refused with the reason when a check fails; once sent, its " +
+        "result says whether the engine's events show it done (v10.outcome: done, partial, not_done, other, unknown " +
+        "or unverifiable) - read it before telling the user the change was made." +
+        (mode === "destructive"
+          ? " Destructive tools (destructiveHint true) also need the user's confirmation, which this server asks " +
+            "for itself on every call; you cannot confirm for the user."
+          : "") +
+        " Every write is logged in stp-live://actions.";
   const mcp = new McpServer(
     { name: "stp-mcp-live", version: VERSION },
     {
       capabilities: { tools: { listChanged: false }, resources: { subscribe: true, listChanged: false } },
-      instructions:
-        "Read-only view of a running Sketch-thru-Plan (STP) engine. The tools ask the engine (each answer names " +
-        "the endpoint and time); live_context and the stp-live://context resource hold what the engine reported " +
-        "recently, including the last unit added. No tool here changes the plan. Errors explain what failed - " +
-        "check live_status when one mentions the connection.",
+      instructions,
     },
   );
 
@@ -187,7 +239,11 @@ export function createLiveServer(options: LiveServerOptions): LiveServer {
       timeoutS: connection.timeoutS,
       defaultCoa: config.coa ?? null,
       contract: { ...contractRef, repo: pin.repo, path: pin.path },
-      readOnly: true,
+      validations: { version: rules.version, ref: rulesPin.ref, path: rulesPin.path },
+      readOnly: mode === "off",
+      writeMode: mode,
+      v10TimeoutS,
+      actionLog: { entries: actions.list().length, file: actions.file ?? null },
     };
   };
 
@@ -263,6 +319,25 @@ export function createLiveServer(options: LiveServerOptions): LiveServer {
     });
   };
 
+  const callWrite = createWriteCaller({
+    rules,
+    connection,
+    context,
+    log: actions,
+    mode,
+    v10TimeoutS,
+    settleMs: options.settleMs ?? SETTLE_MS,
+    maxAnswerBytes: maxBytes,
+    validator: (name) => validators.get(name),
+    provenance,
+    clientInfo: () => {
+      const c = mcp.server.getClientVersion();
+      return c ? { name: c.name, version: c.version } : null;
+    },
+    canElicit: () => Boolean(mcp.server.getClientCapabilities()?.elicitation?.form),
+    elicit: (params) => mcp.server.elicitInput(params),
+  });
+
   mcp.server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const name = request.params.name;
     const args = (request.params.arguments ?? {}) as Record<string, unknown>;
@@ -289,24 +364,19 @@ export function createLiveServer(options: LiveServerOptions): LiveServer {
     }
 
     const tool = byName.get(name);
-    if (tool) return callMethod(tool, args);
+    if (tool && tool._meta["stp/safety"] === "read") return callMethod(tool, args);
 
-    // Not a tool here: say why, so a write method reads as refused, not as missing.
+    // A write or destructive method, listed or not: the write path checks it (refusing it when this
+    // server's mode does not expose it) and logs it either way.
     const method = contract.methods.find((m) => m.name.toLowerCase() === name.toLowerCase());
     if (method) {
       const excluded = exclusionReason(method);
       if (excluded) return refusal(`${method.name} is not available: ${excluded}.`);
-      const safety = safetyClass(method);
-      if (safety !== "read") {
-        return refusal(
-          `${method.name} is a ${safety} STP method. This live server is read-only and never exposes it: it ` +
-            `cannot change the plan, the role or the current COA. Ask the user to make the change in their STP client.`,
-        );
-      }
+      if (method.name === name && safetyClass(method) !== "read") return callWrite(method, args);
       return refusal(`There is no tool '${name}'; did you mean ${method.name}?`);
     }
     return refusal(
-      `There is no tool '${name}'. The tools are the STP read methods (${tools.map((t) => t.name).join(", ")}), ` +
+      `There is no tool '${name}'. The tools are the STP ${mode === "off" ? "read " : ""}methods (${tools.map((t) => t.name).join(", ")}), ` +
         `live_status and live_context.`,
     );
   });
@@ -336,6 +406,28 @@ export function createLiveServer(options: LiveServerOptions): LiveServer {
       await tryConnect();
       return { contents: [{ uri: uri.href, mimeType: "application/json", text: JSON.stringify(contextDocument(), null, 2) }] };
     },
+  );
+
+  mcp.registerResource(
+    "live-actions",
+    ACTIONS_URI,
+    {
+      title: "STP action log",
+      description:
+        "Every write or destructive call this server was asked to make, newest first, refused ones included: when, " +
+        "which MCP client, the method and arguments, each validation step, the user's confirmation, the engine's " +
+        "answer and the V10 report (what the event stream showed). Subscribe for updates.",
+      mimeType: "application/json",
+    },
+    async (uri) => ({
+      contents: [
+        {
+          uri: uri.href,
+          mimeType: "application/json",
+          text: JSON.stringify({ writeMode: mode, ...actions.document(), provenance: provenance() }, null, 2),
+        },
+      ],
+    }),
   );
 
   for (const kind of RESOURCE_KINDS) {
@@ -401,10 +493,12 @@ export function createLiveServer(options: LiveServerOptions): LiveServer {
     for (const uri of dirty) void mcp.server.sendResourceUpdated({ uri }).catch(() => {});
     dirty.clear();
   };
-  context.onChange((uris) => {
+  const markDirty = (uris: string[]) => {
     for (const uri of uris) if (subscriptions.has(uri)) dirty.add(uri);
     if (dirty.size > 0 && !flushTimer) flushTimer = setTimeout(flush, debounceMs);
-  });
+  };
+  context.onChange(markDirty);
+  actions.onChange(() => markDirty([ACTIONS_URI]));
 
   const close = async () => {
     clearTimeout(flushTimer);
@@ -413,7 +507,7 @@ export function createLiveServer(options: LiveServerOptions): LiveServer {
   };
   mcp.server.onclose = () => void close();
 
-  return { mcp, connection, context, close };
+  return { mcp, connection, context, actions, mode, close };
 }
 
-export { entityUri, CONTEXT_URI };
+export { entityUri, CONTEXT_URI, ACTIONS_URI };

@@ -1,9 +1,11 @@
 name: Contract drift
 
 # The tools are generated from a PINNED copy of the STP OpenRPC contract
-# (packages/contract-tools/contract). This reports when the published contract
-# (hyssostech/sketch-thru-plan-sdk-js, json-api/sketch-thru-plan-api.json) has
-# moved past the pin, so a re-pin is a reviewed change rather than a surprise.
+# (packages/contract-tools/contract), and write calls are checked by a pinned copy of
+# the call-validation rules next to it. This reports when the published contract or
+# rules (hyssostech/sketch-thru-plan-sdk-js, json-api/sketch-thru-plan-api.json and
+# json-api/sketch-thru-plan-validations*.json) have moved past the pins, so a re-pin
+# is a reviewed change rather than a surprise.
 # The docs corpus (packages/knowledge/stp-docs, from hyssostech/stp-docs) is pinned the same way and
 # checked by the second job.
 # Credential-free: both repos are public.
@@ -35,7 +37,7 @@ jobs:
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: '22'
-      - name: Compare the pinned contract with the published one
+      - name: Compare the pinned contract and validation rules with the published ones
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: node scripts/update-contract.mjs --check

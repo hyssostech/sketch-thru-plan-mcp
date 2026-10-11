@@ -108,6 +108,10 @@ export class LiveContext {
   private evicted = 0;
   private since = new Date().toISOString();
   private listeners: ((changedUris: string[]) => void)[] = [];
+  /** Poids deleted since this server joined, so a reference to one can say so (bounded like the entities). */
+  private readonly deleted = new Map<string, { event: string; at: string }>();
+  /** True when this server makes calls itself (write mode): then it does see its own switches. */
+  writer = false;
 
   constructor(
     private readonly caps = { entities: MAX_ENTITIES, recentEvents: MAX_RECENT_EVENTS },
@@ -131,6 +135,16 @@ export class LiveContext {
   get(kind: EntityKind, poid: string): Entity | undefined {
     const e = this.entities.get(poid);
     return e?.kind === kind ? e : undefined;
+  }
+
+  /** The object with this poid, of any kind, if the context holds it. */
+  find(poid: string): Entity | undefined {
+    return this.entities.get(poid);
+  }
+
+  /** The event that deleted this poid, if one arrived since this server joined. */
+  deletedBy(poid: string): { event: string; at: string } | undefined {
+    return this.deleted.get(poid);
   }
 
   /** Applies one engine event. Unknown events are still listed among the recent ones. */
@@ -164,6 +178,7 @@ export class LiveContext {
     } else if (event.name === "NewScenario") {
       // Another client replaced the scenario: what this context holds no longer exists.
       this.entities.clear();
+      this.deleted.clear();
       for (const k of Object.keys(this.lastAdded)) delete this.lastAdded[k as EntityKind];
       this.current = {};
     }
@@ -198,6 +213,9 @@ export class LiveContext {
 
     if (mapping.op === "delete") {
       this.entities.delete(poid);
+      this.deleted.delete(poid);
+      this.deleted.set(poid, { event: event.name, at });
+      if (this.deleted.size > this.caps.entities) this.deleted.delete(this.deleted.keys().next().value!);
       for (const k of LAST_ADDED_KINDS) {
         const last = this.lastAdded[k];
         if (last?.poid === poid) last.deleted = true;
@@ -207,6 +225,7 @@ export class LiveContext {
       return poid;
     }
     if (!data) return poid;
+    this.deleted.delete(poid); // re-added (an undo, an import)
     const entity = this.upsert(mapping.kind, poid, data, event, at);
     if (mapping.op === "add" && LAST_ADDED_KINDS.includes(mapping.kind)) this.noteAdded(entity);
     if (mapping.kind === "coa" && this.current.coa?.poid === poid) this.current.coa = refOf(data);
@@ -316,7 +335,8 @@ export class LiveContext {
     // client that made it. This server never makes one, so "not observed" is the usual value.
     const unseen = (what: string) =>
       `not observed: no ${what} reached this server since ${this.since}. STP announces it only to the client ` +
-      `that switched, and this read-only server never switches${what === "CoaSwitched" ? " (set STP_COA to name the COA to read)" : ""}.`;
+      `that switched, and this ${this.writer ? "server has not switched" : "read-only server never switches"}` +
+      `${what === "CoaSwitched" ? " (set STP_COA to name the COA to read)" : ""}.`;
     return {
       observedSince: this.since,
       current: {

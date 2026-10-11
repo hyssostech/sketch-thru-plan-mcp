@@ -51,10 +51,10 @@ does not change the current COA of other clients in the session.
 | `UpdateCoa` | inform | `CoaModified` (every client) | `updateCoa(poid, coa)` | `UpdateCoa(poid, coa)` |
 | `DeleteCoa` | inform | `CoaDeleted` (every client) | `deleteCoa(poid)` | `DeleteCoa(poid)`, or `DeleteCoaAsync(poid)` as a request |
 | `SetCurrentCoa` | request | the reply; `CoaSwitched` (your client only) unless the COA was already current | `setCurrentCoa(poid, timeout?)` | `SetCoaAsync(poid)` |
-| `GetCoaContent` | request | the reply (object-set text) | `getCoaContent(poid, timeout?)` | `GetCoaContentAsync(poid)` (see the caution below) |
+| `GetCoaContent` | request | the reply (object-set text) | `getCoaContent(poid, timeout?)` | `GetCoaContentAsync(poid)`; 0.6.1 or later (see the caution below) |
 | `ImportCoaContent` | request | the reply (the COA's poid); `CoaAdded`, `SymbolAdded`, `TaskAdded` per object | `importCoaContent(content, timeout?)` | `ImportCoaContentAsync(content)` |
-| `SetCoaTaskOrg` | request | the reply; `TaskOrgSwitched` if your current task org changes | `setCoaTaskOrg(toPoid, coaPoid?, timeout?)` | none; `SetDefaultTaskOrgAsync(poid)` covers the form without `coaPoid` |
-| `ResetCoaTaskOrg` | request | the reply; `TaskOrgSwitched` if your current task org changes | `resetCoaTaskOrg({ affiliation, coaPoid }, timeout?)` | none; `ResetDefaultTaskOrgAsync(affiliation, token)` covers the form without `coaPoid` |
+| `SetCoaTaskOrg` | request | the reply; `TaskOrgSwitched` if your current task org changes | `setCoaTaskOrg(toPoid, coaPoid?, timeout?)` | `SetCoaTaskOrgAsync(toPoid, coaPoid?)` (0.6.1 or later); before that, `SetDefaultTaskOrgAsync(poid)` covers the form without `coaPoid` |
+| `ResetCoaTaskOrg` | request | the reply; `TaskOrgSwitched` if your current task org changes | `resetCoaTaskOrg({ affiliation, coaPoid }, timeout?)` | `ResetCoaTaskOrgAsync(affiliation, coaPoid?)` (0.6.1 or later); before that, `ResetDefaultTaskOrgAsync(affiliation, token)` covers the form without `coaPoid` |
 
 An **inform** is fire and forget: the call returns at once, and the event is
 the only confirmation. A **request** returns a promise (JavaScript) or a task
@@ -297,13 +297,14 @@ const content = await stpsdk.getCoaContent(poid);
 // store content
 ```
 
-:::caution .NET SDK 0.6.1: `GetCoaContentAsync` throws on real content
-`GetCoaContentAsync` passes STP's answer to a JSON parser. Object-set text is
-not JSON, so it throws `JsonReaderException` ("Unexpected character
-encountered while parsing value: o") for every answer STP gives, including an
-empty `object_set([])`. Until the SDK is fixed, use the JavaScript SDK to
-export a COA, or export the whole scenario with `GetScenarioContentAsync()`,
-which returns the text unchanged.
+:::caution .NET SDK 0.6.0: `GetCoaContentAsync` throws on real content
+In HyssosTech.Sdk.STP 0.6.0 and earlier, `GetCoaContentAsync` passes STP's
+answer to a JSON parser. Object-set text is not JSON, so it throws
+`JsonReaderException` ("Unexpected character encountered while parsing value:
+o") for every answer STP gives. `GetTaskOrgContentAsync` has the same defect.
+0.6.1 returns the text unchanged as a `string`, ready for
+`ImportCoaContentAsync`. With 0.6.0, use the JavaScript SDK to export a COA,
+or export the whole scenario with `GetScenarioContentAsync()`.
 :::
 
 ### Loading: `ImportCoaContent`
@@ -394,7 +395,9 @@ try {
 await stpsdk.resetCoaTaskOrg({ affiliation: 'friend' });
 ```
 
-The .NET SDK has no `SetCoaTaskOrg` or `ResetCoaTaskOrg` method. Use
+In .NET, use `SetCoaTaskOrgAsync(toPoid, coaPoid)` and
+`ResetCoaTaskOrgAsync(affiliation, coaPoid)` (HyssosTech.Sdk.STP 0.6.1 or
+later; leave `coaPoid` null for the default TO). Before 0.6.1, use
 `SetDefaultTaskOrgAsync(poid)` and `ResetDefaultTaskOrgAsync(affiliation,
 token)` for the default TO. See [Task Org / ORBAT](./task-org.md) for how the
 active TO is chosen.

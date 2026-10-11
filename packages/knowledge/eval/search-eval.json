@@ -281,7 +281,8 @@
       "id": "no-response",
       "question": "Why did my request get no response?",
       "expected": [
-        "stp-docs://guides/integration-troubleshooting"
+        "stp-docs://guides/integration-troubleshooting",
+        "stp-docs://guides/errors-and-timeouts"
       ]
     },
     {
@@ -488,12 +489,8 @@
       "id": "coa-management",
       "question": "How do I create a course of action and switch between COAs from my app?",
       "expected": [
-        "stp-docs://guides/integration-troubleshooting",
-        "stp-api://method/AddCoa",
-        "stp-api://method/SetCurrentCoa"
+        "stp-docs://guides/coas"
       ],
-      "noGoodSource": true,
-      "gap": "No guide on COAs. The docs only say the COA methods are not dispatched by the engine; what an integration should do instead (and what CoaSwitched/SetRole do to COAs) is not explained.",
       "generatedReference": [
         "docs/api/classes/StpCoa.md"
       ]
@@ -540,9 +537,9 @@
     {
       "id": "safety-classes",
       "question": "Which API methods only read state and which ones modify or delete the scenario?",
-      "expected": [],
-      "noGoodSource": true,
-      "gap": "Neither the docs nor the contract classify methods as read / write / destructive yet (x-stpSafety, STP-1059)."
+      "expected": [
+        "stp-docs://reference/method-safety"
+      ]
     },
     {
       "id": "concurrent-edits",
@@ -558,7 +555,7 @@
         "stp-docs://intro"
       ],
       "noGoodSource": true,
-      "gap": "The docs assume an engine is already running (Windows server, v5.9.9+); installing, configuring and hosting the engine is not covered."
+      "gap": "The docs assume an engine is already running (Windows server, v5.9.9+); installing, configuring and hosting the engine is not covered. Left open on purpose in STP-1062: whether and how to document engine installation is a product decision, not a docs gap to fill here."
     },
     {
       "id": "symbol-times",

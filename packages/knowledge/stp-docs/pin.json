@@ -1,9 +1,9 @@
 {
   "repo": "hyssostech/stp-docs",
   "path": "docs",
-  "ref": "938e3ef497b58bb69434cf118d3b554dff331eea",
+  "ref": "0510004bf2a4488f0915b379ea50dd18fd2c37cc",
   "license": "MIT",
-  "count": 28,
+  "count": 30,
   "excluded": [
     {
       "path": "docs/api/",
@@ -17,7 +17,7 @@
   "files": [
     {
       "path": "docs/getting-started-dotnet.md",
-      "blob": "ee4dc2b1208412905c3fb135559c35aa081c4752"
+      "blob": "e945d0eb34c342417a0453be4a8f8588ef51d361"
     },
     {
       "path": "docs/getting-started.md",
@@ -26,6 +26,10 @@
     {
       "path": "docs/guides/c2sim.md",
       "blob": "67b2a71c22ed2d0309342aea9d69f86faa832e43"
+    },
+    {
+      "path": "docs/guides/coas.md",
+      "blob": "a0db53241fc4255de74006ee2252f261e528c9f2"
     },
     {
       "path": "docs/guides/connection-lifecycle.md",
@@ -37,7 +41,7 @@
     },
     {
       "path": "docs/guides/errors-and-timeouts.md",
-      "blob": "b2f1e5cb9f43822477c36329a87bc22b9e14ae66"
+      "blob": "b584b76823e306189665afe1bb97d14125b8f244"
     },
     {
       "path": "docs/guides/events-and-ordering.md",
@@ -49,7 +53,7 @@
     },
     {
       "path": "docs/guides/integration-troubleshooting.md",
-      "blob": "e67152f3371fa303b588b40bfca6f6e054a1a45b"
+      "blob": "169d4e36ae9a9b278872d703f925d550d6d8f416"
     },
     {
       "path": "docs/guides/roles.md",
@@ -77,7 +81,7 @@
     },
     {
       "path": "docs/guides/task-org.md",
-      "blob": "96bf05c4e558c0d7bf9c181cfe5673bfb1a9c949"
+      "blob": "57d6805482c530d962bd22dc69f9b006fd9d6952"
     },
     {
       "path": "docs/guides/tasks.md",
@@ -117,7 +121,11 @@
     },
     {
       "path": "docs/reference/json-api.md",
-      "blob": "a1b4cd7defc8a8e16a79768dd186271b78644209"
+      "blob": "d9e678990f8cabc342d403817b7a52a7fb69349f"
+    },
+    {
+      "path": "docs/reference/method-safety.md",
+      "blob": "025c1bec9603e916f828752894a8f3cd0fea4189"
     },
     {
       "path": "docs/reference/rest-connector.md",

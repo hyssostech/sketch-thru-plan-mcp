@@ -326,6 +326,14 @@ rewrites `pin.json`. If a re-pin moves or removes a page the evaluation set name
 question's expected sources in the same change; the recall floor in
 `packages/knowledge/test/search-eval.test.ts` is not lowered to make a re-pin pass.
 
+To pin a docs branch that is not on GitHub yet, or without access to github.com, pin from a local
+clone instead (git only, no network). The pin still names `hyssostech/stp-docs` and the commit, so
+re-pin from GitHub once that commit is merged:
+
+```sh
+node scripts/update-docs.mjs --from-git ../stp-docs --ref <branch|sha>
+```
+
 The `Contract drift` workflow checks weekly whether the published contract or docs have moved past
 their pins.
 

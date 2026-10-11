@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 // Re-pin the public STP docs (hyssostech/stp-docs, docs/**/*.md) into packages/knowledge/stp-docs.
 //
-//   node scripts/update-docs.mjs [--ref <branch|tag|sha>]   re-pin (default: main)
-//   node scripts/update-docs.mjs --check [--ref <ref>]      exit 1 if the pin differs from <ref>
+//   node scripts/update-docs.mjs [--ref <branch|tag|sha>]                re-pin from GitHub (default: main)
+//   node scripts/update-docs.mjs --check [--ref <ref>]                   exit 1 if the pin differs from <ref>
+//   node scripts/update-docs.mjs --from-git <stp-docs clone> [--ref <ref>] re-pin from a local clone, with git
+//                                                                        (no network; default ref: HEAD)
 //
 // The pages are copied verbatim; the knowledge server strips Docusaurus front matter and admonition
 // syntax when it loads them (packages/knowledge/src/docs.ts), so the pinned copy stays byte-identical
@@ -11,7 +13,9 @@
 // The generated API reference (docs/api, docs/api-net: TypeDoc / .NET reference pages) is left out on
 // purpose - see EXCLUDED below and the README.
 //
-// Fetches with git (no GitHub API, no credentials): the docs repo is public.
+// Fetches with git (no GitHub API, no credentials): the docs repo is public. --from-git reads a local
+// clone instead, for a branch not pushed yet or a machine without access to github.com; the pin still
+// names hyssostech/stp-docs and the resolved commit, so re-pin from GitHub once that commit is merged.
 import { execFileSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -39,19 +43,28 @@ const pagesDir = join(root, "pages");
 const pinFile = join(root, "pin.json");
 
 const args = process.argv.slice(2);
+const valueOf = (flag) => {
+  const i = args.indexOf(flag);
+  if (i === -1) return undefined;
+  if (!args[i + 1] || args[i + 1].startsWith("--")) throw new Error(`${flag} needs a value`);
+  return args[i + 1];
+};
 const check = args.includes("--check");
-const refIdx = args.indexOf("--ref");
-const ref = refIdx === -1 ? "main" : args[refIdx + 1];
-if (!ref) throw new Error("--ref needs a value");
+const fromGit = valueOf("--from-git");
+const ref = valueOf("--ref") ?? (fromGit ? "HEAD" : "main");
+if (check && fromGit) throw new Error("--check compares with GitHub; it does not combine with --from-git");
 
 const git = (cwd, ...a) => execFileSync("git", a, { cwd, encoding: "utf8", maxBuffer: 64 * 1024 * 1024 }).trim();
+const gitBytes = (cwd, ...a) => execFileSync("git", a, { cwd, maxBuffer: 64 * 1024 * 1024 });
 
-const work = mkdtempSync(join(tmpdir(), "stp-docs-"));
+const work = fromGit ?? mkdtempSync(join(tmpdir(), "stp-docs-"));
 try {
   // Blobless clone: resolves any branch, tag or sha; only the pinned pages' blobs are fetched.
-  git(work, "clone", "--quiet", "--filter=blob:none", "--no-checkout", URL_, ".");
+  if (!fromGit) git(work, "clone", "--quiet", "--filter=blob:none", "--no-checkout", URL_, ".");
   let tip;
-  for (const candidate of [`origin/${ref}`, ref]) {
+  // A local clone names its own branches without origin/; try the plain ref first there.
+  const candidates = fromGit ? [ref, `origin/${ref}`] : [`origin/${ref}`, ref];
+  for (const candidate of candidates) {
     try {
       tip = git(work, "rev-parse", "--verify", "--quiet", `${candidate}^{commit}`);
       break;
@@ -59,7 +72,7 @@ try {
       // try the next spelling
     }
   }
-  if (!tip) throw new Error(`${REPO}: cannot resolve ref '${ref}'`);
+  if (!tip) throw new Error(`${fromGit ?? REPO}: cannot resolve ref '${ref}'`);
   // Pin the resolved commit itself (it carries the repo's LICENSE); --check compares pages, not shas,
   // so commits that leave docs/ alone never show up as drift.
   const sha = tip;
@@ -91,16 +104,20 @@ try {
     process.exit(1);
   }
 
-  git(work, "checkout", "--quiet", sha, "--", ...files.map((f) => f.path));
+  // Read each page from its blob, never from a working tree: a local clone's checkout may differ from
+  // the pinned commit (another branch, uncommitted edits).
+  const pages = files.map((f) => ({ ...f, bytes: fromGit ? gitBytes(work, "cat-file", "blob", f.blob) : null }));
+  if (!fromGit) git(work, "checkout", "--quiet", sha, "--", ...files.map((f) => f.path));
   rmSync(pagesDir, { recursive: true, force: true });
-  for (const f of files) {
+  for (const f of pages) {
     const target = join(pagesDir, f.path.slice(DOCS.length + 1));
     mkdirSync(dirname(target), { recursive: true });
-    writeFileSync(target, readFileSync(join(work, f.path)));
+    writeFileSync(target, f.bytes ?? readFileSync(join(work, f.path)));
   }
   const pin = { repo: REPO, path: DOCS, ref: sha, license: "MIT", count: files.length, excluded: EXCLUDED, files };
   writeFileSync(pinFile, JSON.stringify(pin, null, 2) + "\n");
-  console.log(`pinned ${REPO}@${sha.slice(0, 12)} (${files.length} pages). Now run \`npm test\` and review the diff.`);
+  const source = fromGit ? `${REPO} (local clone ${fromGit})` : REPO;
+  console.log(`pinned ${source}@${sha.slice(0, 12)} (${files.length} pages). Now run \`npm test\` and review the diff.`);
 } finally {
-  rmSync(work, { recursive: true, force: true });
+  if (!fromGit) rmSync(work, { recursive: true, force: true });
 }

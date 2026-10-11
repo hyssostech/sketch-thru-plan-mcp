@@ -77,6 +77,16 @@ JSON-RPC `error` objects or numeric error codes. Informs get no reply at all.
 See [Errors, refusals and timeouts](../guides/errors-and-timeouts.md) for every
 failure case and how each SDK reports it.
 
+## Method Safety, Events and Known Issues
+
+The contract classifies every method as `read`, `write` or `destructive`
+(`x-stpSafety`), marks the fire-and-forget ones (`x-stpInform`), and lists the
+events that follow each call (`x-stpEmits`), its known issues
+(`x-stpKnownIssues`), what it does with bad input (`x-stpEdgeCases`) and a
+call captured from a live engine (`examples`). See
+[Method safety classes](./method-safety.md) for the tables of read, write and
+destructive methods.
+
 ## Incoming Message Format
 
 STP components are both consumers and producers of events. Incoming messages follow the same format. `SymbolAdded` carries the recognized symbol and its alternative interpretations in `alternates`, best first:

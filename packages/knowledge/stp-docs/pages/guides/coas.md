@@ -344,9 +344,10 @@ Know what an import does before you use it:
   `importTaskOrgContent()`.
 
 `GetCoaObjectSet` and `ImportCoaFromObjectSet` are the JSON-array forms of
-the same pair. Today the round trip between them does not work: the array
-that `GetCoaObjectSet` returns cannot be imported back. Use the text forms to
-save and load a COA.
+the same pair: send the objects exactly as `GetCoaObjectSet` returned them.
+Each object's `PrologTerm` holds its content as STP text, so an object without
+it is refused before anything is applied. Engines before STP-1090 cannot import
+that array back; with them, use the text forms to save and load a COA.
 
 ## A task organization per COA
 

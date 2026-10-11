@@ -1,5 +1,5 @@
 {
-  "contractVersion": "0.9.1",
+  "contractVersion": "0.9.2",
   "tools": [
     {
       "name": "SendPenDown",
@@ -50,7 +50,7 @@
     },
     {
       "name": "SendInk",
-      "description": "Send one sketched stroke for recognition, when the pen lifts (after SendPenDown). Use it to turn what a user draws, alone or with speech sent at about the same time (SendSpeechRecognition or SendSimulatedSpeechRecognition), into symbols, tasks, edits or commands; to place a fully specified symbol without recognition, use AddSymbol instead. List in intersectedPoids the symbols the stroke crosses, so the gesture can move, edit or delete them. Recognition starts when the segmentation timeout expires (see ChangeTimeOut) or on RecognizeNow. Fire and forget: the engine sends no reply; the outcome arrives only as the events listed - InkProcessed when the sketch is finished, then SymbolAdded, TaskAdded and so on if it was recognized, or nothing more if it was not. A missing strokePoints or a malformed time is silently ignored. Known issue STP-1080: a discarded sketch may not send InkProcessed.",
+      "description": "Send one sketched stroke for recognition, when the pen lifts (after SendPenDown). Use it to turn what a user draws, alone or with speech sent at about the same time (SendSpeechRecognition or SendSimulatedSpeechRecognition), into symbols, tasks, edits or commands; to place a fully specified symbol without recognition, use AddSymbol instead. List in intersectedPoids the symbols the stroke crosses, so the gesture can move, edit or delete them. Recognition starts when the segmentation timeout expires (see ChangeTimeOut) or on RecognizeNow. Fire and forget: the engine sends no reply; the outcome arrives only as the events listed - InkProcessed when the sketch is finished, then SymbolAdded, TaskAdded and so on if it was recognized, or nothing more if it was not. A sketch that is not recognized is discarded and still sends InkProcessed, which can come several seconds later (about 10 s in the capture); engines before STP-1080 send none for it. A missing strokePoints or a malformed time is refused with an StpMessage (engines before STP-1088 ignore it silently).",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -198,9 +198,6 @@
             "condition": "a command: every client receives its phrase",
             "to": "session"
           }
-        ],
-        "stp/knownIssues": [
-          "STP-1080"
         ]
       }
     },
@@ -729,7 +726,7 @@
     },
     {
       "name": "GetScenarioContent",
-      "description": "Return the whole current scenario as object_set([...]) text - the form to save a plan and later restore it with LoadNewScenario (replace) or ImportPlanData / SyncScenarioSession (merge). It holds the planning scenario, COAs, symbols, tasks and task orgs, plus deleted objects carrying the deletion version; session state such as viewports and ink is left out. Far smaller than the JSON forms (GetScenarioObjectSet, GetAllObjects), whose objects each carry a large engine term. Read-only; no event follows. A session with nothing loaded returns an empty object_set([]).",
+      "description": "Return the whole current scenario as object_set([...]) text - the form to save a plan and later restore it with LoadNewScenario (replace) or ImportPlanData / SyncScenarioSession (merge). It holds the planning scenario, COAs, symbols, tasks and task orgs, plus deleted objects carrying the deletion version; session state such as viewports and ink is left out. Far smaller than the JSON forms (GetScenarioObjectSet, GetAllObjects), whose objects each carry a large engine term. Read-only; no event follows. A session with nothing loaded returns an empty object_set([]). Engines before STP-1083 fail it after an UndoLastOp that undid an add.",
       "inputSchema": {
         "type": "object",
         "properties": {},
@@ -745,7 +742,7 @@
     },
     {
       "name": "JoinScenarioSession",
-      "description": "Replay the current scenario to this client only, as if its objects had just arrived live (SymbolAdded, TaskAdded, TaskOrgUnitAdded, TaskOrgRelationshipAdded, CoaAdded; deleted objects skipped), so a client can rebuild its local state. Task orgs themselves are not replayed (no TaskOrgAdded): list them with GetScenarioTaskOrgList. Changes nothing on the server. Call it after connecting to a session whose scenario already exists; to also merge content of your own, use SyncScenarioSession. Answers null; with no scenario it still succeeds.",
+      "description": "Replay the current scenario to this client only, as if its objects had just arrived live (SymbolAdded, TaskAdded, TaskOrgUnitAdded, TaskOrgRelationshipAdded, CoaAdded; deleted objects skipped), so a client can rebuild its local state. Task orgs themselves are not replayed (no TaskOrgAdded): list them with GetScenarioTaskOrgList. Changes nothing on the server. Call it after connecting to a session whose scenario already exists; to also merge content of your own, use SyncScenarioSession. Answers null; with no scenario it still succeeds. Engines before STP-1083 fail it after an UndoLastOp that undid an add.",
       "inputSchema": {
         "type": "object",
         "properties": {},
@@ -3047,7 +3044,7 @@
     },
     {
       "name": "AddTaskOrgRelationship",
-      "description": "Link two units of a Task Organization (for example organic, attached or opcon): send toRelationship with parent and child set to TO unit poids (from TaskOrgUnitAdded), the relationship kind, and parentTO set to the TO's poid. Fire and forget: the engine sends no reply. Engines before STP-1088 read the object only as taskOrgRelationship, and its TO as parentPoid, and silently drop toRelationship. Known issue STP-1080/STP-1089: even when the relationship is stored, no TaskOrgRelationshipAdded is sent - verify with GetTaskOrgContent for the TO.",
+      "description": "Link two units of a Task Organization (for example organic, attached or opcon): send toRelationship with parent and child set to TO unit poids (from TaskOrgUnitAdded), the relationship kind, and parentTO set to the TO's poid. Fire and forget: the engine sends no reply; TaskOrgRelationshipAdded, with the new poid, goes to every client in the session. The parent and child poids are not checked: a relationship between unknown units is stored and announced too. A missing toRelationship is silently ignored. Engines before STP-1088 read the object only as taskOrgRelationship, and its TO as parentPoid, and silently drop toRelationship. Engines before STP-1089 store the relationship but send no TaskOrgRelationshipAdded - verify with GetTaskOrgContent for the TO.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -3138,16 +3135,12 @@
             "when": "always",
             "to": "session"
           }
-        ],
-        "stp/knownIssues": [
-          "STP-1080",
-          "STP-1089"
         ]
       }
     },
     {
       "name": "UpdateTaskOrgRelationship",
-      "description": "Change a relationship between two Task Organization units (for example from organic to attached), identified by poid (from GetTaskOrgContent), sending the new definition as toRelationship. Fire and forget: the engine sends no reply. An unknown poid is silently ignored. Engines before STP-1088 read the object only as taskOrgRelationship and silently drop toRelationship. Known issue STP-1080/STP-1089: no TaskOrgRelationshipModified is sent - verify with GetTaskOrgContent.",
+      "description": "Change a relationship between two Task Organization units (for example from organic to attached), identified by poid (from GetTaskOrgContent), sending the new definition as toRelationship. Fire and forget: the engine sends no reply; TaskOrgRelationshipModified goes to every client in the session. An unknown poid is silently ignored. Engines before STP-1088 read the object only as taskOrgRelationship and silently drop toRelationship. Engines before STP-1089 apply the change but send no TaskOrgRelationshipModified - verify with GetTaskOrgContent.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -3242,16 +3235,12 @@
             "when": "always",
             "to": "session"
           }
-        ],
-        "stp/knownIssues": [
-          "STP-1080",
-          "STP-1089"
         ]
       }
     },
     {
       "name": "DeleteTaskOrgRelationship",
-      "description": "Delete a relationship between two Task Organization units, identified by poid (from GetTaskOrgContent, or TaskOrgRelationshipAdded after an import). Fire and forget: the engine sends no reply. An unknown poid is silently ignored. Known issue STP-1080/STP-1089: the deletion is applied - the relationship then appears in GetDeletedObjects - but no TaskOrgRelationshipDeleted is sent.",
+      "description": "Delete a relationship between two Task Organization units, identified by poid (from GetTaskOrgContent, or TaskOrgRelationshipAdded after an import). Fire and forget: the engine sends no reply; TaskOrgRelationshipDeleted goes to every client in the session, and the relationship then appears in GetDeletedObjects. An unknown poid is silently ignored. Engines before STP-1089 apply the deletion but send no TaskOrgRelationshipDeleted.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -3276,10 +3265,6 @@
             "when": "always",
             "to": "session"
           }
-        ],
-        "stp/knownIssues": [
-          "STP-1080",
-          "STP-1089"
         ]
       }
     },
@@ -3472,7 +3457,7 @@
     },
     {
       "name": "UpdateTask",
-      "description": "Change a task, identified by poid (from TaskAdded): send as alternates the task's alternates array from its latest TaskAdded or TaskModified, with the entries you changed (usually the first). Fire and forget: the engine sends no reply; TaskModified goes to every client. A missing alternates is silently ignored. Known issue STP-1080: today's engine may send no TaskModified - verify with GetPoidObject. Known issue STP-1091: an unknown poid is not refused; the engine stores a new task under it.",
+      "description": "Change a task, identified by poid (from TaskAdded): send as alternates the task's alternates array from its latest TaskAdded or TaskModified, with the entries you changed (usually the first). Fire and forget: the engine sends no reply; TaskModified goes to every client. Alternates taken from an earlier event carry an out-of-date dbVersion, and the update is then silently dropped; a missing alternates is silently ignored. Engines before STP-1080 apply the update but send no TaskModified, nor a TaskDeleted when the task is deleted later. Known issue STP-1091: an unknown poid is not refused; the engine stores a new task under it and sends no event.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -3656,7 +3641,7 @@
           {
             "event": "TaskModified",
             "when": "if",
-            "condition": "the poid names an existing task",
+            "condition": "the poid names an existing task and the alternates carry its current dbVersion",
             "to": "session"
           },
           {
@@ -3667,7 +3652,6 @@
           }
         ],
         "stp/knownIssues": [
-          "STP-1080",
           "STP-1091"
         ]
       }
@@ -3704,7 +3688,7 @@
     },
     {
       "name": "ConfirmTask",
-      "description": "Confirm a task interpretation, identified by poid (from TaskAdded): nBestIndex 0 confirms the task's current interpretation; a higher index first switches to that alternate (as ChooseAlternate) and confirms it. A C2SIM Order export (GetC2SIMContent) needs confirmed tasks. Fire and forget: the engine sends no reply; TaskModified goes to every client (for an index above 0 only when the caller created the task), plus SymbolAdded for any tactical graphics the confirmed task needs. isConfirmed is ignored over this API: every call confirms, so it cannot unconfirm. An unknown poid or out-of-range index is silently ignored. Known issue STP-1080 affects task confirmation.",
+      "description": "Confirm a task interpretation, identified by poid (from TaskAdded): nBestIndex 0 confirms the task's current interpretation; a higher index first switches to that alternate (as ChooseAlternate) and confirms it. A C2SIM Order export (GetC2SIMContent) needs confirmed tasks. Fire and forget: the engine sends no reply; TaskModified goes to every client (for an index above 0 only when the caller created the task), plus SymbolAdded for any tactical graphics the confirmed task needs. isConfirmed false unconfirms instead: TaskModified then carries uiStatus confirming. Omitted, it defaults to true. Engines before STP-1080 ignore isConfirmed and always confirm. An unknown poid or out-of-range index is silently ignored.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -3744,9 +3728,6 @@
             "condition": "the confirmed alternate needs tactical graphics, which are created",
             "to": "session"
           }
-        ],
-        "stp/knownIssues": [
-          "STP-1080"
         ]
       }
     },
@@ -5546,7 +5527,7 @@
     },
     {
       "name": "RecognizeNow",
-      "description": "Recognize the strokes collected so far now, instead of waiting for the segmentation timeout to expire - useful when the timeout is long (ChangeTimeOut) and the user has finished drawing. Fire and forget: the engine sends no reply; the result arrives as the events listed (InkProcessed, then SymbolAdded and so on). With nothing pending it does nothing and sends nothing. Known issue STP-1080: a discarded sketch may not send InkProcessed.",
+      "description": "Recognize the strokes collected so far now, instead of waiting for the segmentation timeout to expire - useful when the timeout is long (ChangeTimeOut) and the user has finished drawing. Fire and forget: the engine sends no reply; the result arrives as the events listed (InkProcessed, then SymbolAdded and so on). Strokes that are not recognized are discarded and still send InkProcessed, which can come several seconds later (about 10 s in the capture); engines before STP-1080 send none for them. With nothing pending it does nothing and sends nothing.",
       "inputSchema": {
         "type": "object",
         "properties": {},
@@ -5621,9 +5602,6 @@
             "condition": "a command: every client receives its phrase",
             "to": "session"
           }
-        ],
-        "stp/knownIssues": [
-          "STP-1080"
         ]
       }
     },
@@ -5804,7 +5782,7 @@
     },
     {
       "name": "UndoLastOp",
-      "description": "Undo the last operation applied to one object - a symbol, task, task org unit or relationship - identified by poid. STP replays the effect as ordinary events carrying isUndo = true (for example SymbolDeleted for an undone add, SymbolAdded for an undone delete), so a client that already handles the Added/Modified/Deleted events needs no extra handling. Fire and forget. An unknown or missing poid is silently ignored. Known issue STP-1080: today's engine sends no event for an undo; read the object back with GetPoidObject.",
+      "description": "Undo the last operation applied to one object - a symbol, task, task org unit or relationship - identified by poid. STP replays the effect to every client in the session as ordinary events carrying isUndo = true - *Deleted for an undone add, *Modified with the previous state for an undone change, *Added for an undone delete - so a client that already handles the Added/Modified/Deleted events needs no extra handling. Each call undoes one operation; call it again to go further back. AddTask is followed at once by a change to the task, so undoing a task add takes two calls (TaskModified, then TaskDeleted). Fire and forget. An unknown or missing poid is silently ignored. Engines before STP-1080 send no event for an undo (read the object back with GetPoidObject), and engines before STP-1083 fail JoinScenarioSession and GetScenarioContent after an undone add.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -5896,9 +5874,6 @@
             "condition": "the undone operation added a task org relationship (isUndo = true)",
             "to": "session"
           }
-        ],
-        "stp/knownIssues": [
-          "STP-1080"
         ]
       }
     },

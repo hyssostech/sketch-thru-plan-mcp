@@ -246,7 +246,7 @@ describe("V10 through the server", () => {
     expect(ctx.current.coa).toEqual({ poid: "idC1", name: "Write Test COA" });
   });
 
-  it("unverifiable: relationship events the engine does not send (STP-1089), not an error", async () => {
+  it("done: a task org relationship confirmed by its event (STP-1089 is fixed)", async () => {
     const { client } = await setup({
       JoinScenarioSession: {
         result: null,
@@ -256,13 +256,21 @@ describe("V10 through the server", () => {
           { name: "TaskOrgUnitAdded", params: { poid: "idU2", toUnit: { fsTYPE: "task_org_unit", poid: "idU2", name: "ALPHA" } } },
         ],
       },
+      AddTaskOrgRelationship: {
+        events: [
+          {
+            name: "TaskOrgRelationshipAdded",
+            params: { poid: "idR", toRelationship: { fsTYPE: "task_org_relationship", poid: "idR", parent: "idU1", child: "idU2", relationship: "organic", parentTO: "idTO" } },
+          },
+        ],
+      },
     });
     const res = await callWrite(client, "AddTaskOrgRelationship", {
       toRelationship: { fsTYPE: "task_org_relationship", parent: "idU1", child: "idU2", relationship: "organic", parentTO: "idTO" },
     });
     expect(res.isError).toBe(false);
-    expect(res.report).toMatchObject({ outcome: "unverifiable", v10: { knownIssue: "STP-1089" } });
-    expect(res.report.summary).toMatch(/^Unverifiable \(STP-1089\)/);
+    expect(res.report).toMatchObject({ outcome: "done" });
+    expect(res.report.summary).toMatch(/^Done: /);
   });
 
   it("partial: a multi-object import that applied 2 of 3, not an error but leading with what is missing", async () => {

@@ -93,25 +93,38 @@ connect. Pass `exitAppIfNoConnection: false` to get `null` back instead.
   itself, but the SDK does not register again afterwards. See
   [Connection lifecycle and reconnecting](./guides/connection-lifecycle.md#net-sdk).
 
-## Known limitations (HyssosTech.Sdk.STP 0.6.1)
+## Known limitations
+
+Fixed in HyssosTech.Sdk.STP 0.6.1. Until it is on NuGet, 0.6.0 is affected:
 
 - **`OnNewScenario`, `OnInkProcessed` and `OnSpeechDiscarded` are not raised**
   when connected through the engine's WebSockets bridge. The engine sends these
-  three events without a `params` key, and the SDK drops any event message that
-  has none. Do not rely on them. For example, after your own
+  three events without a `params` key, and 0.6.0 drops any event message that
+  has none. With 0.6.0, do not rely on them. For example, after your own
   `CreateNewScenarioAsync` or `LoadNewScenarioAsync`, reset your local state
   yourself.
+- **The `ObjectSet` overloads are refused**: `LoadNewScenarioAsync`,
+  `ImportSTPDataAsync`, `SyncScenarioSessionAsync`, `ImportTaskOrgAsync` and
+  `ImportCoaAsync` taking an `ObjectSet`. 0.6.0 sends the set as a string under
+  `content`; the engine reads an `objects` array. With 0.6.0, use the overloads
+  that take object-set text.
+- **`GetCoaContentAsync` and `GetTaskOrgContentAsync` throw
+  `JsonReaderException`** on the object-set text STP returns. 0.6.1 returns the
+  text as a `string`. See [Courses of action (COAs)](./guides/coas.md#saving-getcoacontent).
+- **There are no `SetCoaTaskOrgAsync` / `ResetCoaTaskOrgAsync` methods** in
+  0.6.0. Use `SetDefaultTaskOrgAsync` / `ResetDefaultTaskOrgAsync`, which cover
+  the forms without a COA.
+
+In every version:
+
 - **`OnSketchIntegrated` and `OnSketchDiscarded` are never raised over the
-  WebSockets bridge.** The bridge reports both outcomes as `InkProcessed`
-  (affected by the previous item).
+  WebSockets bridge.** The bridge reports both outcomes as `InkProcessed`.
 - **Some course-of-action (COA) methods are refused by the engine** with "No
   handler": `CreateCoaAsync`, `CreateDefaultCoaAsync`, `RequestActiveCoasAsync`,
   `GetScenarioCoasAsync`, `GetCoaObjectsAsync`, `GetCurrentCoaPoidAsync` and
   `SwitchRoleAndCoa(Async)`. See
   [Integration troubleshooting](./guides/integration-troubleshooting.md#a-call-throws-with-no-useful-message)
   for what to use instead.
-- **`GetCoaContentAsync` throws `JsonReaderException`** on the object-set text
-  STP returns. See [Courses of action (COAs)](./guides/coas.md#saving-getcoacontent).
 
 ## Next steps
 

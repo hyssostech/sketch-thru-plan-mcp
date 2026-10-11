@@ -33,7 +33,7 @@ older SDKs turn into the empty failure described above.
 
 **Which methods.** The methods the engine dispatches are the ones in the
 [OpenRPC contract](../reference/json-api.md#openrpc-schema). A method that is
-not in the contract is refused this way. With HyssosTech.Sdk.STP 0.6.1 and a
+not in the contract is refused this way. With HyssosTech.Sdk.STP 0.6.x and a
 current engine, these .NET SDK methods send such a method:
 
 | .NET SDK method | Wire method | Use instead |

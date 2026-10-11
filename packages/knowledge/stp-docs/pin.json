@@ -1,7 +1,7 @@
 {
   "repo": "hyssostech/stp-docs",
   "path": "docs",
-  "ref": "0510004bf2a4488f0915b379ea50dd18fd2c37cc",
+  "ref": "e2c9270882c9bda7d939e9d75d91f51c5a869de7",
   "license": "MIT",
   "count": 30,
   "excluded": [
@@ -17,7 +17,7 @@
   "files": [
     {
       "path": "docs/getting-started-dotnet.md",
-      "blob": "e945d0eb34c342417a0453be4a8f8588ef51d361"
+      "blob": "5e4f20141be20d3fcc9c3dc787a8d4973019a214"
     },
     {
       "path": "docs/getting-started.md",
@@ -29,7 +29,7 @@
     },
     {
       "path": "docs/guides/coas.md",
-      "blob": "a0db53241fc4255de74006ee2252f261e528c9f2"
+      "blob": "8d106ab2d50322d3a416d458f0408e46ef7da62f"
     },
     {
       "path": "docs/guides/connection-lifecycle.md",
@@ -53,7 +53,7 @@
     },
     {
       "path": "docs/guides/integration-troubleshooting.md",
-      "blob": "169d4e36ae9a9b278872d703f925d550d6d8f416"
+      "blob": "3be1f882cf924ed8d6b4622d43056762b1d52211"
     },
     {
       "path": "docs/guides/roles.md",

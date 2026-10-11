@@ -209,8 +209,10 @@ function kindMatches(found: Extract<Lookup, { found: true }>, wanted: ReferenceK
 }
 
 /**
- * Every referenced poid must name an existing object of the right kind. A stale or invented id is
- * otherwise ignored by the engine (or, for UpdateTask, creates a task: STP-1091), with nothing said.
+ * Every referenced poid must name an existing object of the right kind. Engines since STP-1091 refuse
+ * a bad target of an update, a task org default, a COA switch, AddTask's who and AddTaskOrgUnit's
+ * parentTO themselves; other references (and every reference on an older engine) are otherwise
+ * ignored, or for UpdateTask turned into a new task, with nothing said.
  */
 export function checkReferences(
   method: string,

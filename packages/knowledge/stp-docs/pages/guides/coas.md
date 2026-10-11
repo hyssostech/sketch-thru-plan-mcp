@@ -188,9 +188,10 @@ stpsdk.updateCoa(poid, Object.assign(new StpSDK.StpCoa(), {
 }));
 ```
 
-A missing `poid` or `coa` is refused with an `StpMessage` warning. An unknown
-poid is ignored without any message, so if no `CoaModified` arrives, check the
-poid.
+A missing `poid` or `coa` is refused with an `StpMessage` warning, and so is
+a poid that names no COA: an unknown one, a deleted COA, or an object of
+another type. Engines before STP-1091 ignore an unknown poid without any
+message, so with them, if no `CoaModified` arrives, check the poid.
 
 ### Deleting a COA: `DeleteCoa`
 
@@ -226,9 +227,12 @@ catch (StpException ex)
   sends `CoaSwitched` with the newly current COA, to your client only. It may
   also send `TaskOrgSwitched` if your current task organization changes.
 - **Already current:** the call succeeds at once and no event follows.
-- **Refused:** a missing or blank poid is refused at once. An unknown poid, or
-  a session with no scenario, is refused after about 10 seconds with "the
-  engine did not confirm within 10 s".
+- **Refused:** a missing or blank poid, or one that names no COA (an unknown
+  poid, a deleted COA, an object of another type), is refused at once, for
+  example "SetCurrentCoa: 'poid' idNOSUCHCOA1091 names no object in this
+  session - send the poid of an existing COA". Engines before STP-1091 refuse
+  an unknown poid only after about 10 seconds, with "the engine did not
+  confirm within 10 s".
 
 JavaScript:
 
@@ -357,11 +361,10 @@ COA uses.
 **Without `coaPoid`** they work on the default TO of an affiliation:
 
 - `SetCoaTaskOrg(toPoid)` makes the TO the default for its affiliation,
-  exactly as `SetDefaultTaskOrg` does, except that a missing `toPoid` is
-  refused.
+  exactly as `SetDefaultTaskOrg` does.
 - `ResetCoaTaskOrg(affiliation)` unsets the default TO for that affiliation,
   exactly as `ResetDefaultTaskOrg` does. The TO itself is not deleted.
-  `affiliation` is required.
+  `affiliation` is required, and must be `friend`, `hostile` or `any`.
 
 **With `coaPoid`** the contract describes a TO tied to one COA:
 `SetCoaTaskOrg(toPoid, coaPoid)` makes that COA use the TO, instead of the
@@ -376,10 +379,10 @@ nothing. Handle the refusal and fall back to the affiliation default.
 :::
 
 Both answer `null` on success. If your current TO changes as a result, your
-client receives `TaskOrgSwitched`. Known issue: today's engine does not check
-`toPoid`, so an unknown `toPoid` answers success and changes nothing; take the
-poid from `getScenarioTaskOrgList()`, `onTaskOrgAdded` or
-`importTaskOrgContent()`.
+client receives `TaskOrgSwitched`. A `toPoid` that names no task org is
+refused with the reason. Engines before STP-1091 do not check `toPoid`: an
+unknown one answers success and changes nothing. Take the poid from
+`getScenarioTaskOrgList()`, `onTaskOrgAdded` or `importTaskOrgContent()`.
 
 ```javascript
 // The default friendly TO

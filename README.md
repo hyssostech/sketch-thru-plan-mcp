@@ -99,7 +99,7 @@ client when the model calls `SetRole` or `SetCurrentCoa`, and then the context s
 
 - **One tool per read method of the contract** (`x-stpSafety: read`, and dispatched by the engine):
   `GetScenarioContent`, `GetCoaContent`, `GetTaskOrgContent`, `GetScenarioTaskOrgList`,
-  `GetPoidObject`, `GetAllObjects`, `HasActiveScenario` and the rest - 16 with contract 0.9.3. Name,
+  `GetPoidObject`, `GetAllObjects`, `HasActiveScenario` and the rest - 16 with contract 0.9.4. Name,
   description, input schema and annotations come from `generateTools` unchanged; arguments are
   validated against that schema before anything is sent. Each answer is
   `{ answer, notes?, truncated?, provenance: { endpoint, session, answeredAt, contract: { version, ref } } }`.
@@ -169,7 +169,7 @@ it - see the STP-1064 notes):
 | `writeMode` | the method's safety class is not enabled (`STP_WRITE`, `STP_DESTRUCTIVE`). |
 | `confirmation` | (destructive only) the user did not confirm this call - or the MCP client cannot ask (below). |
 | `context` | STP is unreachable, or the session has no active scenario (asked with `HasActiveScenario` right before the call). Without one the engine accepts writes and creates objects that belong to no scenario. `CreateNewScenario`, `LoadNewScenario` and `LoadNewScenarioFromObjectSet` need none. |
-| `references` | a poid the call names (the rules' `references`: `poid` of an update or delete, `task.who`, `symbol.parentCoa`, `toUnit.parentTO`...) does not name an existing object of the right kind. The live context is asked first, then the engine with `GetPoidObject` (a read). The engine itself ignores an update or delete of an unknown poid, turns `UpdateTask` on one into a new task (STP-1091), and applies a cross-type update to the wrong object; a deleted poid is named as deleted. When a kind can only be inferred (an fsTYPE this server does not know), the step says so. |
+| `references` | a poid the call names (the rules' `references`: `poid` of an update or delete, `task.who`, `symbol.parentCoa`, `toUnit.parentTO`...) does not name an existing object of the right kind. The live context is asked first, then the engine with `GetPoidObject` (a read). Engines since STP-1091 also refuse a bad update target, a bad `task.who` or `toUnit.parentTO`, and a bad task org or COA selection themselves; older engines ignore an update of an unknown poid, turn `UpdateTask` on one into a new task, and apply a cross-type update to the wrong object. A delete of an unknown poid is still ignored. A deleted poid is named as deleted. When a kind can only be inferred (an fsTYPE this server does not know), the step says so. |
 
 The rules come from the shared rule file `sketch-thru-plan-validations.json`, written next to the
 contract in hyssostech/sketch-thru-plan-sdk-js and pinned here like the contract; its vocabulary is

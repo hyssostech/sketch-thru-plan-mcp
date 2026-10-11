@@ -45,7 +45,7 @@ describe("knowledge server", () => {
     expect(names).not.toContain("Register");
     const addSymbol = body.methods.find((m: { name: string }) => m.name === "AddSymbol");
     expect(addSymbol).toMatchObject({ safety: "write", returns: "events only" });
-    expect(body.contract.version).toBe("0.9.3");
+    expect(body.contract.version).toBe("0.9.4");
     expect(body.docs.repo).toBe("hyssostech/stp-docs");
     expect(body.docs.ref).toMatch(/^[0-9a-f]{40}$/);
   });
@@ -65,7 +65,10 @@ describe("knowledge server", () => {
     expect(relationship.body.known_issues).toBeUndefined(); // STP-1089 is fixed (contract 0.9.2)
     expect(relationship.body.emits).toContainEqual(expect.objectContaining({ event: "TaskOrgRelationshipAdded" }));
     const update = await call("get_method", { name: "UpdateTask" });
-    expect(update.body.known_issues).toEqual(["STP-1091"]);
+    expect(update.body.known_issues).toBeUndefined(); // STP-1091 is fixed (contract 0.9.4)
+    expect(update.body.emits).toContainEqual(expect.objectContaining({ event: "StpMessage", condition: "the call is refused" }));
+    const coaTaskOrg = await call("get_method", { name: "SetCoaTaskOrg" });
+    expect(coaTaskOrg.body.known_issues).toEqual(["STP-1077"]);
     const read = await call("get_method", { name: "GetScenarioContent" });
     expect(read.body.emits).toEqual([]);
     expect(read.body.known_issues).toBeUndefined();
@@ -146,7 +149,7 @@ describe("search_docs", () => {
     const { body, content, isError } = await call("search_docs", { query: "how do I load a scenario", k: 4 });
     expect(isError).toBe(false);
     expect(body.docs.ref).toBe(loadDocsPin().ref);
-    expect(body.contract.version).toBe("0.9.3");
+    expect(body.contract.version).toBe("0.9.4");
     expect(body.results.length).toBe(4);
     const top = body.results[0];
     expect(top.uri).toBe("stp-docs://guides/scenarios");

@@ -165,8 +165,9 @@ likely older than STP-1088.
 asks for:
 
 - a unit (`toUnit`) carries `parentTO`, the poid of its task org (from
-  `TaskOrgAdded` or `getScenarioTaskOrgList`). Known issue STP-1091: an
-  unknown `parentTO` is accepted and leaves an orphan unit, so check the poid;
+  `TaskOrgAdded` or `getScenarioTaskOrgList`). A `parentTO` that names no
+  task org is refused with an `StpMessage` warning; engines before STP-1091
+  accept it and leave an orphan unit, so check the poid with them;
 - a relationship (`toRelationship`) carries `parent` and `child`, the poids of
   two units (from `TaskOrgUnitAdded`), its `relationship` kind, and `parentTO`.
 

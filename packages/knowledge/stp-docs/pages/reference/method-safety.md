@@ -17,7 +17,7 @@ This page answers these questions:
 Each method in the
 [OpenRPC contract](https://github.com/hyssostech/sketch-thru-plan-sdk-js/tree/main/json-api/sketch-thru-plan-api.json)
 carries this information in extension fields whose names start with `x-`. The
-tables below are generated from contract version 0.9.3. They leave out the
+tables below are generated from contract version 0.9.4. They leave out the
 two transport messages, `Register` and `Request` (marked `"x-layer":
 "transport"`), which the SDK connectors send for you.
 
@@ -45,7 +45,7 @@ Every method has one of three classes:
   resident object with the same poid), and pushing to an external C2SIM
   server (which can reset that server).
 
-Contract 0.9.3 has 16 read, 35 write and 19 destructive methods.
+Contract 0.9.4 has 16 read, 35 write and 19 destructive methods.
 
 A client that must not change anything calls only `read` methods. A client
 that acts for a user, such as an AI agent, should ask the user before every
@@ -82,7 +82,7 @@ These 35 methods change the scenario or the session. "Call" says whether the
 method is a request (it gets a reply) or an inform (fire and forget), and for
 an inform which event always confirms it. An event the contract lists but a
 known issue holds back is marked "intended, not sent yet": read the state back
-instead. No method in contract 0.9.3 has one.
+instead. No method in contract 0.9.4 has one.
 
 | Method | Call | Known issues |
 |---|---|---|
@@ -93,23 +93,23 @@ instead. No method in contract 0.9.3 has one.
 | `AddSymbol` | inform; confirmed by `InkProcessed`, `SymbolAdded` |  |
 | `UpdateSymbol` | inform; confirmed by `SymbolModified` |  |
 | `ChooseAlternate` | inform; events depend on the outcome |  |
-| `SetDefaultTaskOrg` | request | STP-1091 |
-| `ResetDefaultTaskOrg` | request | STP-1091 |
+| `SetDefaultTaskOrg` | request |  |
+| `ResetDefaultTaskOrg` | request |  |
 | `AddTaskOrg` | inform; confirmed by `TaskOrgAdded` |  |
-| `UpdateTaskOrg` | inform; confirmed by `TaskOrgModified` | STP-1091 |
-| `AddTaskOrgUnit` | inform; confirmed by `TaskOrgUnitAdded` | STP-1091 |
+| `UpdateTaskOrg` | inform; confirmed by `TaskOrgModified` |  |
+| `AddTaskOrgUnit` | inform; confirmed by `TaskOrgUnitAdded` |  |
 | `UpdateTaskOrgUnit` | inform; confirmed by `TaskOrgUnitModified` |  |
 | `AddTaskOrgRelationship` | inform; confirmed by `TaskOrgRelationshipAdded` |  |
 | `UpdateTaskOrgRelationship` | inform; confirmed by `TaskOrgRelationshipModified` |  |
-| `AddTask` | inform; confirmed by `TaskAdded` | STP-1091 |
-| `UpdateTask` | inform; events depend on the outcome | STP-1091 |
+| `AddTask` | inform; confirmed by `TaskAdded` |  |
+| `UpdateTask` | inform; events depend on the outcome |  |
 | `ConfirmTask` | inform; events depend on the outcome |  |
-| `SetCoaTaskOrg` | request | STP-1077, STP-1091 |
+| `SetCoaTaskOrg` | request | STP-1077 |
 | `ResetCoaTaskOrg` | request | STP-1077 |
 | `SetCurrentCoa` | request |  |
 | `AddCoa` | inform; confirmed by `CoaAdded` |  |
 | `UpdateCoa` | inform; confirmed by `CoaModified` |  |
-| `SetRole` | request | STP-1091 |
+| `SetRole` | request |  |
 | `PullC2SIMInitialization` | request |  |
 | `ChangeTimeOut` | inform; no event |  |
 | `ResetSegmentationTimeout` | inform; no event |  |
@@ -181,7 +181,7 @@ A method marked `"x-stpInform": true` is fire and forget: the engine sends no
 reply, and the outcome arrives only as events. For example `AddCoa` is
 confirmed by `CoaAdded`, and `DeleteSymbol` by `SymbolDeleted`. Every other
 method has a `result` and gets a reply, which is `success: false` with the
-reason when STP refuses the call. Contract 0.9.3 has 35 informs.
+reason when STP refuses the call. Contract 0.9.4 has 35 informs.
 
 An inform that STP cannot apply is often ignored without a message. When the
 confirming event does not arrive, read the state back, for example with
@@ -234,18 +234,17 @@ today's engine behave differently from the method's description or its
 target does not exist. While a key is listed, the method's description says
 what to do in the meantime. A key is removed from the contract once the fix
 ships, and the description then says how engines before the fix behave: STP-1080
-and STP-1089 were removed in contract 0.9.2, STP-1090 in 0.9.3.
+and STP-1089 were removed in contract 0.9.2, STP-1090 in 0.9.3, STP-1091 in 0.9.4.
 
 | Key | What it affects | Methods |
 |---|---|---|
 | STP-1077 | Task organizations per COA: `coaPoid` is refused by engines before the fix | `SetCoaTaskOrg`, `ResetCoaTaskOrg` |
-| STP-1091 | Writes that do not check their target: an unknown poid or value is accepted | `SetDefaultTaskOrg`, `ResetDefaultTaskOrg`, `UpdateTaskOrg`, `AddTaskOrgUnit`, `AddTask`, `UpdateTask`, `SetCoaTaskOrg`, `SetRole` |
 
 ## Bad input: `x-stpEdgeCases`
 
 `x-stpEdgeCases` records what the engine did, on a live capture, with bad or
 unusual input: a missing or unknown poid, no active scenario, malformed
-content, an inform sent through `Request`, and so on. Contract 0.9.3 has 239
+content, an inform sent through `Request`, and so on. Contract 0.9.4 has 251
 cases. Each case has:
 
 - `when`: the input;

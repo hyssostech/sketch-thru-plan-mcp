@@ -99,7 +99,7 @@ client when the model calls `SetRole` or `SetCurrentCoa`, and then the context s
 
 - **One tool per read method of the contract** (`x-stpSafety: read`, and dispatched by the engine):
   `GetScenarioContent`, `GetCoaContent`, `GetTaskOrgContent`, `GetScenarioTaskOrgList`,
-  `GetPoidObject`, `GetAllObjects`, `HasActiveScenario` and the rest - 16 with contract 0.9.1. Name,
+  `GetPoidObject`, `GetAllObjects`, `HasActiveScenario` and the rest - 16 with contract 0.9.2. Name,
   description, input schema and annotations come from `generateTools` unchanged; arguments are
   validated against that schema before anything is sent. Each answer is
   `{ answer, notes?, truncated?, provenance: { endpoint, session, answeredAt, contract: { version, ref } } }`.

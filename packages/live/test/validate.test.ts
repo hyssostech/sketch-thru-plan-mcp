@@ -303,19 +303,27 @@ describe("V10: diff intended vs actual", () => {
     expect(r.summary).toBe("Unknown outcome: STP did not answer SetDefaultTaskOrg within 7 s.");
   });
 
-  it("unverifiable: relationship events the engine does not send (STP-1089), never a false not_done", () => {
-    const w = watch("AddTaskOrgRelationship", { toRelationship: { parent: "idU1", child: "idU2", relationship: "organic" } });
-    expect(issues("AddTaskOrgRelationship")).toContain("STP-1089");
-    const r = w.report(inform);
+  it("unverifiable: a rule whose known issue is still open holds an absence back, never a false not_done", () => {
+    // No rule carries `unverifiable` since rule file 1.0.1 (STP-1089 is fixed), so this builds the one it had.
+    const held: MethodRules = structuredClone(R("AddTaskOrgRelationship"));
+    held.intent.unverifiable = { issue: "STP-1089", reason: "the engine applies a task org relationship add, update or delete but sends no event for it" };
+    const params = { toRelationship: { parent: "idU1", child: "idU2", relationship: "organic" } };
+    const r = new V10Watch("AddTaskOrgRelationship", held, params, rules, ["STP-1089"]).report(inform);
     expect(r.outcome).toBe("unverifiable");
     expect(r.knownIssue).toBe("STP-1089");
     expect(r.summary).toMatch(/^Unverifiable \(STP-1089\): the engine applies a task org relationship add/);
     // Once the issue is fixed (dropped from x-stpKnownIssues), the absence counts again.
-    expect(watch("AddTaskOrgRelationship", { toRelationship: { parent: "idU1", child: "idU2" } }, []).report(inform).outcome).toBe("unknown");
-    // And when the event does arrive, it is simply done.
-    const w2 = watch("AddTaskOrgRelationship", { toRelationship: { parent: "idU1", child: "idU2" } });
-    w2.observe(ev("TaskOrgRelationshipAdded", { poid: "idR", toRelationship: { poid: "idR", parent: "idU1", child: "idU2" } }));
-    expect(w2.report(inform).outcome).toBe("done");
+    expect(new V10Watch("AddTaskOrgRelationship", held, params, rules, []).report(inform).outcome).toBe("unknown");
+  });
+
+  it("relationship events are expected again: STP-1089 is fixed (contract 0.9.2, rule file 1.0.1)", () => {
+    expect(issues("AddTaskOrgRelationship")).toEqual([]);
+    expect(R("AddTaskOrgRelationship").intent.unverifiable).toBeUndefined();
+    const params = { toRelationship: { parent: "idU1", child: "idU2" } };
+    expect(watch("AddTaskOrgRelationship", params).report(inform).outcome).toBe("unknown");
+    const w = watch("AddTaskOrgRelationship", params);
+    w.observe(ev("TaskOrgRelationshipAdded", { poid: "idR", toRelationship: { poid: "idR", parent: "idU1", child: "idU2" } }));
+    expect(w.report(inform).outcome).toBe("done");
   });
 
   it("an inform that promises no event is unverifiable, unless refused", () => {

@@ -1,7 +1,7 @@
 {
   "repo": "hyssostech/stp-docs",
   "path": "docs",
-  "ref": "a9677caf1492c5563d27853449ae3d98cedab422",
+  "ref": "d8fd0d4dae4238bc16af682493a707ad2d858e6c",
   "license": "MIT",
   "count": 31,
   "excluded": [
@@ -29,7 +29,7 @@
     },
     {
       "path": "docs/guides/coas.md",
-      "blob": "b32c73761c0bcffb1c87067dcb594ea488bc2486"
+      "blob": "9c617eac3da73035c15cb25c0fb5d56c030bfc2c"
     },
     {
       "path": "docs/guides/connection-lifecycle.md",
@@ -53,7 +53,7 @@
     },
     {
       "path": "docs/guides/integration-troubleshooting.md",
-      "blob": "f4cb37de6f65f398b9b0aa03f4e1d1843bdc5a72"
+      "blob": "5788fd5701b5834a067f0f43612f39f7b7c6be0e"
     },
     {
       "path": "docs/guides/roles.md",
@@ -125,7 +125,7 @@
     },
     {
       "path": "docs/reference/method-safety.md",
-      "blob": "2bca71b90ddc51b2fa71e98cdf860192227ec425"
+      "blob": "0c30a952b9a47814a87ba8f91ec2601e43b75e9a"
     },
     {
       "path": "docs/reference/rest-connector.md",

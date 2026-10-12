@@ -161,7 +161,12 @@ the operation did not happen.
   request, and the engine's bridge cancels its own work after the same number
   of seconds. That cancellation is cooperative, so the work may already have
   finished, or may stop part-way. For example, a scenario load cancelled
-  part-way keeps the objects it had already applied.
+  part-way keeps the objects it had already applied. An object-set load (the
+  `*FromObjectSet` methods) cancelled this way says what it did: it announces a
+  `StpMessage` naming the objects applied, the object in flight (sent with no
+  reply yet, which the engine may still apply) and the objects not sent. The
+  SDK has already dropped the late reply, so listen for that `StpMessage`.
+  Engines before STP-1095 announce only "The operation was canceled."
 - **Late replies are discarded.** If the answer arrives after the SDK has given
   up, both SDKs drop it silently.
 - **Requests on one connection run one at a time, in order.** The client starts

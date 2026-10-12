@@ -1,7 +1,7 @@
 {
   "repo": "hyssostech/stp-docs",
   "path": "docs",
-  "ref": "aad082d9c966b15ea025c0f4369481bad3e43877",
+  "ref": "a96779522ec5beecaa62e769bdb678c40389ef6c",
   "license": "MIT",
   "count": 31,
   "excluded": [
@@ -41,7 +41,7 @@
     },
     {
       "path": "docs/guides/errors-and-timeouts.md",
-      "blob": "b584b76823e306189665afe1bb97d14125b8f244"
+      "blob": "a74b516aa3644939b65829c3387a18333938c781"
     },
     {
       "path": "docs/guides/events-and-ordering.md",
@@ -125,7 +125,7 @@
     },
     {
       "path": "docs/reference/method-safety.md",
-      "blob": "03711b759754168a0e6bb15b5473b9926214b37b"
+      "blob": "fad8511267c74bb522b971852604cfe4d8bdc8ed"
     },
     {
       "path": "docs/reference/rest-connector.md",

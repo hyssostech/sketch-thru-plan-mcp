@@ -366,11 +366,23 @@ COA uses.
   exactly as `ResetDefaultTaskOrg` does. The TO itself is not deleted.
   `affiliation` is required, and must be `friend`, `hostile` or `any`.
 
-**With `coaPoid`** the contract describes a TO tied to one COA:
-`SetCoaTaskOrg(toPoid, coaPoid)` makes that COA use the TO, instead of the
-affiliation default, while it is current; `ResetCoaTaskOrg` with `coaPoid`
-removes the tie, for one affiliation or for all of them when `affiliation` is
-omitted, and the COA falls back to the affiliation default.
+**With `coaPoid`** the TO is tied to one COA: `SetCoaTaskOrg(toPoid, coaPoid)`
+makes that COA use the TO, instead of the affiliation default, while it is
+current. The tie is for the TO's own affiliation (a hostile TO in the hostile
+slot, any other in the friend slot), and a later `SetCoaTaskOrg` for the same
+COA and affiliation replaces it. `ResetCoaTaskOrg` with `coaPoid` removes the
+tie, for one affiliation or for all of them when `affiliation` is omitted (or
+`any`), and the COA falls back to the affiliation default; clearing a tie that
+does not exist succeeds.
+
+The tie is stored on the COA, in its `friendTaskOrg` and `hostileTaskOrg`
+fields, so it is saved and loaded with the scenario and the COA's content.
+Setting or clearing it sends `CoaModified` to every client, and each client
+whose current COA it is receives `TaskOrgSwitched` when its task org changes;
+switching to another COA uses that COA's tie or the default. Deleting a TO
+clears every tie that names it (`CoaModified`), and those COAs fall back to
+the default. An unknown `coaPoid`, or a `toPoid` that is not a task org, is
+refused with the reason.
 
 :::caution Engines before STP-1077 refuse `coaPoid`
 On engines before STP-1077, a call with `coaPoid` is refused with
@@ -388,7 +400,7 @@ unknown one answers success and changes nothing. Take the poid from
 // The default friendly TO
 await stpsdk.setCoaTaskOrg(friendlyToPoid);
 
-// A TO for one COA: refused by engines before STP-1077
+// A TO for one COA (refused by engines before STP-1077)
 try {
     await stpsdk.setCoaTaskOrg(toPoid, coaPoid);
 } catch (e) {

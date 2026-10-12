@@ -38,6 +38,18 @@ This replays symbol and task events locally (via your `onSymbolAdded`, `onTaskAd
 `hasActiveScenario()` checks for a "planning_scenario" object created by `createNewScenario()` or `loadNewScenario()`. If you receive `false` even though objects exist, use `getScenarioContent()` as a fallback.
 :::
 
+## Writing Without a Scenario
+
+STP does not refuse a write when no scenario is active. `addSymbol`, `addTask`,
+the imports and the other writes create their objects as usual, but
+`hasActiveScenario()` stays `false` until a client calls `createNewScenario()`
+or `loadNewScenario()`. Create or load a scenario before you write.
+
+Clients that apply the contract's call validations refuse such writes before
+sending them, because each write lists the `activeScenario` precondition. The
+STP MCP server does this, and so does the .NET SDK's `StpCallValidations` when
+you run it before a call. An SDK call made without those checks is sent as it is.
+
 ## Saving Scenarios
 
 ```javascript

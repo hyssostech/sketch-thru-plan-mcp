@@ -1,7 +1,7 @@
 {
   "repo": "hyssostech/stp-docs",
   "path": "docs",
-  "ref": "a96779522ec5beecaa62e769bdb678c40389ef6c",
+  "ref": "fad0fec4ff01fb101b6865bbd4fa7b9eeb0017d7",
   "license": "MIT",
   "count": 31,
   "excluded": [
@@ -61,7 +61,7 @@
     },
     {
       "path": "docs/guides/scenarios.md",
-      "blob": "61fa252d4ab3b2403c48a30de7d3fc42bb288aa6"
+      "blob": "057377769b2fa44e429cd94a6b6bae57aa51abe6"
     },
     {
       "path": "docs/guides/sessions.md",

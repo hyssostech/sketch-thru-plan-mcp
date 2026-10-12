@@ -45,7 +45,7 @@ describe("knowledge server", () => {
     expect(names).not.toContain("Register");
     const addSymbol = body.methods.find((m: { name: string }) => m.name === "AddSymbol");
     expect(addSymbol).toMatchObject({ safety: "write", returns: "events only" });
-    expect(body.contract.version).toBe("0.9.4");
+    expect(body.contract.version).toBe("0.9.5");
     expect(body.docs.repo).toBe("hyssostech/stp-docs");
     expect(body.docs.ref).toMatch(/^[0-9a-f]{40}$/);
   });
@@ -68,7 +68,8 @@ describe("knowledge server", () => {
     expect(update.body.known_issues).toBeUndefined(); // STP-1091 is fixed (contract 0.9.4)
     expect(update.body.emits).toContainEqual(expect.objectContaining({ event: "StpMessage", condition: "the call is refused" }));
     const coaTaskOrg = await call("get_method", { name: "SetCoaTaskOrg" });
-    expect(coaTaskOrg.body.known_issues).toEqual(["STP-1077"]);
+    expect(coaTaskOrg.body.known_issues).toBeUndefined(); // STP-1077 is fixed (contract 0.9.5)
+    expect(coaTaskOrg.body.emits).toContainEqual(expect.objectContaining({ event: "CoaModified", to: "session" }));
     const read = await call("get_method", { name: "GetScenarioContent" });
     expect(read.body.emits).toEqual([]);
     expect(read.body.known_issues).toBeUndefined();
@@ -149,7 +150,7 @@ describe("search_docs", () => {
     const { body, content, isError } = await call("search_docs", { query: "how do I load a scenario", k: 4 });
     expect(isError).toBe(false);
     expect(body.docs.ref).toBe(loadDocsPin().ref);
-    expect(body.contract.version).toBe("0.9.4");
+    expect(body.contract.version).toBe("0.9.5");
     expect(body.results.length).toBe(4);
     const top = body.results[0];
     expect(top.uri).toBe("stp-docs://guides/scenarios");

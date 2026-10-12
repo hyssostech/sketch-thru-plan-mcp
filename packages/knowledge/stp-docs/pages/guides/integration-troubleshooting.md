@@ -60,9 +60,10 @@ all of them:
 
 An older engine may still answer the COA methods with "No handler". A
 current engine can still refuse a COA call for a reason of its own, and says
-which: for example `SetCoaTaskOrg` with a `coaPoid` is refused by engines
-before STP-1077 with "per-COA task org is not supported yet". That is a
-refusal of the call, not a missing handler.
+which: for example `SetCoaTaskOrg` with a `coaPoid` that names no COA is
+refused with the reason (and engines before STP-1077 refuse any `coaPoid` with
+"per-COA task org is not supported yet"). That is a refusal of the call, not a
+missing handler.
 
 :::note
 Since JavaScript SDK 0.6.15 a refused request rejects with an `Error` that

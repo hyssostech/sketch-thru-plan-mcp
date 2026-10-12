@@ -48,7 +48,8 @@ describe("generateTools", () => {
     expect(by("PushC2SIMContent").annotations).toMatchObject({ destructiveHint: true, openWorldHint: true });
     expect(by("PullC2SIMInitialization").annotations.openWorldHint).toBe(true);
     expect(by("AddSymbol")._meta["stp/emits"]).toContainEqual({ event: "SymbolAdded", when: "always", to: "session" });
-    expect(by("SetCoaTaskOrg")._meta["stp/knownIssues"]).toEqual(["STP-1077"]);
+    expect(by("SetCoaTaskOrg")._meta["stp/knownIssues"]).toBeUndefined(); // STP-1077 fixed (contract 0.9.5)
+    expect(result.tools.filter((t) => t._meta["stp/knownIssues"])).toEqual([]); // none left in 0.9.5
     expect(by("AddTaskOrgUnit")._meta["stp/knownIssues"]).toBeUndefined(); // STP-1091 fixed (contract 0.9.4)
     expect(by("DeleteCoa")._meta["stp/knownIssues"]).toBeUndefined(); // STP-1078/1079 fixed
     expect(by("GetScenarioContent")._meta["stp/emits"]).toBeUndefined();

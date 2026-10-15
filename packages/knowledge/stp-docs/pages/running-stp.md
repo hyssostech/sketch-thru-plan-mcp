@@ -14,6 +14,7 @@ This page answers these questions:
 
 - Which ways can I run the STP engine, and which one should I pick?
 - Which ports does an SDK app need, and which can stay closed?
+- How do I check that the installers and the container image I received are genuine?
 - How do I run the engine in Docker, or install it on Windows?
 - How do I check that the engine is running and that my app can reach it?
 - Which settings am I expected to change, and where do I change them?
@@ -22,9 +23,20 @@ This page answers these questions:
 ## Choose a deployment
 
 STP is distributed by Hyssos Technology as a container image and as Windows
-installers. Contact Hyssos to obtain them. Every option below contains the
-whole engine, including the WebSocket bridge the SDKs connect to and the
-[REST connector](./reference/rest-connector.md).
+installers. Contact Hyssos to obtain them. A release gives you:
+
+- The signed Windows installers: Server, Server Core and Development.
+- A `SHA256SUMS` file with the checksums of the release files.
+- Signed build-provenance attestations, `attestations.jsonl`.
+- `cosign.pub`, the public key for checking the container image's signature.
+- A `VERIFYING.md` guide to checking the release.
+- Access to the container image.
+
+See [Verify what you downloaded](#verify-what-you-downloaded) before you
+install.
+
+Every option below contains the whole engine, including the WebSocket bridge
+the SDKs connect to and the [REST connector](./reference/rest-connector.md).
 
 | Option | What it is | Use it for |
 |---|---|---|
@@ -42,6 +54,8 @@ install has a desktop window instead.
 
 ### What the engine does not need
 
+- **No license key.** There is no license key and no activation. The
+  installer shows the Hyssos license agreement for you to accept.
 - **No speech service key.** Speech recognition for SDK apps runs in the
   client, through a [speech plugin](./plugins/speech.md), and the client sends
   STP the recognized text. The speech service key belongs to the client app,
@@ -64,6 +78,72 @@ install has a desktop window instead.
 
 The ports SDK apps use can be changed (see [Settings you can change](#settings-you-can-change)).
 
+## Verify what you downloaded
+
+Check what you received before you install it. The examples use the Server
+installer; check the other installers the same way. The release's
+`VERIFYING.md` gives the full procedure, and explains what each check does
+and does not prove.
+
+### Checksums
+
+In the folder with the downloaded files:
+
+```bash
+sha256sum -c SHA256SUMS
+```
+
+On Windows, compute the hash in PowerShell and compare it with the line for
+that file in `SHA256SUMS`:
+
+```powershell
+Get-FileHash .\STP.Server-<version>.Bundle.exe -Algorithm SHA256
+```
+
+### Installer signature
+
+In PowerShell:
+
+```powershell
+Get-AuthenticodeSignature .\STP.Server-<version>.Bundle.exe
+```
+
+Expect `Status` to be `Valid` and the signer's subject to be:
+
+```
+CN=Hyssos Tech LLC, O=Hyssos Tech LLC, L=Olympia, S=Washington, C=US
+```
+
+Check the subject, not only the status: any validly signed file shows
+`Valid`. The subject is in the result's `SignerCertificate.Subject`. Do not
+pin a certificate thumbprint. The signing certificates are short-lived, so the
+thumbprint changes.
+
+### Build provenance
+
+With the GitHub CLI (`gh`) 2.49 or later:
+
+```bash
+gh attestation verify STP.Server-<version>.Bundle.exe --repo hyssostech/STP --bundle attestations.jsonl
+```
+
+### Container image
+
+After you log in to the registry (see [Get the image](#get-the-image)):
+
+```bash
+cosign verify --key cosign.pub ghcr.io/hyssostech/stp-server:<version>
+```
+
+`cosign.pub` in the release must be this key:
+
+```
+-----BEGIN PUBLIC KEY-----
+MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEHLq7ZrUyhk7JnpqBS8awjJ67H9Tb
+LVxvq7xckZc7uO6KRdmJjUZW9K7/XnwJl4waQmWc8rsSw3eRS5ZJD6JQkw==
+-----END PUBLIC KEY-----
+```
+
 ## Run the engine in Docker
 
 **Requirements:** Docker on an x64 (amd64) host, Linux or Docker Desktop.
@@ -73,15 +153,26 @@ size of their scenarios.
 
 ### Get the image
 
-Hyssos provides the image either through a container registry or as an
-archive file. If you received an archive, load it:
+The image is in a private repository on GitHub Container Registry:
+`ghcr.io/hyssostech/stp-server:<version>`, where `<version>` is the STP release.
+Hyssos provides a personal access token (PAT) for it. Log in with the token,
+replacing `<user>` with the user name the token belongs to, then pull the
+image:
+
+```bash
+echo <token> | docker login ghcr.io -u <user> --password-stdin
+docker pull ghcr.io/hyssostech/stp-server:<version>
+```
+
+For a machine with no access to the registry (air-gapped), Hyssos provides
+the image as an archive file instead. Load it:
 
 ```bash
 docker load -i <image-archive>.tar
 ```
 
-`docker load` prints the image's name and tag. Below, `<stp-image>` stands for
-that name and tag.
+`docker load` prints the image's name and tag. If you loaded an archive, use
+that name and tag wherever this page shows `ghcr.io/hyssostech/stp-server:<version>`.
 
 ### Start the container
 
@@ -92,7 +183,7 @@ docker run -d --name stp-server \
   -v stp-data:/var/lib/stp \
   -v stp-logs:/var/log/stp \
   --restart unless-stopped \
-  <stp-image>
+  ghcr.io/hyssostech/stp-server:<version>
 ```
 
 - **`-p 9599:9599`** is the port SDK apps connect to. **`-p 9500:9500`** gives
@@ -121,7 +212,7 @@ default of 10 seconds, after which Docker kills it. Allow 30.
 ```yaml
 services:
   stp:
-    image: <stp-image>
+    image: ghcr.io/hyssostech/stp-server:<version>
     restart: unless-stopped
     stop_grace_period: 30s
     ports:
@@ -153,6 +244,9 @@ The image has a built-in health check on `/healthz`, so `docker ps` and
 `docker compose ps` show `(healthy)` once the engine is up.
 
 ## Install the engine on Windows
+
+**Requirements:** 64-bit Windows Server 2022 or 2025, or Windows 11. Other
+versions are best-effort.
 
 ### Server and Server Core
 
@@ -343,7 +437,7 @@ docker run -d --name stp-server \
   -e STP_Nucleus__Management__ApiKey="$(openssl rand -base64 32)" \
   -p 9599:9599 -p 9500:9500 \
   -v stp-data:/var/lib/stp -v stp-logs:/var/log/stp \
-  <stp-image>
+  ghcr.io/hyssostech/stp-server:<version>
 ```
 
 With a key set, `/api/mgmt/*` requests without the key in an `X-API-Key`

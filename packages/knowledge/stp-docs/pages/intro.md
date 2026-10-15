@@ -58,7 +58,7 @@ The SDK communicates with the STP Engine via a **connector plugin** (WebSocket b
 
 ## Prerequisites
 
-- **STP Engine** (v5.9.9+) running on an accessible server or container (or localhost for development). See [Installing and running the STP engine](./running-stp.md)
+- **STP Engine** 5.11 or later running on an accessible server or container (or localhost for development). See [Installing and running the STP engine](./running-stp.md). Where a method's behavior changed in a later build, its entry in the [API reference](./reference/json-api.md) says what older engines do (the notes read "engines before STP-…")
 - A PC or Mac with a working **microphone**, mouse or stylus
 - A subscription key for a speech service (e.g., [Microsoft Azure Speech](https://docs.microsoft.com/azure/cognitive-services/speech-service/get-started)) if using speech input
 

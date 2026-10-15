@@ -1,7 +1,7 @@
 {
   "repo": "hyssostech/stp-docs",
   "path": "docs",
-  "ref": "fad0fec4ff01fb101b6865bbd4fa7b9eeb0017d7",
+  "ref": "39cff48c71b1b266df0ef8337dc320925c7c62ff",
   "license": "MIT",
   "count": 31,
   "excluded": [
@@ -21,7 +21,7 @@
     },
     {
       "path": "docs/getting-started.md",
-      "blob": "052c81745f56e95d48cdb887c1bfca43e43300fa"
+      "blob": "b9b6ca11d02a996a59f240120f08004a4a00ce8d"
     },
     {
       "path": "docs/guides/c2sim.md",
@@ -65,7 +65,7 @@
     },
     {
       "path": "docs/guides/sessions.md",
-      "blob": "80d80e3623ea12598d4f5abc2f688d20916eed01"
+      "blob": "e253d4de0d4fe3e71b97bb1fbb26a4d9877e50ef"
     },
     {
       "path": "docs/guides/silent-failures.md",
@@ -97,7 +97,7 @@
     },
     {
       "path": "docs/intro.md",
-      "blob": "630e0197128c6327f9f1337dd0200d54f5d0e8fb"
+      "blob": "5fe61730ef3c2d8bcefb2f60dfd211d7a6dff18a"
     },
     {
       "path": "docs/plugins/connectors.md",
@@ -137,7 +137,7 @@
     },
     {
       "path": "docs/running-stp.md",
-      "blob": "9b50ea58149f9900115cf14b1c75edafdb4c4549"
+      "blob": "fd9986b0fb84b6322699fd0ab198e60df54ec8fe"
     }
   ]
 }

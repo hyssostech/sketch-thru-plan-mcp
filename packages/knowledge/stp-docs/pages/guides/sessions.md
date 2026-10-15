@@ -6,7 +6,7 @@ sidebar_position: 6
 
 # Sessions
 
-A single STP Engine (v5.9+) supports **multiple sessions**. Sessions are isolated contexts — edits and task interpretation within a session do not affect other sessions.
+A single STP Engine 5.11 or later supports **multiple sessions**. Sessions are isolated contexts — edits and task interpretation within a session do not affect other sessions.
 
 ## Key Properties
 

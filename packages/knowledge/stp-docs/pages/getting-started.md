@@ -17,7 +17,7 @@ This tutorial walks through building a browser app that uses the STP SDK to crea
 
 ## Prerequisites
 
-- **STP Engine** (v5.9.9+) running on an accessible server. See [Installing and running the STP engine](./running-stp.md)
+- **STP Engine** 5.11 or later, running on an accessible server. See [Installing and running the STP engine](./running-stp.md)
 - A subscription key for Microsoft Azure [Speech service](https://docs.microsoft.com/azure/cognitive-services/speech-service/get-started)
 - A PC or Mac with a working microphone
 - A way to serve the page over HTTPS (for microphone access)

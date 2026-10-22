@@ -57,7 +57,7 @@ Every tool answer and every contract resource carries the provenance of both pin
 
 ### What the docs corpus holds
 
-The hand-written pages of [hyssostech/stp-docs](https://github.com/hyssostech/stp-docs) (MIT):
+The hand-written pages of [hyssostech/sketch-thru-plan-sdk-docs](https://github.com/hyssostech/sketch-thru-plan-sdk--docs) (MIT):
 everything under `docs/` - overview, installation, getting started, the guides, plugins and
 reference pages. The generated API reference pages (`docs/api`, TypeDoc for the JS SDK, and
 `docs/api-net`, the .NET SDK) are left out: on the evaluation set they did not answer any question

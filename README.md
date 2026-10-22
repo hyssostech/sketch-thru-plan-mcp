@@ -1,4 +1,4 @@
-# stp-mcp
+# Sketch-Thru-Plan MCP
 
 [Model Context Protocol](https://modelcontextprotocol.io) servers for
 [Sketch-thru-Plan](https://github.com/hyssostech) (STP).

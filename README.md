@@ -1,15 +1,16 @@
 # Sketch-Thru-Plan MCP
 
 [Model Context Protocol](https://modelcontextprotocol.io) servers for
-[Sketch-thru-Plan](https://github.com/hyssostech) (STP).
+Sketch-thru-Plan (STP).
 
+The MCP exposes [STP's SDK](https://github.com/hyssostech/sketch-thru-plan-sdk-docs) capabilities in an LLM-friendly format. 
 Two servers, one repo:
 
+- **Live-STP server** - query tools over a running STP's WebSockets JSON-RPC
+  bridge, plus a live context of recent STP events.
 - **Knowledge server** - the published STP documentation and the STP JSON-RPC
   (OpenRPC) contract, as MCP resources and read-only lookup tools. Needs no
   running STP; works offline.
-- **Live-STP server** - query tools over a running STP's WebSockets JSON-RPC
-  bridge, plus a live context of recent STP events.
 
 ## Principles
 
@@ -30,7 +31,7 @@ Two servers, one repo:
 | Package | What it is |
 |---|---|
 | `packages/contract-tools` | The pinned OpenRPC contract (`contract/`, with `pin.json` naming its source commit) and the generator that turns it into MCP tool definitions. Methods the engine does not dispatch, and transport-layer messages, are excluded with their reason. Next to the contract, the pinned call-validation rules and their schema (`sketch-thru-plan-validations*.json`, `validations-pin.json`), loaded by `loadValidations`. |
-| `packages/knowledge` | The knowledge server (`stp-mcp-knowledge`, stdio): the contract and the public STP docs as read-only tools and resources (below). The docs are pinned in `stp-docs/` (`pin.json` names the source commit and each page's git blob id); `eval/search-eval.json` is the retrieval evaluation set. |
+| `packages/knowledge` | The knowledge server (`stp-mcp-knowledge`, stdio): the contract and the public STP docs as read-only tools and resources (below). The docs are pinned in `sketch-thru-plan-sdk-docss/` (`pin.json` names the source commit and each page's git blob id); `eval/search-eval.json` is the retrieval evaluation set. |
 | `packages/live` | The live-STP server (`stp-mcp-live`, stdio): the contract's read methods as tools against a running engine, a live context of recent STP events as resources, and - in write mode - the write methods, checked before and after each call (below). `src/validate.ts` is the call-validation evaluator. `test/fixtures/session.jsonl` and `write-session.jsonl` are recorded wire sessions the integration tests replay; `scripts/` holds the recorders and the live smoke tests, none run in CI. |
 
 ## Knowledge server
@@ -48,7 +49,7 @@ Resources:
 
 | URI | Content |
 |---|---|
-| `stp-docs://<path>` (e.g. `stp-docs://guides/roles`) | One page of the STP docs as `text/markdown`, with the Docusaurus front matter and admonition syntax turned into plain Markdown, and links between pages pointing at their `stp-docs://` URIs. Ends with a source line naming the pinned commit. |
+| `stp-docs://<path>` (e.g. `sketch-thru-plan-sdk-docss://guides/roles`) | One page of the STP docs as `text/markdown`, with the Docusaurus front matter and admonition syntax turned into plain Markdown, and links between pages pointing at their `sketch-thru-plan-sdk-docss://` URIs. Ends with a source line naming the pinned commit. |
 | `stp-api://method/<Name>` | A contract method as `application/json` (the same entry `get_method` returns). |
 | `stp-api://event/<Name>` | A contract event as `application/json`. |
 
@@ -59,11 +60,7 @@ Every tool answer and every contract resource carries the provenance of both pin
 
 The hand-written pages of [hyssostech/sketch-thru-plan-sdk-docs](https://github.com/hyssostech/sketch-thru-plan-sdk-docs) (MIT):
 everything under `docs/` - overview, installation, getting started, the guides, plugins and
-reference pages. The generated API reference pages (`docs/api`, TypeDoc for the JS SDK, and
-`docs/api-net`, the .NET SDK) are left out: on the evaluation set they did not answer any question
-the guides and contract do not, and adding them lowered retrieval quality as their many near-identical
-pages crowd the results (recall@5 on answerable questions 0.983 without them, 0.966 with either; MRR
-0.914 vs 0.867 / 0.855; 318 passages vs 1025 / 2494). The JSON-RPC contract, which is indexed, covers
+reference pages. The JSON-RPC contract, which is indexed, covers
 the API surface itself.
 
 ## Live-STP server
@@ -318,7 +315,7 @@ node scripts/update-contract.mjs --from-git ../sketch-thru-plan-sdk-js --ref <br
 ```sh
 npm run docs:update                # or: node scripts/update-docs.mjs --ref <branch|tag|sha>
 npm test                           # includes the search evaluation; read its recall line and misses
-git diff packages/knowledge/stp-docs
+git diff packages/knowledge/sketch-thru-plan-sdk-docss
 ```
 
 The script fetches with `git` (no GitHub API, no credentials), copies the pages verbatim and
@@ -327,11 +324,11 @@ question's expected sources in the same change; the recall floor in
 `packages/knowledge/test/search-eval.test.ts` is not lowered to make a re-pin pass.
 
 To pin a docs branch that is not on GitHub yet, or without access to github.com, pin from a local
-clone instead (git only, no network). The pin still names `hyssostech/stp-docs` and the commit, so
+clone instead (git only, no network). The pin still names `hyssostech/sketch-thru-plan-sdk-docss` and the commit, so
 re-pin from GitHub once that commit is merged:
 
 ```sh
-node scripts/update-docs.mjs --from-git ../stp-docs --ref <branch|sha>
+node scripts/update-docs.mjs --from-git ../sketch-thru-plan-sdk-docss --ref <branch|sha>
 ```
 
 The `Contract drift` workflow checks weekly whether the published contract or docs have moved past

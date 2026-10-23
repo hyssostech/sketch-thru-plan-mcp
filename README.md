@@ -563,19 +563,6 @@ Windows: `%USERPROFILE%\.codeium\windsurf\mcp_config.json` or `%APPDATA%\devin\m
 - Prefer an absolute path to the Node entry point.
 - The knowledge server has no required environment variables.
 
-Run the knowledge server from a local checkout in Claude Code:
-
-```sh
-npm run build
-claude mcp add stp-knowledge -- node /path/to/stp-mcp/packages/knowledge/dist/index.js
-```
-
-or in Claude Desktop's `claude_desktop_config.json`:
-
-```json
-{ "mcpServers": { "stp-knowledge": { "command": "node", "args": ["/path/to/stp-mcp/packages/knowledge/dist/index.js"] } } }
-```
-
 ### Re-pinning the contract
 
 ```sh

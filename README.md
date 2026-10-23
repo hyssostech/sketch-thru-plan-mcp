@@ -236,6 +236,184 @@ endpoint, session and time:
 The connection is lazy (first tool call or resource read), with one attempt at startup that does not
 stop the process. A session with no active scenario is noted in the status, not treated as a failure.
 
+### Add it to an environment
+
+Build first:
+
+```bash
+npm run build
+```
+
+Then add the server to your client. Replace `/path/to/stp-mcp` and `<session id>` with real values.
+
+Write mode enables destructive calls and requires a client that supports elicitation (otherwise those tools are refused). The action log is optional but recommended.
+
+<details>
+<summary><strong>Claude Code</strong></summary>
+
+```bash
+# Read-only
+claude mcp add stp-live \
+  -e STP_URL=ws://localhost:9599 \
+  -e STP_SESSION=<session id> \
+  -- node /path/to/stp-mcp/packages/live/dist/index.js
+
+# Write mode
+claude mcp add stp-live-write \
+  -e STP_URL=ws://localhost:9599 \
+  -e STP_SESSION=<session id> \
+  -e STP_WRITE=1 \
+  -e STP_ACTION_LOG=$HOME/stp-actions.jsonl \
+  -- node /path/to/stp-mcp/packages/live/dist/index.js
+```
+
+</details>
+
+<details>
+<summary><strong>Claude Desktop</strong></summary>
+
+Edit `claude_desktop_config.json`  
+(macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`  
+Windows: `%APPDATA%\Claude\claude_desktop_config.json`)  
+then fully quit and restart the app.
+
+```json
+{
+  "mcpServers": {
+    "stp-live": {
+      "command": "node",
+      "args": ["/path/to/stp-mcp/packages/live/dist/index.js"],
+      "env": {
+        "STP_URL": "ws://localhost:9599",
+        "STP_SESSION": "<session id>"
+      }
+    },
+    "stp-live-write": {
+      "command": "node",
+      "args": ["/path/to/stp-mcp/packages/live/dist/index.js"],
+      "env": {
+        "STP_URL": "ws://localhost:9599",
+        "STP_SESSION": "<session id>",
+        "STP_WRITE": "1",
+        "STP_ACTION_LOG": "/Users/you/stp-actions.jsonl"
+      }
+    }
+  }
+}
+```
+
+Use absolute paths.
+
+</details>
+
+<details>
+<summary><strong>Cursor</strong></summary>
+
+Add to `~/.cursor/mcp.json` (global) or `.cursor/mcp.json` (project). Cursor reloads on save.
+
+```json
+{
+  "mcpServers": {
+    "stp-live": {
+      "command": "node",
+      "args": ["/path/to/stp-mcp/packages/live/dist/index.js"],
+      "env": {
+        "STP_URL": "ws://localhost:9599",
+        "STP_SESSION": "<session id>"
+      }
+    },
+    "stp-live-write": {
+      "command": "node",
+      "args": ["/path/to/stp-mcp/packages/live/dist/index.js"],
+      "env": {
+        "STP_URL": "ws://localhost:9599",
+        "STP_SESSION": "<session id>",
+        "STP_WRITE": "1",
+        "STP_ACTION_LOG": "${userHome}/stp-actions.jsonl"
+      }
+    }
+  }
+}
+```
+
+</details>
+
+<details>
+<summary><strong>VS Code</strong></summary>
+
+Create or edit `.vscode/mcp.json` (workspace) or the user-profile `mcp.json`.  
+VS Code uses a top-level `servers` key and requires `"type": "stdio"`.
+
+```json
+{
+  "servers": {
+    "stp-live": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["/path/to/stp-mcp/packages/live/dist/index.js"],
+      "env": {
+        "STP_URL": "ws://localhost:9599",
+        "STP_SESSION": "<session id>"
+      }
+    },
+    "stp-live-write": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["/path/to/stp-mcp/packages/live/dist/index.js"],
+      "env": {
+        "STP_URL": "ws://localhost:9599",
+        "STP_SESSION": "<session id>",
+        "STP_WRITE": "1",
+        "STP_ACTION_LOG": "${env:HOME}/stp-actions.jsonl"
+      }
+    }
+  }
+}
+```
+
+</details>
+
+<details>
+<summary><strong>Windsurf / Devin Desktop</strong></summary>
+
+Edit `mcp_config.json`  
+(macOS/Linux: `~/.codeium/windsurf/mcp_config.json` or `~/.config/devin/mcp_config.json`  
+Windows: `%USERPROFILE%\.codeium\windsurf\mcp_config.json` or `%APPDATA%\devin\mcp_config.json`).
+
+```json
+{
+  "mcpServers": {
+    "stp-live": {
+      "command": "node",
+      "args": ["/path/to/stp-mcp/packages/live/dist/index.js"],
+      "env": {
+        "STP_URL": "ws://localhost:9599",
+        "STP_SESSION": "<session id>"
+      }
+    },
+    "stp-live-write": {
+      "command": "node",
+      "args": ["/path/to/stp-mcp/packages/live/dist/index.js"],
+      "env": {
+        "STP_URL": "ws://localhost:9599",
+        "STP_SESSION": "<session id>",
+        "STP_WRITE": "1",
+        "STP_ACTION_LOG": "/Users/you/stp-actions.jsonl"
+      }
+    }
+  }
+}
+```
+
+</details>
+
+### Notes
+
+- The live server must already be running on `ws://localhost:9599`.
+- Write mode (`STP_WRITE=1`) only works fully in clients that implement MCP elicitation.
+- Prefer absolute paths for the Node entry point and the action log.
+
+
 ### Add it to Claude Code
 
 ```sh
@@ -279,6 +457,111 @@ confirms. `write-session.jsonl` is that session recorded, and `test/write-replay
 npm ci
 npm test            # builds every workspace, then runs the tests (including the search evaluation)
 ```
+
+Run the knowledge server from a local checkout
+
+Build first:
+
+```bash
+npm run build
+```
+
+Then add the server to your client. Replace `/path/to/stp-mcp` with the real path.
+
+<details>
+<summary><strong>Claude Code</strong></summary>
+
+```bash
+claude mcp add stp-knowledge -- node /path/to/stp-mcp/packages/knowledge/dist/index.js
+```
+
+</details>
+
+<details>
+<summary><strong>Claude Desktop</strong></summary>
+
+Edit `claude_desktop_config.json`  
+(macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`  
+Windows: `%APPDATA%\Claude\claude_desktop_config.json`)  
+then fully quit and restart the app.
+
+```json
+{
+  "mcpServers": {
+    "stp-knowledge": {
+      "command": "node",
+      "args": ["/path/to/stp-mcp/packages/knowledge/dist/index.js"]
+    }
+  }
+}
+```
+
+Use an absolute path.
+
+</details>
+
+<details>
+<summary><strong>Cursor</strong></summary>
+
+Add to `~/.cursor/mcp.json` (global) or `.cursor/mcp.json` (project). Cursor reloads on save.
+
+```json
+{
+  "mcpServers": {
+    "stp-knowledge": {
+      "command": "node",
+      "args": ["/path/to/stp-mcp/packages/knowledge/dist/index.js"]
+    }
+  }
+}
+```
+
+</details>
+
+<details>
+<summary><strong>VS Code</strong></summary>
+
+Create or edit `.vscode/mcp.json` (workspace) or the user-profile `mcp.json`.  
+VS Code uses a top-level `servers` key and requires `"type": "stdio"`.
+
+```json
+{
+  "servers": {
+    "stp-knowledge": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["/path/to/stp-mcp/packages/knowledge/dist/index.js"]
+    }
+  }
+}
+```
+
+</details>
+
+<details>
+<summary><strong>Windsurf / Devin Desktop</strong></summary>
+
+Edit `mcp_config.json`  
+(macOS/Linux: `~/.codeium/windsurf/mcp_config.json` or `~/.config/devin/mcp_config.json`  
+Windows: `%USERPROFILE%\.codeium\windsurf\mcp_config.json` or `%APPDATA%\devin\mcp_config.json`).
+
+```json
+{
+  "mcpServers": {
+    "stp-knowledge": {
+      "command": "node",
+      "args": ["/path/to/stp-mcp/packages/knowledge/dist/index.js"]
+    }
+  }
+}
+```
+
+</details>
+
+### Notes
+
+- Prefer an absolute path to the Node entry point.
+- The knowledge server has no required environment variables.
 
 Run the knowledge server from a local checkout in Claude Code:
 
@@ -347,19 +630,6 @@ questions must stay at or above the floor.
 ```sh
 npm ci
 npm test            # builds every workspace, then runs the tests
-```
-
-Run the knowledge server from a local checkout in Claude Code:
-
-```sh
-npm run build
-claude mcp add stp-knowledge -- node /path/to/stp-mcp/packages/knowledge/dist/index.js
-```
-
-or in Claude Desktop's `claude_desktop_config.json`:
-
-```json
-{ "mcpServers": { "stp-knowledge": { "command": "node", "args": ["/path/to/stp-mcp/packages/knowledge/dist/index.js"] } } }
 ```
 
 ## Status

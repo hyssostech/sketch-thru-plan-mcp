@@ -16,7 +16,7 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.32.1",
     "stp-mcp-contract-tools": "0.1.0",
-    "zod": "^4.6.5"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "ws": "8.22.0"

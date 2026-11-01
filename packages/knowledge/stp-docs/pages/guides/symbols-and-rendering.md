@@ -92,7 +92,7 @@ STP provides a rich set of properties on each `StpSymbol`:
 | `fsTYPE` | Symbol type: `unit`, `mootw`, `equipment`, `tg`, `task` |
 | `poid` | STP unique identifier |
 | `parentCoa` | Unique id of the COA this symbol belongs to |
-| `creatorRole` | Role that created the symbol: `S2`, `S3`, `S4`, `Eng`, `FSO` |
+| `creatorRole` | Role that created the symbol: `s2`, `s3`, `s4`, `fso` or `engineer` |
 | `interval` | Symbol creation time interval |
 | `confidence` | Recognition confidence score (1.0 = 100%) |
 | `alt` | Rank among interpretation hypotheses |

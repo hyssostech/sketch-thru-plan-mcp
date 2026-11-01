@@ -2,7 +2,7 @@
   "openrpc": "2.0.0",
   "info": {
     "title": "Sketch-thru-Plan API",
-    "version": "0.9.7"
+    "version": "0.9.11"
   },
   "methods": [
     {
@@ -4413,6 +4413,378 @@
       ]
     },
     {
+      "name": "GetTaskHistory",
+      "description": "Return a task's history (STP-1250), newest first: what was done to the task, by whom and from where, and the comments on it. Each item is the entry's poid (what EditTaskComment and DeleteTaskComment name) and the entry. Entries outlive a deleted task, so a deleted task's poid still returns its history. Read-only. A task with no history, or an unknown poid, returns []. To follow it live, register TaskEventAdded and TaskEventModified.",
+      "x-stpSafety": "read",
+      "x-stpEmits": [],
+      "params": [
+        {
+          "name": "taskPoid",
+          "description": "The task's unique id (from TaskAdded).",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "result": {
+        "name": "entries",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "poid": {
+                "type": "string",
+                "description": "The entry's unique id."
+              },
+              "entry": {
+                "$ref": "#/components/schemas/TaskHistoryEntry"
+              }
+            },
+            "required": [
+              "poid",
+              "entry"
+            ]
+          }
+        }
+      },
+      "x-stpEdgeCases": [
+        {
+          "when": "unknown poid, or a task with no history",
+          "outcome": "accepted",
+          "note": "success, result []"
+        }
+      ],
+      "examples": [
+        {
+          "name": "GetTaskHistory (illustrative)",
+          "description": "A task with an edit and, newest first, a comment on it.",
+          "params": [
+            {
+              "name": "taskPoid",
+              "value": "idTASK1"
+            }
+          ],
+          "result": {
+            "name": "entries",
+            "value": [
+              {
+                "poid": "idEV2",
+                "entry": {
+                  "task": "idTASK1",
+                  "utc": "2026-10-19T01:00:00Z",
+                  "kind": "comment",
+                  "origin": "user",
+                  "author": "Pat",
+                  "role": "s3",
+                  "source": "WebSocketsBridge",
+                  "text": "Hold until the bridge is clear",
+                  "detail": "{}",
+                  "edited": null,
+                  "deleted": null
+                }
+              },
+              {
+                "poid": "idEV1",
+                "entry": {
+                  "task": "idTASK1",
+                  "utc": "2026-10-19T00:58:00Z",
+                  "kind": "edited",
+                  "origin": "system",
+                  "author": "Pat",
+                  "role": "s3",
+                  "source": "STP Agent",
+                  "text": "start_time 1 -> 2",
+                  "detail": "{\"fields\":[{\"name\":\"start_time\",\"from\":\"1\",\"to\":\"2\"}]}",
+                  "edited": null,
+                  "deleted": null
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AddTaskComment",
+      "description": "Add a comment to a task's history (STP-1250 S3). The engine stamps it with the author (the user this client registered with), the role, the time and kind comment; the client sends only the text. Answers the new entry's poid; TaskEventAdded goes to every client of the session. Refused (success=false) when the client registered without a user ('A comment needs its author: this client sends no user'), without a task ('A comment needs the task it is on') or without text ('A comment needs text').",
+      "x-stpSafety": "write",
+      "x-stpEmits": [
+        {
+          "event": "TaskEventAdded",
+          "when": "if",
+          "condition": "the comment is added",
+          "to": "session"
+        },
+        {
+          "event": "StpMessage",
+          "when": "if",
+          "condition": "the call is refused",
+          "to": "caller"
+        }
+      ],
+      "params": [
+        {
+          "name": "taskPoid",
+          "description": "The task's unique id (from TaskAdded).",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "text",
+          "description": "The comment. Required; blank is refused.",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "result": {
+        "name": "entryPoid",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "x-stpEdgeCases": [
+        {
+          "when": "client registered without a user",
+          "outcome": "refused",
+          "message": "A comment needs its author: this client sends no user"
+        },
+        {
+          "when": "blank text",
+          "outcome": "refused",
+          "message": "A comment needs text"
+        }
+      ],
+      "examples": [
+        {
+          "name": "AddTaskComment (illustrative)",
+          "description": "Pat, registered with user 'Pat', comments on a task.",
+          "params": [
+            {
+              "name": "taskPoid",
+              "value": "idTASK1"
+            },
+            {
+              "name": "text",
+              "value": "Hold until the bridge is clear"
+            }
+          ],
+          "result": {
+            "name": "entryPoid",
+            "value": "idEV2"
+          },
+          "x-stpEventsObserved": [
+            {
+              "event": "TaskEventAdded",
+              "params": {
+                "poid": "idEV2",
+                "entry": {
+                  "task": "idTASK1",
+                  "utc": "2026-10-19T01:00:00Z",
+                  "kind": "comment",
+                  "origin": "user",
+                  "author": "Pat",
+                  "role": "s3",
+                  "source": "WebSocketsBridge",
+                  "text": "Hold until the bridge is clear",
+                  "detail": "{}",
+                  "edited": null,
+                  "deleted": null
+                },
+                "batchId": null
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "EditTaskComment",
+      "description": "Change the text of a comment (STP-1250 S3). Only its author may; the earlier text is kept in the entry's detail as revisions, and edited records when. Answers true; TaskEventModified goes to every client of the session. Refused (success=false) for a system entry ('A system task history entry cannot be changed'), for someone else's comment ('Only its author can edit a comment'), for a deleted comment ('The comment was deleted') and for blank text ('A comment needs text; delete it instead').",
+      "x-stpSafety": "write",
+      "x-stpEmits": [
+        {
+          "event": "TaskEventModified",
+          "when": "if",
+          "condition": "the comment is changed",
+          "to": "session"
+        },
+        {
+          "event": "StpMessage",
+          "when": "if",
+          "condition": "the call is refused",
+          "to": "caller"
+        }
+      ],
+      "params": [
+        {
+          "name": "entryPoid",
+          "description": "The comment's entry poid (from GetTaskHistory or TaskEventAdded).",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "text",
+          "description": "The new text. Required; blank is refused.",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "result": {
+        "name": "ok",
+        "schema": {
+          "type": "boolean"
+        }
+      },
+      "x-stpEdgeCases": [
+        {
+          "when": "another author's comment",
+          "outcome": "refused",
+          "message": "Only its author can edit a comment"
+        },
+        {
+          "when": "a system entry",
+          "outcome": "refused",
+          "message": "A system task history entry cannot be changed"
+        },
+        {
+          "when": "a deleted comment",
+          "outcome": "refused",
+          "message": "The comment was deleted"
+        }
+      ],
+      "examples": [
+        {
+          "name": "EditTaskComment (illustrative)",
+          "description": "Pat changes the text of their comment; the earlier text moves to the revisions.",
+          "params": [
+            {
+              "name": "entryPoid",
+              "value": "idEV2"
+            },
+            {
+              "name": "text",
+              "value": "Hold until 0700"
+            }
+          ],
+          "result": {
+            "name": "ok",
+            "value": true
+          },
+          "x-stpEventsObserved": [
+            {
+              "event": "TaskEventModified",
+              "params": {
+                "poid": "idEV2",
+                "entry": {
+                  "task": "idTASK1",
+                  "utc": "2026-10-19T01:00:00Z",
+                  "kind": "comment",
+                  "origin": "user",
+                  "author": "Pat",
+                  "role": "s3",
+                  "source": "WebSocketsBridge",
+                  "text": "Hold until 0700",
+                  "detail": "{\"revisions\":[{\"text\":\"Hold until the bridge is clear\",\"utc\":\"2026-10-19T01:00:00Z\"}]}",
+                  "edited": "2026-10-19T01:05:00Z",
+                  "deleted": null
+                },
+                "batchId": null
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "DeleteTaskComment",
+      "description": "Delete a comment (STP-1250 S3). Only its author may. The entry stays as a tombstone: deleted records when, and its text and revisions are cleared, so the history shows that a comment was deleted and by whom, not what it said. Answers true; TaskEventModified goes to every client of the session. Refused (success=false) for a system entry ('A system task history entry cannot be changed') and for someone else's comment ('Only its author can delete a comment').",
+      "x-stpSafety": "destructive",
+      "x-stpEmits": [
+        {
+          "event": "TaskEventModified",
+          "when": "if",
+          "condition": "the comment is deleted",
+          "to": "session"
+        },
+        {
+          "event": "StpMessage",
+          "when": "if",
+          "condition": "the call is refused",
+          "to": "caller"
+        }
+      ],
+      "params": [
+        {
+          "name": "entryPoid",
+          "description": "The comment's entry poid (from GetTaskHistory or TaskEventAdded).",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "result": {
+        "name": "ok",
+        "schema": {
+          "type": "boolean"
+        }
+      },
+      "x-stpEdgeCases": [
+        {
+          "when": "another author's comment",
+          "outcome": "refused",
+          "message": "Only its author can delete a comment"
+        },
+        {
+          "when": "a system entry",
+          "outcome": "refused",
+          "message": "A system task history entry cannot be changed"
+        }
+      ],
+      "examples": [
+        {
+          "name": "DeleteTaskComment (illustrative)",
+          "description": "Pat deletes their comment; the tombstone stays.",
+          "params": [
+            {
+              "name": "entryPoid",
+              "value": "idEV2"
+            }
+          ],
+          "result": {
+            "name": "ok",
+            "value": true
+          },
+          "x-stpEventsObserved": [
+            {
+              "event": "TaskEventModified",
+              "params": {
+                "poid": "idEV2",
+                "entry": {
+                  "task": "idTASK1",
+                  "utc": "2026-10-19T01:00:00Z",
+                  "kind": "comment",
+                  "origin": "user",
+                  "author": "Pat",
+                  "role": "s3",
+                  "source": "WebSocketsBridge",
+                  "text": null,
+                  "detail": null,
+                  "edited": null,
+                  "deleted": "2026-10-19T01:10:00Z"
+                },
+                "batchId": null
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
       "name": "SetCoaTaskOrg",
       "description": "Choose the Task Organization (TO) used for COAs; take toPoid from GetScenarioTaskOrgList, TaskOrgAdded or ImportTaskOrgContent. Without coaPoid: makes the TO (toPoid) the default for its affiliation - exactly the same as SetDefaultTaskOrg with poid = toPoid. With coaPoid: ties the TO to that one COA for the TO's affiliation - while that COA is current it uses this TO instead of the affiliation default, and a later SetCoaTaskOrg for the same COA and affiliation replaces the binding. The binding is stored on the COA (friendTaskOrg, or hostileTaskOrg for a hostile TO), so it is saved and loaded with the scenario and the COA's content; CoaModified goes to every client, and each client whose current COA it is gets TaskOrgSwitched when its task org changes. Deleting the TO clears the binding (CoaModified), and the COA falls back to the default. An unknown coaPoid or toPoid, or a toPoid that is not a TO, is refused (success=false with the reason). Answers null on success; TaskOrgSwitched reports a change to the caller's current task org. Engines before STP-1077 refuse coaPoid with success=false, \"per-COA task org is not supported yet\", and change nothing. Engines before STP-1091 answer success to an unknown toPoid and change nothing.",
       "x-stpSafety": "write",
@@ -5172,7 +5544,7 @@
     },
     {
       "name": "SetRole",
-      "description": "Switch this client's role: S2, S3, S4, FSO or ENG, or 'none' to clear it (as ResetRole does). S2 works on the hostile side and the other roles on the friendly side; the client's current COA and task org may change with the role (CoaSwitched, TaskOrgSwitched). Answers null once the engine confirms with RoleSwitched (role in lower case); a switch to the role the client already has answers at once with no event, and one not confirmed within 10 s is refused. createIfNone is ignored over this API: no COA is created. A missing or unknown role is refused (engines before STP-1091 accept any value and confirm it with RoleSwitched).",
+      "description": "Switch this client's role: S2, S3, S4, FSO or ENGINEER (ENG is accepted as an alias and confirmed as engineer), or 'none' to clear it (as ResetRole does). S2 works on the hostile side and the other roles on the friendly side; the client's current COA and task org may change with the role (CoaSwitched, TaskOrgSwitched). Answers null once the engine confirms with RoleSwitched (role in lower case); a switch to the role the client already has answers at once with no event, and one not confirmed within 10 s is refused. createIfNone is ignored over this API: no COA is created. A missing or unknown role is refused (engines before STP-1091 accept any value and confirm it with RoleSwitched). Engines before STP-1159 confirm ENG as eng, but the task recognizer does not know eng and keeps the client's previous role, so the client's tasks are stamped and described for that role; use ENGINEER with those engines.",
       "x-stpSafety": "write",
       "x-stpEmits": [
         {
@@ -5231,12 +5603,17 @@
         {
           "when": "missing role",
           "outcome": "refused",
-          "message": "SetRole: missing 'role' - name the role to switch to (s2, s3, s4, fso, eng, or none)"
+          "message": "SetRole: missing 'role' - name the role to switch to (s2, s3, s4, fso, engineer, or none)"
         },
         {
           "when": "unknown role value",
           "outcome": "refused",
-          "message": "SetRole: unknown role 'XO' - use s2, s3, s4, fso, eng, or none"
+          "message": "SetRole: unknown role 'XO' - use s2, s3, s4, fso, engineer, or none"
+        },
+        {
+          "when": "role 'eng' (the ENG alias)",
+          "outcome": "accepted",
+          "note": "success; events: RoleSwitched with role engineer; the task recognizer takes engineer at the next symbol or task change"
         }
       ],
       "examples": [
@@ -7427,6 +7804,13 @@
           "schema": {
             "type": "string"
           }
+        },
+        {
+          "name": "user",
+          "description": "Optional (STP-1260): the person using this client, as a display name. The task history names them as the author of the changes this client makes and the comments it adds; omit it for a service. A client that registers without one cannot add comments.",
+          "schema": {
+            "type": "string"
+          }
         }
       ],
       "x-descriptionStatus": "draft",
@@ -9165,6 +9549,101 @@
           "description": "Captured from a live engine (STP-1059), request wire, answered in 49 ms; result abbreviated from the capture."
         }
       ]
+    },
+    {
+      "name": "SearchSymbol",
+      "description": "Find the symbols whose names or spoken phrases match a typed text (STP-1373), best first: what a symbol editor's search box or a type-and-sketch flow lists. Answered by the SDK itself from the symbol index it loads (sketch-thru-plan-symbol-index.schema.json; the index ships with STP, by default in its installation directory) - the engine never receives it, so it works offline and costs no round trip. Ranking, the same in every SDK, reproduces STP's own symbol search: the text's words (case ignored, stop words dropped) must all match a symbol's phrases, tried in passes - exactly, as prefixes, by stem (Snowball English), by stem prefix, then within edits - and the first pass that finds anything answers; a text whose words find nothing together is searched word by word and the results merged. Within a pass, results are ordered by a tf-idf relevance score over the phrases (the classic Lucene similarity STP's search uses), equal scores by key - except that an entry whose phrase is exactly the text (case and spacing ignored) ranks first. Each result names the gesture that places the symbol (a point, or a tactical graphic's line, area, arrow ...) and its default affiliation (hostile for the symbols users place as enemy by default); `speech` is the phrase that matched. No match, or a text of only stop words or spaces, answers []. Read-only.",
+      "x-layer": "client",
+      "x-stpSafety": "read",
+      "x-stpEmits": [],
+      "params": [
+        {
+          "name": "text",
+          "description": "What the user typed, e.g. \"recon platoon\".",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "maxResults",
+          "description": "At most this many results; default 20.",
+          "required": false,
+          "schema": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 20
+          }
+        }
+      ],
+      "result": {
+        "name": "results",
+        "schema": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/SymbolSearchResult"
+          }
+        }
+      },
+      "x-stpEdgeCases": [
+        {
+          "when": "the SDK has no symbol index (not installed, or the configured path does not exist or does not parse)",
+          "outcome": "refused",
+          "message": "symbol index not available: <path> (<reason>)",
+          "note": "an error, never an empty result - [] would read as 'nothing matches'"
+        },
+        {
+          "when": "empty text, spaces, or only stop words",
+          "outcome": "accepted",
+          "note": "success, result []"
+        },
+        {
+          "when": "no symbol matches",
+          "outcome": "accepted",
+          "note": "success, result []"
+        }
+      ],
+      "examples": [
+        {
+          "name": "SearchSymbol (illustrative)",
+          "description": "An SDK-local call: the first two results for a typed word, from an invented index (json-api/symbol-search/fixture-index.json).",
+          "params": [
+            {
+              "name": "text",
+              "value": "zephyr"
+            },
+            {
+              "name": "maxResults",
+              "value": 2
+            }
+          ],
+          "result": {
+            "name": "results",
+            "value": [
+              {
+                "key": "F100",
+                "deltaSidc": "10031000001211000000",
+                "charlieSidc": "SFGPUCI--------",
+                "name": "Zephyr",
+                "speech": "ZEPHYR",
+                "gesture": "point",
+                "defaultAffiliation": "friend",
+                "score": 1.0
+              },
+              {
+                "key": "F110",
+                "deltaSidc": "10031000001211020000",
+                "charlieSidc": "",
+                "name": "Zephyr Lance",
+                "speech": "ZEPHYR LANCE",
+                "gesture": "point",
+                "defaultAffiliation": "friend",
+                "score": 0.5
+              }
+            ]
+          }
+        }
+      ]
     }
   ],
   "components": {
@@ -9376,7 +9855,7 @@
           },
           "creatorRole": {
             "type": "string",
-            "description": "Role that created the symbol (S2, S3, S4, FSO, ENG)."
+            "description": "Role that created the symbol (s2, s3, s4, fso, engineer)."
           },
           "interval": {
             "description": "Time interval of symbol validity.",
@@ -9719,7 +10198,7 @@
           },
           "creatorRole": {
             "type": "string",
-            "description": "Role that created the task (S2, S3, S4, FSO, ENG)."
+            "description": "Role that created the task (s2, s3, s4, fso, engineer)."
           },
           "interval": {
             "type": "object",
@@ -9837,7 +10316,7 @@
           },
           "creatorRole": {
             "type": "string",
-            "description": "Role that created the COA (S2, S3, S4, FSO, ENG)."
+            "description": "Role that created the COA (s2, s3, s4, fso, engineer)."
           },
           "state": {
             "$ref": "#/components/schemas/TaskOrgState",
@@ -9881,9 +10360,10 @@
           "S3",
           "S4",
           "FSO",
+          "ENGINEER",
           "ENG"
         ],
-        "description": "STP roles."
+        "description": "STP roles, sent in any case. ENGINEER is the engineer role; ENG is accepted as an alias of it and is sent to the engine as engineer (STP-1159; engines before STP-1159 pass eng through, and the task recognizer ignores it, keeping the client's previous role)."
       },
       "Affiliation": {
         "type": "string",
@@ -9911,7 +10391,7 @@
           },
           "creator_role": {
             "type": "string",
-            "description": "Role that created the task (S2, S3, S4, FSO, ENG)."
+            "description": "Role that created the task (s2, s3, s4, fso, engineer)."
           },
           "confidence": {
             "type": "number",
@@ -10019,7 +10499,7 @@
           },
           "creatorRole": {
             "type": "string",
-            "description": "Role that created the unit (S2, S3, S4, FSO, ENG)."
+            "description": "Role that created the unit (s2, s3, s4, fso, engineer)."
           },
           "confidence": {
             "type": "number",
@@ -10111,6 +10591,135 @@
             "description": "Optional client-defined extension properties. Values can be primitives, arrays, or nested objects. Round-tripped through STP. Omitted when null."
           }
         }
+      },
+      "TaskHistoryEntry": {
+        "description": "One entry of a task's history (STP-1250; engine fsTYPE task_event), as GetTaskHistory returns it and TaskEventAdded / TaskEventModified carry it. Not the StpTaskEvent schema, which is the wire shape of a task itself. Entries are written by the engine: a client never sends one, it only adds, edits and deletes its own comments.",
+        "type": "object",
+        "properties": {
+          "task": {
+            "type": "string",
+            "description": "The poid of the task the entry is about. Entries outlive a deleted task."
+          },
+          "utc": {
+            "type": "string",
+            "description": "When it happened, ISO 8601 UTC."
+          },
+          "kind": {
+            "type": "string",
+            "description": "What happened: created, edited, retasked, confidence, confirmed, unconfirmed, alternate_chosen, deleted, undone, or comment. Open: later engines add kinds (exported, status, placement); show an unknown kind as text."
+          },
+          "origin": {
+            "type": "string",
+            "enum": [
+              "system",
+              "user"
+            ],
+            "description": "system for an entry the engine recorded from a change; user for a comment."
+          },
+          "author": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The person who made the change or wrote the comment (the user their client registered with), or empty: never a device id."
+          },
+          "role": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The role the author's client had (s2, s3, ...), or empty."
+          },
+          "source": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The component that made the change (STP Agent, RESTConnector, WebSocketsBridge, implicit_tasking, ...)."
+          },
+          "text": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "A human-readable line (\"start_time 1 -> 2\", a comment's text). Empty for a deleted comment."
+          },
+          "detail": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "A JSON object as a string with the specifics (for an edit, the fields and their old and new values; for an edited comment, revisions). Cleared when a comment is deleted."
+          },
+          "edited": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "When a comment was last edited, ISO 8601 UTC; null if never."
+          },
+          "deleted": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "When a comment was deleted, ISO 8601 UTC; null if it stands. A deleted comment stays as a tombstone: no text, no revisions."
+          }
+        },
+        "additionalProperties": true
+      },
+      "SymbolSearchResult": {
+        "type": "object",
+        "description": "One SearchSymbol result (STP-1373): a symbol of the SDK's symbol index, as a picker shows it.",
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "The symbol's index key (its 2525D symbol-table row key): stable, unique within an index."
+          },
+          "deltaSidc": {
+            "type": "string",
+            "description": "The symbol's 20-digit MIL-STD-2525D SIDC (affiliation and status as the index stores them; set the affiliation before placing)."
+          },
+          "charlieSidc": {
+            "type": "string",
+            "description": "The symbol's 15-character MIL-STD-2525C SIDC, or \"\" for a 2525D-only symbol."
+          },
+          "name": {
+            "type": "string",
+            "description": "A display name: the 2525D entity name."
+          },
+          "speech": {
+            "type": "string",
+            "description": "The phrase that matched - also what to say, or to send with SendSpeech after the sketch (type-and-sketch)."
+          },
+          "gesture": {
+            "type": "string",
+            "description": "How the symbol is placed: \"point\" (units, equipment, installations, point graphics), or a tactical graphic's geometry, e.g. \"line\", \"area\", \"arrowfat\", \"arrowthin\", \"vee\", \"opencircle\", \"multipoint\"."
+          },
+          "defaultAffiliation": {
+            "type": "string",
+            "enum": [
+              "friend",
+              "hostile"
+            ],
+            "description": "The affiliation to place it with unless the user says otherwise."
+          },
+          "score": {
+            "type": "number",
+            "description": "The ranking score, higher first; comparable only within one answer."
+          }
+        },
+        "required": [
+          "key",
+          "deltaSidc",
+          "charlieSidc",
+          "name",
+          "speech",
+          "gesture",
+          "defaultAffiliation",
+          "score"
+        ],
+        "additionalProperties": false
       }
     }
   },
@@ -10188,6 +10797,16 @@
           "schema": {
             "type": "boolean"
           }
+        },
+        {
+          "name": "batchId",
+          "description": "The change set (STP-1265) this object arrived in, as the BatchStarted that opened it named it; null outside one. An engine that predates change sets omits it.",
+          "schema": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
         }
       ]
     },
@@ -10216,6 +10835,16 @@
           "schema": {
             "type": "boolean"
           }
+        },
+        {
+          "name": "batchId",
+          "description": "The change set (STP-1265) this object arrived in, as the BatchStarted that opened it named it; null outside one. An engine that predates change sets omits it.",
+          "schema": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
         }
       ]
     },
@@ -10236,6 +10865,16 @@
           "description": "True if this event is the result of an undo operation.",
           "schema": {
             "type": "boolean"
+          }
+        },
+        {
+          "name": "batchId",
+          "description": "The change set (STP-1265) this object arrived in, as the BatchStarted that opened it named it; null outside one. An engine that predates change sets omits it.",
+          "schema": {
+            "type": [
+              "string",
+              "null"
+            ]
           }
         }
       ]
@@ -10286,6 +10925,16 @@
           "schema": {
             "type": "boolean"
           }
+        },
+        {
+          "name": "batchId",
+          "description": "The change set (STP-1265) this object arrived in, as the BatchStarted that opened it named it; null outside one. An engine that predates change sets omits it.",
+          "schema": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
         }
       ]
     },
@@ -10314,6 +10963,16 @@
           "schema": {
             "type": "boolean"
           }
+        },
+        {
+          "name": "batchId",
+          "description": "The change set (STP-1265) this object arrived in, as the BatchStarted that opened it named it; null outside one. An engine that predates change sets omits it.",
+          "schema": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
         }
       ]
     },
@@ -10334,6 +10993,16 @@
           "description": "True if this event is the result of an undo operation.",
           "schema": {
             "type": "boolean"
+          }
+        },
+        {
+          "name": "batchId",
+          "description": "The change set (STP-1265) this object arrived in, as the BatchStarted that opened it named it; null outside one. An engine that predates change sets omits it.",
+          "schema": {
+            "type": [
+              "string",
+              "null"
+            ]
           }
         }
       ]
@@ -10363,6 +11032,16 @@
           "schema": {
             "type": "boolean"
           }
+        },
+        {
+          "name": "batchId",
+          "description": "The change set (STP-1265) this object arrived in, as the BatchStarted that opened it named it; null outside one. An engine that predates change sets omits it.",
+          "schema": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
         }
       ]
     },
@@ -10391,6 +11070,16 @@
           "schema": {
             "type": "boolean"
           }
+        },
+        {
+          "name": "batchId",
+          "description": "The change set (STP-1265) this object arrived in, as the BatchStarted that opened it named it; null outside one. An engine that predates change sets omits it.",
+          "schema": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
         }
       ]
     },
@@ -10411,6 +11100,16 @@
           "description": "True if this event is the result of an undo operation.",
           "schema": {
             "type": "boolean"
+          }
+        },
+        {
+          "name": "batchId",
+          "description": "The change set (STP-1265) this object arrived in, as the BatchStarted that opened it named it; null outside one. An engine that predates change sets omits it.",
+          "schema": {
+            "type": [
+              "string",
+              "null"
+            ]
           }
         }
       ]
@@ -10440,6 +11139,16 @@
           "schema": {
             "type": "boolean"
           }
+        },
+        {
+          "name": "batchId",
+          "description": "The change set (STP-1265) this object arrived in, as the BatchStarted that opened it named it; null outside one. An engine that predates change sets omits it.",
+          "schema": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
         }
       ]
     },
@@ -10468,6 +11177,16 @@
           "schema": {
             "type": "boolean"
           }
+        },
+        {
+          "name": "batchId",
+          "description": "The change set (STP-1265) this object arrived in, as the BatchStarted that opened it named it; null outside one. An engine that predates change sets omits it.",
+          "schema": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
         }
       ]
     },
@@ -10488,6 +11207,16 @@
           "description": "True if this event is the result of an undo operation.",
           "schema": {
             "type": "boolean"
+          }
+        },
+        {
+          "name": "batchId",
+          "description": "The change set (STP-1265) this object arrived in, as the BatchStarted that opened it named it; null outside one. An engine that predates change sets omits it.",
+          "schema": {
+            "type": [
+              "string",
+              "null"
+            ]
           }
         }
       ]
@@ -10544,6 +11273,16 @@
           "schema": {
             "type": "boolean"
           }
+        },
+        {
+          "name": "batchId",
+          "description": "The change set (STP-1265) this object arrived in, as the BatchStarted that opened it named it; null outside one. An engine that predates change sets omits it.",
+          "schema": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
         }
       ]
     },
@@ -10585,6 +11324,16 @@
           "schema": {
             "type": "boolean"
           }
+        },
+        {
+          "name": "batchId",
+          "description": "The change set (STP-1265) this object arrived in, as the BatchStarted that opened it named it; null outside one. An engine that predates change sets omits it.",
+          "schema": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
         }
       ]
     },
@@ -10605,6 +11354,76 @@
           "description": "True if this event is the result of an undo operation.",
           "schema": {
             "type": "boolean"
+          }
+        },
+        {
+          "name": "batchId",
+          "description": "The change set (STP-1265) this object arrived in, as the BatchStarted that opened it named it; null outside one. An engine that predates change sets omits it.",
+          "schema": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TaskEventAdded",
+      "description": "Emitted when a task's history gains an entry (STP-1250): an edit, a retask, a confirm, a delete, an undo - by any client, through any path - or a comment. Sent to every client of the session that registered it. A client following one task can append the entry without re-reading the history.",
+      "params": [
+        {
+          "name": "poid",
+          "description": "The entry's unique id (what EditTaskComment and DeleteTaskComment name).",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "entry",
+          "description": "The entry.",
+          "schema": {
+            "$ref": "#/components/schemas/TaskHistoryEntry"
+          }
+        },
+        {
+          "name": "batchId",
+          "description": "The change set (STP-1265) the change that produced the entry arrived in; null outside one.",
+          "schema": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TaskEventModified",
+      "description": "Emitted when a comment in a task's history is edited or deleted by its author (STP-1250 S3). The entry is sent whole: a deleted comment arrives as its tombstone (deleted set, no text). Sent to every client of the session that registered it.",
+      "params": [
+        {
+          "name": "poid",
+          "description": "The entry's unique id (what EditTaskComment and DeleteTaskComment name).",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "entry",
+          "description": "The entry.",
+          "schema": {
+            "$ref": "#/components/schemas/TaskHistoryEntry"
+          }
+        },
+        {
+          "name": "batchId",
+          "description": "The change set (STP-1265) the change that produced the entry arrived in; null outside one.",
+          "schema": {
+            "type": [
+              "string",
+              "null"
+            ]
           }
         }
       ]
@@ -10696,6 +11515,16 @@
           "schema": {
             "type": "boolean"
           }
+        },
+        {
+          "name": "batchId",
+          "description": "The change set (STP-1265) this object arrived in, as the BatchStarted that opened it named it; null outside one. An engine that predates change sets omits it.",
+          "schema": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
         }
       ]
     },
@@ -10723,6 +11552,16 @@
           "schema": {
             "type": "boolean"
           }
+        },
+        {
+          "name": "batchId",
+          "description": "The change set (STP-1265) this object arrived in, as the BatchStarted that opened it named it; null outside one. An engine that predates change sets omits it.",
+          "schema": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
         }
       ]
     },
@@ -10742,6 +11581,16 @@
           "description": "True if this event is the result of an undo operation.",
           "schema": {
             "type": "boolean"
+          }
+        },
+        {
+          "name": "batchId",
+          "description": "The change set (STP-1265) this object arrived in, as the BatchStarted that opened it named it; null outside one. An engine that predates change sets omits it.",
+          "schema": {
+            "type": [
+              "string",
+              "null"
+            ]
           }
         }
       ]
@@ -10767,9 +11616,113 @@
       "params": [
         {
           "name": "role",
-          "description": "Newly active role.",
+          "description": "Newly active role, in lower case as the engine names it: s2, s3, s4, fso or engineer (an ENG switch reports engineer); null when the role was cleared.",
           "schema": {
             "type": "string"
+          }
+        }
+      ]
+    },
+    {
+      "name": "BatchStarted",
+      "description": "Emitted when a change set begins (STP-1265): one client's bulk operation (a load, an import, a reconcile with its stray deletes, a Confirm all, a multi-delete) or a join's local replay. Every object event it produces carries its batchId; a client can therefore tell a bulk arrival from a lone add without timing. Sent to every client of the session, the one that opened it included. Do not wait for it before handling objects: an engine that predates change sets sends none.",
+      "params": [
+        {
+          "name": "batchId",
+          "description": "The id every object event of the batch carries as its trailing batchId.",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "kind",
+          "description": "What the batch is: load, import, reconcile, sync, join, approve_all, unapprove_all, delete, or the kind a client's explicit scope gave.",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "expected",
+          "description": "How many objects the requester expected to write; -1 when it did not say. An upper bound, not a promise.",
+          "schema": {
+            "type": "integer"
+          }
+        },
+        {
+          "name": "isOwn",
+          "description": "True when this client's connection opened the batch.",
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        {
+          "name": "origin",
+          "description": "'replay' for a join replaying the session's resident objects locally (nothing changed in the engine), else 'live'.",
+          "schema": {
+            "type": "string",
+            "enum": [
+              "live",
+              "replay"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "BatchEnded",
+      "description": "Emitted when a change set ends (STP-1265), after its last object event. A client that held work for the batch (a pane refresh, a selection) runs it now. The engine ends a batch itself when its requester disconnects (abandoned) or it goes idle too long (expired).",
+      "params": [
+        {
+          "name": "batchId",
+          "description": "The id every object event of the batch carries as its trailing batchId.",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "kind",
+          "description": "What the batch is: load, import, reconcile, sync, join, approve_all, unapprove_all, delete, or the kind a client's explicit scope gave.",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "status",
+          "description": "How it ended: completed, cancelled or failed (sent by the requester), or abandoned or expired (decided by the engine).",
+          "schema": {
+            "type": "string",
+            "enum": [
+              "completed",
+              "cancelled",
+              "failed",
+              "abandoned",
+              "expired"
+            ]
+          }
+        },
+        {
+          "name": "informs",
+          "description": "How many object events the engine stamped with the batch; 0 when unknown (a local replay).",
+          "schema": {
+            "type": "integer"
+          }
+        },
+        {
+          "name": "isOwn",
+          "description": "True when this client's connection opened the batch.",
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        {
+          "name": "origin",
+          "description": "'replay' for a join replaying the session's resident objects locally (nothing changed in the engine), else 'live'.",
+          "schema": {
+            "type": "string",
+            "enum": [
+              "live",
+              "replay"
+            ]
           }
         }
       ]

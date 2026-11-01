@@ -57,6 +57,9 @@ export function exclusionReason(method: ContractMethod): string | null {
   if (method["x-layer"] === "transport") {
     return "transport-layer message, built and consumed by the SDK connectors only";
   }
+  if (method["x-layer"] === "client") {
+    return "answered by the SDK in the client (x-layer: client); the engine never receives it, so a call to STP answers 'No handler'";
+  }
   return null;
 }
 

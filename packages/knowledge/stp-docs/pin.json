@@ -1,7 +1,7 @@
 {
   "repo": "hyssostech/stp-docs",
   "path": "docs",
-  "ref": "39cff48c71b1b266df0ef8337dc320925c7c62ff",
+  "ref": "107ce729662f05a7170052596d60d1628257288e",
   "license": "MIT",
   "count": 31,
   "excluded": [
@@ -29,7 +29,7 @@
     },
     {
       "path": "docs/guides/coas.md",
-      "blob": "54b30986e96f17e6551bfe1705bd570a25994ac6"
+      "blob": "221ec6e7377dd4abddfee792ff711578021fa283"
     },
     {
       "path": "docs/guides/connection-lifecycle.md",
@@ -57,7 +57,7 @@
     },
     {
       "path": "docs/guides/roles.md",
-      "blob": "933e974a5c8ad317b67837638f6a13450f1dba46"
+      "blob": "5de2be4d72a2cf626a356fe7cc48824185473913"
     },
     {
       "path": "docs/guides/scenarios.md",
@@ -77,7 +77,7 @@
     },
     {
       "path": "docs/guides/symbols-and-rendering.md",
-      "blob": "fa82c8d132820fc2d790ad917e2281e4168ce53e"
+      "blob": "69ba5fe1a5eb34c71c5369df2295dac11ec57d5b"
     },
     {
       "path": "docs/guides/task-org.md",
@@ -97,7 +97,7 @@
     },
     {
       "path": "docs/intro.md",
-      "blob": "5fe61730ef3c2d8bcefb2f60dfd211d7a6dff18a"
+      "blob": "30cf1fc2d5cd705e4f006576e035136bd134490a"
     },
     {
       "path": "docs/plugins/connectors.md",
@@ -125,7 +125,7 @@
     },
     {
       "path": "docs/reference/method-safety.md",
-      "blob": "fad8511267c74bb522b971852604cfe4d8bdc8ed"
+      "blob": "26dca3d3d336019e8c296679559fc45c976ebe7d"
     },
     {
       "path": "docs/reference/rest-connector.md",

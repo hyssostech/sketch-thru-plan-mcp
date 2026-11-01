@@ -34,24 +34,24 @@ Plans designed in STP are executable with little additional user intervention ot
 | **Task Org / ORBAT** | Pre-defined unit organizations that enable streamlined symbol placement by name/designator |
 | **Scenario** | A collection of COAs, symbols, tasks, and task orgs representing a plan |
 | **Session** | An isolated context in STP that supports multi-user collaboration |
-| **Role** | A planning role (S2, S3, S4, Eng, FSO) that affects default affiliation and active task org |
+| **Role** | A planning role (S2, S3, S4, Engineer, FSO) that affects default affiliation and active task org |
 | **Plugin** | Swappable components for connectors, speech, maps, and rendering |
 
 ## Architecture
 
 ```
-┌─────────────┐     ┌──────────────┐     ┌──────────────┐
+┌──────────────┐     ┌──────────────┐     ┌───────────────┐
 │  Browser App │◄───►│  STP SDK     │◄───►│  STP Engine   │
 │  (Map + UI)  │     │  (JS/TS)     │     │  (Server)     │
-└─────────────┘     └──────────────┘     └──────────────┘
+└──────────────┘     └──────────────┘     └───────────────┘
        │                    │
        ▼                    ▼
- ┌───────────┐     ┌───────────────┐
+ ┌────────────┐     ┌───────────────┐
  │ Map Plugin │     │ Speech Plugin │
  │ (Leaflet,  │     │ (Azure, AWS)  │
  │  Google,   │     └───────────────┘
  │  ArcGIS)   │
- └───────────┘
+ └────────────┘
 ```
 
 The SDK communicates with the STP Engine via a **connector plugin** (WebSocket by default). Map presentation and speech recognition are handled by replaceable plugins.

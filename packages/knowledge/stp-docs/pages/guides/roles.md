@@ -6,7 +6,7 @@ sidebar_position: 4
 
 # Roles
 
-STP supports multiple planning roles: **S2** (Intel), **S3** (Operations), **S4** (Logistics), **Eng** (Engineering), and **FSO** (Fire Support Officer). Selecting a role causes the following effects:
+STP supports multiple planning roles: **S2** (Intel), **S3** (Operations), **S4** (Logistics), **Engineer** (Engineering), and **FSO** (Fire Support Officer). Selecting a role causes the following effects:
 
 - A **TO/ORBAT** matching the role's default affiliation (`hostile` for S2, `friend` for the rest) is activated, if available
 - Symbols created under the role are **tagged** with the `creatorRole` property
@@ -53,9 +53,21 @@ export enum StpRole {
     s3 = 'S3',
     s4 = 'S4',
     fso = 'FSO',
+    engineer = 'ENGINEER',
+    /** @deprecated Use StpRole.engineer */
     eng = 'ENG',
 }
 ```
+
+The engine names the engineer role `engineer`; use `StpRole.engineer`. `ENG` is
+still accepted as an alias: from STP-1159 the engine takes `eng` as `engineer`,
+and `onRoleSwitched` reports `engineer` for either. An engine before STP-1159
+confirms a switch to `eng`, but its task recognizer does not know that role and
+keeps the previous one, so the client's tasks are stamped and described for
+that role. Use `ENGINEER` with those engines.
+
+`onRoleSwitched` reports the role in lower case, as the engine names it: `s2`,
+`s3`, `s4`, `fso` or `engineer`.
 
 ## Effect on Task Orgs
 
@@ -67,7 +79,7 @@ Role switching automatically selects the TO that matches the role's default affi
 | S3 | Friend | Friendly TO (if loaded) |
 | S4 | Friend | Friendly TO (if loaded) |
 | FSO | Friend | Friendly TO (if loaded) |
-| Eng | Friend | Friendly TO (if loaded) |
+| Engineer | Friend | Friendly TO (if loaded) |
 
 If no TO matching the affiliation has been loaded, the TO language is cleared. See [Task Org / ORBAT](./task-org) for full details on activation rules.
 

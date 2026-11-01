@@ -49,7 +49,7 @@ describe("generateTools", () => {
     expect(by("PullC2SIMInitialization").annotations.openWorldHint).toBe(true);
     expect(by("AddSymbol")._meta["stp/emits"]).toContainEqual({ event: "SymbolAdded", when: "always", to: "session" });
     expect(by("SetCoaTaskOrg")._meta["stp/knownIssues"]).toBeUndefined(); // STP-1077 fixed (contract 0.9.5)
-    expect(result.tools.filter((t) => t._meta["stp/knownIssues"])).toEqual([]); // none left in 0.9.7
+    expect(result.tools.filter((t) => t._meta["stp/knownIssues"])).toEqual([]); // none left in 0.9.11
     expect(by("AddTaskOrgUnit")._meta["stp/knownIssues"]).toBeUndefined(); // STP-1091 fixed (contract 0.9.4)
     expect(by("DeleteCoa")._meta["stp/knownIssues"]).toBeUndefined(); // STP-1078/1079 fixed
     expect(by("GetScenarioContent")._meta["stp/emits"]).toBeUndefined();
@@ -59,6 +59,14 @@ describe("generateTools", () => {
     const toolNames = new Set(result.tools.map((t) => t.name));
     expect(toolNames.has("Register")).toBe(false);
     expect(toolNames.has("Request")).toBe(false);
+  });
+
+  it("never exposes a method the SDK answers in the client", () => {
+    const client = contract.methods.filter((m) => m["x-layer"] === "client").map((m) => m.name);
+    expect(client).toContain("SearchSymbol"); // contract 0.9.10
+    const toolNames = new Set(result.tools.map((t) => t.name));
+    for (const name of client) expect(toolNames.has(name)).toBe(false);
+    expect(result.excluded.find((e) => e.name === "SearchSymbol")?.reason).toMatch(/engine never receives it/);
   });
 
   it("emits self-contained input schemas with valid MCP tool names", () => {

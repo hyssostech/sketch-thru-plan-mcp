@@ -1,5 +1,5 @@
 {
-  "contractVersion": "0.9.7",
+  "contractVersion": "0.9.11",
   "tools": [
     {
       "name": "SendPenDown",
@@ -1159,7 +1159,7 @@
               },
               "creatorRole": {
                 "type": "string",
-                "description": "Role that created the symbol (S2, S3, S4, FSO, ENG)."
+                "description": "Role that created the symbol (s2, s3, s4, fso, engineer)."
               },
               "interval": {
                 "description": "Time interval of symbol validity.",
@@ -1536,7 +1536,7 @@
               },
               "creatorRole": {
                 "type": "string",
-                "description": "Role that created the symbol (S2, S3, S4, FSO, ENG)."
+                "description": "Role that created the symbol (s2, s3, s4, fso, engineer)."
               },
               "interval": {
                 "description": "Time interval of symbol validity.",
@@ -2409,7 +2409,7 @@
               },
               "creatorRole": {
                 "type": "string",
-                "description": "Role that created the symbol (S2, S3, S4, FSO, ENG)."
+                "description": "Role that created the symbol (s2, s3, s4, fso, engineer)."
               },
               "interval": {
                 "description": "Time interval of symbol validity.",
@@ -2818,7 +2818,7 @@
               },
               "creatorRole": {
                 "type": "string",
-                "description": "Role that created the symbol (S2, S3, S4, FSO, ENG)."
+                "description": "Role that created the symbol (s2, s3, s4, fso, engineer)."
               },
               "interval": {
                 "description": "Time interval of symbol validity.",
@@ -3335,7 +3335,7 @@
               },
               "creatorRole": {
                 "type": "string",
-                "description": "Role that created the task (S2, S3, S4, FSO, ENG)."
+                "description": "Role that created the task (s2, s3, s4, fso, engineer)."
               },
               "interval": {
                 "type": "object",
@@ -3532,7 +3532,7 @@
               },
               "creatorRole": {
                 "type": "string",
-                "description": "Role that created the task (S2, S3, S4, FSO, ENG)."
+                "description": "Role that created the task (s2, s3, s4, fso, engineer)."
               },
               "interval": {
                 "type": "object",
@@ -3745,6 +3745,143 @@
             "when": "may",
             "condition": "the confirmed alternate needs tactical graphics, which are created",
             "to": "session"
+          }
+        ]
+      }
+    },
+    {
+      "name": "GetTaskHistory",
+      "description": "Return a task's history (STP-1250), newest first: what was done to the task, by whom and from where, and the comments on it. Each item is the entry's poid (what EditTaskComment and DeleteTaskComment name) and the entry. Entries outlive a deleted task, so a deleted task's poid still returns its history. Read-only. A task with no history, or an unknown poid, returns []. To follow it live, register TaskEventAdded and TaskEventModified.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "taskPoid": {
+            "type": "string",
+            "description": "The task's unique id (from TaskAdded)."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false
+      },
+      "_meta": {
+        "stp/safety": "read"
+      }
+    },
+    {
+      "name": "AddTaskComment",
+      "description": "Add a comment to a task's history (STP-1250 S3). The engine stamps it with the author (the user this client registered with), the role, the time and kind comment; the client sends only the text. Answers the new entry's poid; TaskEventAdded goes to every client of the session. Refused (success=false) when the client registered without a user ('A comment needs its author: this client sends no user'), without a task ('A comment needs the task it is on') or without text ('A comment needs text').",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "taskPoid": {
+            "type": "string",
+            "description": "The task's unique id (from TaskAdded)."
+          },
+          "text": {
+            "type": "string",
+            "description": "The comment. Required; blank is refused."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "_meta": {
+        "stp/safety": "write",
+        "stp/emits": [
+          {
+            "event": "TaskEventAdded",
+            "when": "if",
+            "condition": "the comment is added",
+            "to": "session"
+          },
+          {
+            "event": "StpMessage",
+            "when": "if",
+            "condition": "the call is refused",
+            "to": "caller"
+          }
+        ]
+      }
+    },
+    {
+      "name": "EditTaskComment",
+      "description": "Change the text of a comment (STP-1250 S3). Only its author may; the earlier text is kept in the entry's detail as revisions, and edited records when. Answers true; TaskEventModified goes to every client of the session. Refused (success=false) for a system entry ('A system task history entry cannot be changed'), for someone else's comment ('Only its author can edit a comment'), for a deleted comment ('The comment was deleted') and for blank text ('A comment needs text; delete it instead').",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "entryPoid": {
+            "type": "string",
+            "description": "The comment's entry poid (from GetTaskHistory or TaskEventAdded)."
+          },
+          "text": {
+            "type": "string",
+            "description": "The new text. Required; blank is refused."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "_meta": {
+        "stp/safety": "write",
+        "stp/emits": [
+          {
+            "event": "TaskEventModified",
+            "when": "if",
+            "condition": "the comment is changed",
+            "to": "session"
+          },
+          {
+            "event": "StpMessage",
+            "when": "if",
+            "condition": "the call is refused",
+            "to": "caller"
+          }
+        ]
+      }
+    },
+    {
+      "name": "DeleteTaskComment",
+      "description": "Delete a comment (STP-1250 S3). Only its author may. The entry stays as a tombstone: deleted records when, and its text and revisions are cleared, so the history shows that a comment was deleted and by whom, not what it said. Answers true; TaskEventModified goes to every client of the session. Refused (success=false) for a system entry ('A system task history entry cannot be changed') and for someone else's comment ('Only its author can delete a comment').",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "entryPoid": {
+            "type": "string",
+            "description": "The comment's entry poid (from GetTaskHistory or TaskEventAdded)."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "_meta": {
+        "stp/safety": "destructive",
+        "stp/emits": [
+          {
+            "event": "TaskEventModified",
+            "when": "if",
+            "condition": "the comment is deleted",
+            "to": "session"
+          },
+          {
+            "event": "StpMessage",
+            "when": "if",
+            "condition": "the call is refused",
+            "to": "caller"
           }
         ]
       }
@@ -4040,7 +4177,7 @@
               },
               "creatorRole": {
                 "type": "string",
-                "description": "Role that created the COA (S2, S3, S4, FSO, ENG)."
+                "description": "Role that created the COA (s2, s3, s4, fso, engineer)."
               },
               "state": {
                 "$ref": "#/$defs/TaskOrgState",
@@ -4155,7 +4292,7 @@
               },
               "creatorRole": {
                 "type": "string",
-                "description": "Role that created the COA (S2, S3, S4, FSO, ENG)."
+                "description": "Role that created the COA (s2, s3, s4, fso, engineer)."
               },
               "state": {
                 "$ref": "#/$defs/TaskOrgState",
@@ -4255,7 +4392,7 @@
     },
     {
       "name": "SetRole",
-      "description": "Switch this client's role: S2, S3, S4, FSO or ENG, or 'none' to clear it (as ResetRole does). S2 works on the hostile side and the other roles on the friendly side; the client's current COA and task org may change with the role (CoaSwitched, TaskOrgSwitched). Answers null once the engine confirms with RoleSwitched (role in lower case); a switch to the role the client already has answers at once with no event, and one not confirmed within 10 s is refused. createIfNone is ignored over this API: no COA is created. A missing or unknown role is refused (engines before STP-1091 accept any value and confirm it with RoleSwitched).",
+      "description": "Switch this client's role: S2, S3, S4, FSO or ENGINEER (ENG is accepted as an alias and confirmed as engineer), or 'none' to clear it (as ResetRole does). S2 works on the hostile side and the other roles on the friendly side; the client's current COA and task org may change with the role (CoaSwitched, TaskOrgSwitched). Answers null once the engine confirms with RoleSwitched (role in lower case); a switch to the role the client already has answers at once with no event, and one not confirmed within 10 s is refused. createIfNone is ignored over this API: no COA is created. A missing or unknown role is refused (engines before STP-1091 accept any value and confirm it with RoleSwitched). Engines before STP-1159 confirm ENG as eng, but the task recognizer does not know eng and keeps the client's previous role, so the client's tasks are stamped and described for that role; use ENGINEER with those engines.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -4277,9 +4414,10 @@
               "S3",
               "S4",
               "FSO",
+              "ENGINEER",
               "ENG"
             ],
-            "description": "STP roles."
+            "description": "STP roles, sent in any case. ENGINEER is the engineer role; ENG is accepted as an alias of it and is sent to the engine as engineer (STP-1159; engines before STP-1159 pass eng through, and the task recognizer ignores it, keeping the client's previous role)."
           }
         }
       },
@@ -6096,6 +6234,10 @@
     {
       "name": "Request",
       "reason": "transport-layer message, built and consumed by the SDK connectors only"
+    },
+    {
+      "name": "SearchSymbol",
+      "reason": "answered by the SDK in the client (x-layer: client); the engine never receives it, so a call to STP answers 'No handler'"
     }
   ]
 }

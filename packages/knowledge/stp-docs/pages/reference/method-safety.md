@@ -17,7 +17,7 @@ This page answers these questions:
 Each method in the
 [OpenRPC contract](https://github.com/hyssostech/sketch-thru-plan-sdk-js/tree/main/json-api/sketch-thru-plan-api.json)
 carries this information in extension fields whose names start with `x-`. The
-tables below are generated from contract version 0.9.6. They leave out the
+tables below are generated from contract version 0.9.11. They leave out the
 two transport messages, `Register` and `Request` (marked `"x-layer":
 "transport"`), which the SDK connectors send for you.
 
@@ -45,7 +45,7 @@ Every method has one of three classes:
   resident object with the same poid), and pushing to an external C2SIM
   server (which can reset that server).
 
-Contract 0.9.6 has 16 read, 35 write and 19 destructive methods.
+Contract 0.9.11 has 18 read, 37 write and 20 destructive methods.
 
 A client that must not change anything calls only `read` methods. A client
 that acts for a user, such as an AI agent, should ask the user before every
@@ -54,7 +54,7 @@ that acts for a user, such as an AI agent, should ask the user before every
 
 ### Read methods
 
-These 16 methods change nothing. `JoinScenarioSession` is the only one that
+These 18 methods change nothing. `JoinScenarioSession` is the only one that
 produces events: it replays the current scenario to your client only.
 
 | Method | Returns | Known issues |
@@ -63,6 +63,7 @@ produces events: it replays the current scenario to your client only.
 | `JoinScenarioSession` | `null` |  |
 | `HasActiveScenario` | `active` (boolean) |  |
 | `GetTaskOrgContent` | `content` (string) |  |
+| `GetTaskHistory` | `entries` (array) |  |
 | `GetCoaContent` | `content` (string) |  |
 | `ConvertC2SIMContent` | `content` (string) |  |
 | `GetC2SIMContent` | `content` (string) |  |
@@ -75,14 +76,15 @@ produces events: it replays the current scenario to your client only.
 | `GetPoidObject` | `object` (object) |  |
 | `GetScenarioTaskOrgList` | `taskOrgs` (array) |  |
 | `GetTaskOrgObjects` | `objects` (array) |  |
+| `SearchSymbol` | `results` (array) |  |
 
 ### Write methods
 
-These 35 methods change the scenario or the session. "Call" says whether the
+These 37 methods change the scenario or the session. "Call" says whether the
 method is a request (it gets a reply) or an inform (fire and forget), and for
 an inform which event always confirms it. An event the contract lists but a
 known issue holds back is marked "intended, not sent yet": read the state back
-instead. No method in contract 0.9.6 has one.
+instead. No method in contract 0.9.11 has one.
 
 | Method | Call | Known issues |
 |---|---|---|
@@ -104,6 +106,8 @@ instead. No method in contract 0.9.6 has one.
 | `AddTask` | inform; confirmed by `TaskAdded` |  |
 | `UpdateTask` | inform; events depend on the outcome |  |
 | `ConfirmTask` | inform; events depend on the outcome |  |
+| `AddTaskComment` | request |  |
+| `EditTaskComment` | request |  |
 | `SetCoaTaskOrg` | request |  |
 | `ResetCoaTaskOrg` | request |  |
 | `SetCurrentCoa` | request |  |
@@ -124,8 +128,8 @@ instead. No method in contract 0.9.6 has one.
 
 ### Destructive methods
 
-These 19 methods can delete or overwrite data:
-`CreateNewScenario`, `LoadNewScenario`, `ImportPlanData`, `SyncScenarioSession`, `DeleteSymbol`, `ImportTaskOrgContent`, `DeleteTaskOrg`, `DeleteTaskOrgUnit`, `DeleteTaskOrgRelationship`, `DeleteTask`, `ImportCoaContent`, `DeleteCoa`, `ImportCoaFromObjectSet`, `ImportPlanDataFromObjectSet`, `ImportTaskOrgFromObjectSet`, `LoadNewScenarioFromObjectSet`, `PushC2SIMContent`, `SyncScenarioSessionFromObjectSet` and `ResetStpScenario`.
+These 20 methods can delete or overwrite data:
+`CreateNewScenario`, `LoadNewScenario`, `ImportPlanData`, `SyncScenarioSession`, `DeleteSymbol`, `ImportTaskOrgContent`, `DeleteTaskOrg`, `DeleteTaskOrgUnit`, `DeleteTaskOrgRelationship`, `DeleteTask`, `DeleteTaskComment`, `ImportCoaContent`, `DeleteCoa`, `ImportCoaFromObjectSet`, `ImportPlanDataFromObjectSet`, `ImportTaskOrgFromObjectSet`, `LoadNewScenarioFromObjectSet`, `PushC2SIMContent`, `SyncScenarioSessionFromObjectSet` and `ResetStpScenario`.
 
 The third column is the confirmation text from the shared call-validation
 rules ([`sketch-thru-plan-validations.json`](https://github.com/hyssostech/sketch-thru-plan-sdk-js/tree/main/json-api/sketch-thru-plan-validations.json)),
@@ -143,6 +147,7 @@ which a client can show the user before the call.
 | `DeleteTaskOrgUnit` | inform; confirmed by `TaskOrgUnitDeleted` | Deletes the task org unit `poid`. |  |
 | `DeleteTaskOrgRelationship` | inform; confirmed by `TaskOrgRelationshipDeleted` | Deletes the task org relationship `poid`. |  |
 | `DeleteTask` | inform; confirmed by `TaskDeleted` | Deletes the task `poid`. |  |
+| `DeleteTaskComment` | request | Deletes the comment `entryPoid`; a note that it was deleted stays. |  |
 | `ImportCoaContent` | request | Imports COA content; an imported object REPLACES a resident one with the same poid. |  |
 | `DeleteCoa` | inform; confirmed by `CoaDeleted` | Deletes the COA `poid`. |  |
 | `ImportCoaFromObjectSet` | request | Imports the objects given; an imported object REPLACES a resident one with the same poid. |  |
@@ -181,7 +186,7 @@ A method marked `"x-stpInform": true` is fire and forget: the engine sends no
 reply, and the outcome arrives only as events. For example `AddCoa` is
 confirmed by `CoaAdded`, and `DeleteSymbol` by `SymbolDeleted`. Every other
 method has a `result` and gets a reply, which is `success: false` with the
-reason when STP refuses the call. Contract 0.9.6 has 35 informs.
+reason when STP refuses the call. Contract 0.9.11 has 35 informs.
 
 An inform that STP cannot apply is often ignored without a message. When the
 confirming event does not arrive, read the state back, for example with
@@ -236,14 +241,14 @@ what to do in the meantime. A key is removed from the contract once the fix
 ships, and the description then says how engines before the fix behave: STP-1080
 and STP-1089 were removed in contract 0.9.2, STP-1090 in 0.9.3, STP-1091 in 0.9.4, STP-1077 in 0.9.5.
 
-No method in contract 0.9.6 lists a known issue, so the "Known issues" columns
+No method in contract 0.9.11 lists a known issue, so the "Known issues" columns
 of the tables above are empty.
 
 ## Bad input: `x-stpEdgeCases`
 
 `x-stpEdgeCases` records what the engine did, on a live capture, with bad or
 unusual input: a missing or unknown poid, no active scenario, malformed
-content, an inform sent through `Request`, and so on. Contract 0.9.6 has 258
+content, an inform sent through `Request`, and so on. Contract 0.9.11 has 270
 cases. Each case has:
 
 - `when`: the input;

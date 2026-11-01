@@ -20,7 +20,10 @@ export interface ContractMethod {
   result?: ContentDescriptor;
   /** "none" when the engine's WebSocketsBridge has no dispatch arm for the method. */
   "x-engineDispatch"?: string;
-  /** "transport" for connector-level messages an application never sends. */
+  /**
+   * "transport" for connector-level messages an application never sends; "client" for a method
+   * the SDK answers itself, which the engine never receives (SearchSymbol, contract 0.9.10).
+   */
   "x-layer"?: string;
   "x-descriptionStatus"?: string;
   /** read | write | destructive (STP-1059, contract 0.7.0). Every method carries one. */

@@ -35,7 +35,7 @@ A COA object (`StpCoa`) has these properties:
 | `poid` | Unique id of the COA, assigned by STP |
 | `name` | COA name, for example `B2` |
 | `affiliation` | `friend` or `hostile` |
-| `creatorRole` | Role that created the COA: `S2`, `S3`, `S4`, `FSO` or `ENG` |
+| `creatorRole` | Role that created the COA: `s2`, `s3`, `s4`, `fso` or `engineer` |
 
 **Every client has its own current COA.** Sketch and speech recognition,
 edits and imports apply to the current COA of the client that makes them, so

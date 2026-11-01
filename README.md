@@ -30,7 +30,7 @@ Two servers, one repo:
 
 | Package | What it is |
 |---|---|
-| `packages/contract-tools` | The pinned OpenRPC contract (`contract/`, with `pin.json` naming its source commit) and the generator that turns it into MCP tool definitions. Methods the engine does not dispatch, and transport-layer messages, are excluded with their reason. Next to the contract, the pinned call-validation rules and their schema (`sketch-thru-plan-validations*.json`, `validations-pin.json`), loaded by `loadValidations`. |
+| `packages/contract-tools` | The pinned OpenRPC contract (`contract/`, with `pin.json` naming its source commit) and the generator that turns it into MCP tool definitions. Methods the engine does not dispatch, transport-layer messages and methods the SDK answers in the client (`x-layer: client`) are excluded with their reason. Next to the contract, the pinned call-validation rules and their schema (`sketch-thru-plan-validations*.json`, `validations-pin.json`), loaded by `loadValidations`. |
 | `packages/knowledge` | The knowledge server (`stp-mcp-knowledge`, stdio): the contract and the public STP docs as read-only tools and resources (below). The docs are pinned in `sketch-thru-plan-sdk-docss/` (`pin.json` names the source commit and each page's git blob id); `eval/search-eval.json` is the retrieval evaluation set. |
 | `packages/live` | The live-STP server (`stp-mcp-live`, stdio): the contract's read methods as tools against a running engine, a live context of recent STP events as resources, and - in write mode - the write methods, checked before and after each call (below). `src/validate.ts` is the call-validation evaluator. `test/fixtures/session.jsonl` and `write-session.jsonl` are recorded wire sessions the integration tests replay; `scripts/` holds the recorders and the live smoke tests, none run in CI. |
 
@@ -96,7 +96,7 @@ client when the model calls `SetRole` or `SetCurrentCoa`, and then the context s
 
 - **One tool per read method of the contract** (`x-stpSafety: read`, and dispatched by the engine):
   `GetScenarioContent`, `GetCoaContent`, `GetTaskOrgContent`, `GetScenarioTaskOrgList`,
-  `GetPoidObject`, `GetAllObjects`, `HasActiveScenario` and the rest - 16 with contract 0.9.7. Name,
+  `GetPoidObject`, `GetAllObjects`, `HasActiveScenario` and the rest - 17 with contract 0.9.11. Name,
   description, input schema and annotations come from `generateTools` unchanged; arguments are
   validated against that schema before anything is sent. Each answer is
   `{ answer, notes?, truncated?, provenance: { endpoint, session, answeredAt, contract: { version, ref } } }`.
@@ -136,7 +136,8 @@ the read tools are the source of truth. On a reconnect it is rebuilt from the en
 
 Unless `STP_WRITE=1`, only `read` methods become tools; no write or destructive method is listed (a
 test asserts it), and calling one by name is refused with the reason (and logged). Methods the engine
-does not dispatch and transport-layer messages are never exposed, in any mode. Besides the tools'
+does not dispatch, transport-layer messages and methods the SDK answers in the client
+(`x-layer: client`, such as `SearchSymbol`) are never exposed, in any mode. Besides the tools'
 calls a read-only server sends only `Register`, `JoinScenarioSession` and `HasActiveScenario`.
 
 ### Write mode

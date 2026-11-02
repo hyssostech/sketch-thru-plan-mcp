@@ -26,6 +26,7 @@ import {
   type ValidationsPin,
 } from "stp-mcp-contract-tools";
 import { ACTIONS_URI, ActionLog, MAX_ACTIONS } from "./actions.js";
+import { coerceJsonArgs } from "./coerce.js";
 import { DEFAULT_V10_TIMEOUT_S, type LiveConfig } from "./config.js";
 import { StpConnection, StpError } from "./connection.js";
 import { CONTEXT_URI, LiveContext, MAX_ENTITIES, MAX_RECENT_EVENTS, RESOURCE_KINDS, entityUri, type EntityKind } from "./context.js";
@@ -167,9 +168,11 @@ export function createLiveServer(options: LiveServerOptions): LiveServer {
   const byName = new Map(tools.map((t) => [t.name, t]));
   const ajv = new AjvJsonSchemaValidator();
   // Every dispatched method gets a validator, so a write called by name is checked like a listed one.
+  const generated = generateTools(contract).tools;
   const validators = new Map<string, JsonSchemaValidator<unknown>>(
-    generateTools(contract).tools.map((t) => [t.name, ajv.getValidator(t.inputSchema as JsonSchemaType)]),
+    generated.map((t) => [t.name, ajv.getValidator(t.inputSchema as JsonSchemaType)]),
   );
+  const inputSchemas = new Map(generated.map((t) => [t.name, t.inputSchema as unknown as Record<string, unknown>]));
   const v10TimeoutS = config.v10TimeoutS ?? DEFAULT_V10_TIMEOUT_S;
   const actions = new ActionLog(config.actionLog, options.actionLogCap ?? MAX_ACTIONS);
   const contractRef = { version: contract.info.version, ref: pin.ref };
@@ -340,7 +343,8 @@ export function createLiveServer(options: LiveServerOptions): LiveServer {
 
   mcp.server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const name = request.params.name;
-    const args = (request.params.arguments ?? {}) as Record<string, unknown>;
+    // An object argument sent as JSON text is parsed back (see coerce.ts) before any check sees it.
+    const args = coerceJsonArgs(inputSchemas.get(name), (request.params.arguments ?? {}) as Record<string, unknown>).args;
 
     if (name === LIVE_STATUS.name) {
       let problem: string | undefined;

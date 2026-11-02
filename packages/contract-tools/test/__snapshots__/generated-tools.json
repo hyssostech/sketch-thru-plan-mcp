@@ -20,6 +20,7 @@
         "additionalProperties": false,
         "$defs": {
           "LatLon": {
+            "type": "object",
             "description": "Geodetic coordinate (latitude, longitude).",
             "required": [
               "lat",
@@ -94,6 +95,7 @@
         "additionalProperties": false,
         "$defs": {
           "LatLon": {
+            "type": "object",
             "description": "Geodetic coordinate (latitude, longitude).",
             "required": [
               "lat",
@@ -111,6 +113,7 @@
             }
           },
           "Size": {
+            "type": "object",
             "description": "Screen-space size (width x height).",
             "required": [
               "width",
@@ -228,6 +231,7 @@
         "additionalProperties": false,
         "$defs": {
           "ISpeechRecoItem": {
+            "type": "object",
             "description": "Single speech recognition hypothesis.",
             "required": [
               "text",
@@ -987,6 +991,7 @@
             "description": "Affiliation used for Symbols, COAs and TOs."
           },
           "DISCode": {
+            "type": "object",
             "description": "SISO Entity Type (DIS) code used by C2SIM.",
             "properties": {
               "category": {
@@ -1020,6 +1025,7 @@
             }
           },
           "LatLon": {
+            "type": "object",
             "description": "Geodetic coordinate (latitude, longitude).",
             "required": [
               "lat",
@@ -1037,6 +1043,7 @@
             }
           },
           "Location": {
+            "type": "object",
             "description": "Spatial location and geometry used by STP for symbols and gestures.",
             "properties": {
               "fsTYPE": {
@@ -1085,6 +1092,7 @@
             }
           },
           "Resource": {
+            "type": "object",
             "description": "C2SIM resource details (name, quantities, DIS code).",
             "properties": {
               "name": {
@@ -1109,6 +1117,7 @@
             }
           },
           "Sidc": {
+            "type": "object",
             "description": "Dual-standard military symbol identifiers: STP ships BOTH the 2525D form (partA/partB/partC, symbolSet) and the 2525C form (charlie) for every symbol that has one; clients pick the standard they render.",
             "properties": {
               "partA": {
@@ -1143,6 +1152,7 @@
             }
           },
           "StpSymbol": {
+            "type": "object",
             "description": "STP military symbol and common properties.",
             "properties": {
               "fsTYPE": {
@@ -1364,6 +1374,7 @@
             "description": "Affiliation used for Symbols, COAs and TOs."
           },
           "DISCode": {
+            "type": "object",
             "description": "SISO Entity Type (DIS) code used by C2SIM.",
             "properties": {
               "category": {
@@ -1397,6 +1408,7 @@
             }
           },
           "LatLon": {
+            "type": "object",
             "description": "Geodetic coordinate (latitude, longitude).",
             "required": [
               "lat",
@@ -1414,6 +1426,7 @@
             }
           },
           "Location": {
+            "type": "object",
             "description": "Spatial location and geometry used by STP for symbols and gestures.",
             "properties": {
               "fsTYPE": {
@@ -1462,6 +1475,7 @@
             }
           },
           "Resource": {
+            "type": "object",
             "description": "C2SIM resource details (name, quantities, DIS code).",
             "properties": {
               "name": {
@@ -1486,6 +1500,7 @@
             }
           },
           "Sidc": {
+            "type": "object",
             "description": "Dual-standard military symbol identifiers: STP ships BOTH the 2525D form (partA/partB/partC, symbolSet) and the 2525C form (charlie) for every symbol that has one; clients pick the standard they render.",
             "properties": {
               "partA": {
@@ -1520,6 +1535,7 @@
             }
           },
           "StpSymbol": {
+            "type": "object",
             "description": "STP military symbol and common properties.",
             "properties": {
               "fsTYPE": {
@@ -2013,6 +2029,7 @@
             "description": "Affiliation used for Symbols, COAs and TOs."
           },
           "StpTaskOrg": {
+            "type": "object",
             "description": "Task Organization (ORBAT) definition.",
             "properties": {
               "fsTYPE": {
@@ -2103,6 +2120,7 @@
             "description": "Affiliation used for Symbols, COAs and TOs."
           },
           "StpTaskOrg": {
+            "type": "object",
             "description": "Task Organization (ORBAT) definition.",
             "properties": {
               "fsTYPE": {
@@ -2237,6 +2255,7 @@
             "description": "Affiliation used for Symbols, COAs and TOs."
           },
           "DISCode": {
+            "type": "object",
             "description": "SISO Entity Type (DIS) code used by C2SIM.",
             "properties": {
               "category": {
@@ -2270,6 +2289,7 @@
             }
           },
           "LatLon": {
+            "type": "object",
             "description": "Geodetic coordinate (latitude, longitude).",
             "required": [
               "lat",
@@ -2287,6 +2307,7 @@
             }
           },
           "Location": {
+            "type": "object",
             "description": "Spatial location and geometry used by STP for symbols and gestures.",
             "properties": {
               "fsTYPE": {
@@ -2335,6 +2356,7 @@
             }
           },
           "Resource": {
+            "type": "object",
             "description": "C2SIM resource details (name, quantities, DIS code).",
             "properties": {
               "name": {
@@ -2359,6 +2381,7 @@
             }
           },
           "Sidc": {
+            "type": "object",
             "description": "Dual-standard military symbol identifiers: STP ships BOTH the 2525D form (partA/partB/partC, symbolSet) and the 2525C form (charlie) for every symbol that has one; clients pick the standard they render.",
             "properties": {
               "partA": {
@@ -2393,6 +2416,7 @@
             }
           },
           "StpSymbol": {
+            "type": "object",
             "description": "STP military symbol and common properties.",
             "properties": {
               "fsTYPE": {
@@ -2646,6 +2670,7 @@
             "description": "Affiliation used for Symbols, COAs and TOs."
           },
           "DISCode": {
+            "type": "object",
             "description": "SISO Entity Type (DIS) code used by C2SIM.",
             "properties": {
               "category": {
@@ -2679,6 +2704,7 @@
             }
           },
           "LatLon": {
+            "type": "object",
             "description": "Geodetic coordinate (latitude, longitude).",
             "required": [
               "lat",
@@ -2696,6 +2722,7 @@
             }
           },
           "Location": {
+            "type": "object",
             "description": "Spatial location and geometry used by STP for symbols and gestures.",
             "properties": {
               "fsTYPE": {
@@ -2744,6 +2771,7 @@
             }
           },
           "Resource": {
+            "type": "object",
             "description": "C2SIM resource details (name, quantities, DIS code).",
             "properties": {
               "name": {
@@ -2768,6 +2796,7 @@
             }
           },
           "Sidc": {
+            "type": "object",
             "description": "Dual-standard military symbol identifiers: STP ships BOTH the 2525D form (partA/partB/partC, symbolSet) and the 2525C form (charlie) for every symbol that has one; clients pick the standard they render.",
             "properties": {
               "partA": {
@@ -2802,6 +2831,7 @@
             }
           },
           "StpSymbol": {
+            "type": "object",
             "description": "STP military symbol and common properties.",
             "properties": {
               "fsTYPE": {
@@ -3085,6 +3115,7 @@
             ]
           },
           "StpTaskOrgRelationship": {
+            "type": "object",
             "description": "Relationship between TO units.",
             "properties": {
               "fsTYPE": {
@@ -3185,6 +3216,7 @@
             ]
           },
           "StpTaskOrgRelationship": {
+            "type": "object",
             "description": "Relationship between TO units.",
             "properties": {
               "fsTYPE": {
@@ -3300,6 +3332,7 @@
         "additionalProperties": false,
         "$defs": {
           "MovementFeatures": {
+            "type": "object",
             "description": "Task movement features.",
             "properties": {
               "fsTYPE": {
@@ -3319,6 +3352,7 @@
             }
           },
           "StpTask": {
+            "type": "object",
             "description": "STP task definition and common properties.",
             "properties": {
               "fsTYPE": {
@@ -3497,6 +3531,7 @@
         "additionalProperties": false,
         "$defs": {
           "MovementFeatures": {
+            "type": "object",
             "description": "Task movement features.",
             "properties": {
               "fsTYPE": {
@@ -3516,6 +3551,7 @@
             }
           },
           "StpTask": {
+            "type": "object",
             "description": "STP task definition and common properties.",
             "properties": {
               "fsTYPE": {
@@ -4155,6 +4191,7 @@
             "description": "Affiliation used for Symbols, COAs and TOs."
           },
           "StpCoa": {
+            "type": "object",
             "description": "Course of Action (COA) definition.",
             "properties": {
               "fsTYPE": {
@@ -4194,6 +4231,7 @@
             }
           },
           "TaskOrgState": {
+            "type": "object",
             "description": "State details associated with a TO at a point in time.",
             "properties": {
               "fsTYPE": {
@@ -4270,6 +4308,7 @@
             "description": "Affiliation used for Symbols, COAs and TOs."
           },
           "StpCoa": {
+            "type": "object",
             "description": "Course of Action (COA) definition.",
             "properties": {
               "fsTYPE": {
@@ -4309,6 +4348,7 @@
             }
           },
           "TaskOrgState": {
+            "type": "object",
             "description": "State details associated with a TO at a point in time.",
             "properties": {
               "fsTYPE": {
@@ -5889,6 +5929,7 @@
         "additionalProperties": false,
         "$defs": {
           "LatLon": {
+            "type": "object",
             "description": "Geodetic coordinate (latitude, longitude).",
             "required": [
               "lat",

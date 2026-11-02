@@ -156,10 +156,13 @@ export function kindOfFsType(fsTYPE: unknown): { kind: ObjectKind; inferred?: st
   return { kind: "symbol", inferred: `kind inferred: fsTYPE '${fsTYPE}' is not a known object type, so it is taken to be a symbol` };
 }
 
-/** What a poid names, from the live context or the engine (GetPoidObject). */
+/**
+ * What a poid names, from the live context or the engine. `via` names the engine read that answered
+ * when it is not GetPoidObject (an engine that refuses GetPoidObject is asked GetScenarioContent).
+ */
 export type Lookup =
-  | { found: true; source: "context" | "engine"; kind: ObjectKind; fsTYPE?: string; summary?: string; inferred?: string }
-  | { found: false; source: "context" | "engine"; deleted?: { event: string; at: string }; error?: string };
+  | { found: true; source: "context" | "engine"; via?: string; kind: ObjectKind; fsTYPE?: string; summary?: string; inferred?: string }
+  | { found: false; source: "context" | "engine"; via?: string; deleted?: { event: string; at: string }; error?: string };
 
 export interface ReferenceTarget {
   /** The concrete param path, e.g. task.tgs.1. */
@@ -236,7 +239,7 @@ export function checkReferences(
       } else {
         const why = lookup.deleted
           ? `it was deleted (${lookup.deleted.event} at ${lookup.deleted.at})`
-          : "it is not in the live context, and GetPoidObject answers null for it";
+          : `it is not in the live context, and ${lookup.via ?? "GetPoidObject"} ${lookup.via ? "does not list it" : "answers null for it"}`;
         problems.push(`${t.param} = ${t.poid} names no existing ${want}: ${why}`);
       }
     } else if (!t.kinds.some((k) => kindMatches(lookup, k))) {
@@ -250,7 +253,7 @@ export function checkReferences(
         .join("; ");
       found.push(
         `${t.param} = ${t.poid}: ${lookup.fsTYPE && lookup.kind === "symbol" ? lookup.fsTYPE : KIND_NAMES[lookup.kind]}` +
-          `${lookup.summary ? ` ${lookup.summary}` : ""} (${lookup.source === "context" ? "live context" : "GetPoidObject"})${notes ? ` - ${notes}` : ""}`,
+          `${lookup.summary ? ` ${lookup.summary}` : ""} (${lookup.source === "context" ? "live context" : (lookup.via ?? "GetPoidObject")})${notes ? ` - ${notes}` : ""}`,
       );
     }
   }

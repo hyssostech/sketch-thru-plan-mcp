@@ -419,3 +419,41 @@ describe("the action log", () => {
     expect(updates).toEqual(["stp-live://actions"]);
   });
 });
+
+describe("engines that refuse GetPoidObject (STP-1475)", () => {
+  // Seen on stp-server:main: GetPoidObject answers "No handler", so an object STP stored without
+  // announcing it could not be checked, and DeleteSymbol of it was refused.
+  const SCENARIO =
+    "object_set([\n" +
+    "[fsTYPE: planning_scenario,poid: idS,fsdb_version: v1,name: 'STP test',is_loaded: true]\n" +
+    "[fsTYPE: tg,poid: idBAD,fsdb_version: v2,affiliation: pending,symbol_id: '---------------',complete_language: 'PRESENT UNCONFIRMED']\n" +
+    "[fsTYPE: unit,poid: idGONE,fsdb_version: v0,complete_language: 'PRESENT FRIENDLY RECON PLATOON']\n" +
+    "[fsTYPE: task,poid: idT,fsdb_version: v3,tgs: [idMENTIONED],glyphPoid: idMENTIONED]\n" +
+    "])\n";
+  const OLD_ENGINE: Script = {
+    GetPoidObject: { success: false, result: null },
+    GetScenarioContent: { result: SCENARIO },
+    DeleteSymbol: (p) => ({ events: [{ name: "SymbolDeleted", params: { poid: p.poid, isUndo: false } }] }),
+  };
+
+  it("finds the poid in GetScenarioContent and lets the call through", async () => {
+    const { client, engine } = await setup(OLD_ENGINE, DESTRUCTIVE, { elicit: "accept" });
+    const res = await callWrite(client, "DeleteSymbol", { poid: "idBAD" });
+    expect(res.isError).toBeFalsy();
+    expect(res.report.validation.find((s: { check: string }) => s.check === "references").detail).toBe(
+      "poid = idBAD: tg PRESENT UNCONFIRMED (GetScenarioContent, as GetPoidObject is refused)",
+    );
+    expect(sent(engine, "DeleteSymbol").map((r) => r.params)).toEqual([{ poid: "idBAD" }]);
+  });
+
+  it("refuses a tombstoned poid, and one only mentioned inside another object, sending nothing", async () => {
+    const { client, engine } = await setup(OLD_ENGINE, DESTRUCTIVE, { elicit: "accept" });
+    const gone = await callWrite(client, "DeleteSymbol", { poid: "idGONE" });
+    expect(gone.isError).toBe(true);
+    expect(gone.text).toMatch(/poid = idGONE names no existing symbol: it was deleted \(a tombstone \(fsdb_version v0\) in GetScenarioContent/);
+    const mentioned = await callWrite(client, "DeleteSymbol", { poid: "idMENTIONED" });
+    expect(mentioned.isError).toBe(true);
+    expect(mentioned.text).toMatch(/poid = idMENTIONED names no existing symbol: it is not in the live context, and GetScenarioContent does not list it/);
+    expect(sent(engine, "DeleteSymbol")).toEqual([]);
+  });
+});

@@ -5,6 +5,7 @@ import type { ActionEntry, ActionLog, Confirmation } from "./actions.js";
 import { StpError, type StpConnection } from "./connection.js";
 import type { LiveContext } from "./context.js";
 import { capAnswer, stripPrologTerm } from "./payload.js";
+import { findInObjectSet } from "./scenario-text.js";
 import {
   V10_ERRORS,
   V10Watch,
@@ -80,8 +81,39 @@ export function createWriteCaller(deps: WriteDeps) {
         ...(inferred ? { inferred } : {}),
       };
     } catch (e) {
+      // Older engines refuse GetPoidObject ("No handler"); they still answer GetScenarioContent (STP-1475).
+      if (e instanceof StpError && e.kind === "refused") return lookupInScenario(poid, (e as Error).message);
       return { found: false, source: "engine", error: (e as Error).message };
     }
+  };
+
+  /** The fallback when GetPoidObject is refused: find the poid in the scenario's object_set text. */
+  const lookupInScenario = async (poid: string, refusal: string): Promise<Lookup> => {
+    const via = "GetScenarioContent, as GetPoidObject is refused";
+    let text: unknown;
+    try {
+      text = await connection.request("GetScenarioContent", {});
+    } catch (e) {
+      return { found: false, source: "engine", error: `${refusal}; the fallback GetScenarioContent also failed (${(e as Error).message})` };
+    }
+    if (typeof text !== "string") {
+      return { found: false, source: "engine", error: `${refusal}; the fallback GetScenarioContent answered no object_set text` };
+    }
+    const entry = findInObjectSet(text, poid);
+    if (!entry) return { found: false, source: "engine", via: "GetScenarioContent" };
+    if (entry.version === "v0") {
+      return { found: false, source: "engine", via, deleted: { event: "a tombstone (fsdb_version v0) in GetScenarioContent", at: "an earlier time" } };
+    }
+    const { kind, inferred } = kindOfFsType(entry.fsTYPE);
+    return {
+      found: true,
+      source: "engine",
+      via,
+      kind,
+      fsTYPE: entry.fsTYPE,
+      ...(entry.description !== undefined ? { summary: entry.description } : {}),
+      ...(inferred ? { inferred } : {}),
+    };
   };
 
   /** Asks the user through MCP elicitation; the model has no way to answer it. */

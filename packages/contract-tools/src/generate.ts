@@ -88,11 +88,20 @@ function annotationsFor(safety: SafetyClass, openWorld: boolean): GeneratedTool[
   }
 }
 
-/** Deep-copies a schema, rewriting component refs to $defs refs and recording each one used. */
+/** Keywords that make a schema's type something other than a plain object. */
+const COMPOSITION_KEYWORDS = ["type", "$ref", "allOf", "anyOf", "oneOf", "enum", "const"];
+
+/**
+ * Deep-copies a schema, rewriting component refs to $defs refs and recording each one used.
+ * A schema with `properties` but no `type` gets `type: "object"`: JSON Schema applies `properties`
+ * to objects only, so without it a string (an object JSON-encoded by the client) validates, reaches
+ * STP and is silently dropped there ("Error converting value ... to type 'StpSDK.StpSymbol'").
+ */
 function rewriteRefs(node: unknown, used: Set<string>): unknown {
   if (Array.isArray(node)) return node.map((n) => rewriteRefs(n, used));
   if (node === null || typeof node !== "object") return node;
   const out: Record<string, unknown> = {};
+  if ("properties" in node && !COMPOSITION_KEYWORDS.some((k) => k in node)) out.type = "object";
   for (const [key, value] of Object.entries(node)) {
     if (key === "$ref" && typeof value === "string") {
       if (!value.startsWith(COMPONENT_REF)) {

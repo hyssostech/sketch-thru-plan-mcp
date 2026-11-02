@@ -419,3 +419,25 @@ describe("the action log", () => {
     expect(updates).toEqual(["stp-live://actions"]);
   });
 });
+
+describe("object arguments sent as JSON text", () => {
+  // Seen live: a client sent AddSymbol's symbol as a JSON string; STP logged "Error converting value
+  // ... to type 'StpSDK.StpSymbol'" and dropped the call with no reply.
+  it("parses a JSON-text object argument back into an object before sending it", async () => {
+    const { client, engine } = await setup({
+      ...JOINED,
+      AddSymbol: { events: [{ name: "InkProcessed" }, { name: "SymbolAdded", params: unit("idB", "B") }] },
+    });
+    const res = await callWrite(client, "AddSymbol", { symbol: JSON.stringify({ fsTYPE: "unit", designator1: "B" }) });
+    expect(res.isError).toBeFalsy();
+    expect(sent(engine, "AddSymbol").map((r) => r.params)).toEqual([{ symbol: { fsTYPE: "unit", designator1: "B" } }]);
+  });
+
+  it("refuses a string that is not JSON where the contract expects an object, sending nothing", async () => {
+    const { client, engine } = await setup(JOINED);
+    const res = await callWrite(client, "AddSymbol", { symbol: "a unit at the capitol" });
+    expect(res.isError).toBe(true);
+    expect(res.text).toMatch(/Invalid arguments for AddSymbol/);
+    expect(sent(engine, "AddSymbol")).toEqual([]);
+  });
+});

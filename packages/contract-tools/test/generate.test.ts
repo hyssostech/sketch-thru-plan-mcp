@@ -142,3 +142,18 @@ describe("toolFromMethod", () => {
     expect(tool._meta["stp/inform"]).toBe(true);
   });
 });
+
+describe("untyped object schemas", () => {
+  it("gives every schema with properties and no type an explicit object type", () => {
+    const untyped: string[] = [];
+    const walk = (node: unknown, path: string) => {
+      if (Array.isArray(node)) return node.forEach((n, i) => walk(n, `${path}[${i}]`));
+      if (node === null || typeof node !== "object") return;
+      const n = node as Record<string, unknown>;
+      if ("properties" in n && !["type", "$ref", "allOf", "anyOf", "oneOf"].some((k) => k in n)) untyped.push(path);
+      for (const [k, v] of Object.entries(n)) walk(v, `${path}.${k}`);
+    };
+    for (const t of generateTools(loadContract()).tools) walk(t.inputSchema, t.name);
+    expect(untyped).toEqual([]);
+  });
+});

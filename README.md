@@ -34,6 +34,95 @@ Two servers, one repo:
 | `packages/knowledge` | The knowledge server (`stp-mcp-knowledge`, stdio): the contract and the public STP docs as read-only tools and resources (below). The docs are pinned in `sketch-thru-plan-sdk-docss/` (`pin.json` names the source commit and each page's git blob id); `eval/search-eval.json` is the retrieval evaluation set. |
 | `packages/live` | The live-STP server (`stp-mcp-live`, stdio): the contract's read methods as tools against a running engine, a live context of recent STP events as resources, and - in write mode - the write methods, checked before and after each call (below). `src/validate.ts` is the call-validation evaluator. `test/fixtures/session.jsonl` and `write-session.jsonl` are recorded wire sessions the integration tests replay; `scripts/` holds the recorders and the live smoke tests, none run in CI. |
 
+## Quick start
+
+From nothing to both servers in Claude Code. Other clients: see
+[Add it to an environment](#add-it-to-an-environment) and [Develop](#develop).
+
+### 1. Prerequisites
+
+- Node.js 22 or later, and git.
+- For the live server only: a running STP engine with its WebSockets bridge reachable, by default
+  on `ws://localhost:9599`. The knowledge server needs no engine.
+
+### 2. Get and build
+
+```sh
+git clone https://github.com/hyssostech/sketch-thru-plan-mcp.git
+cd sketch-thru-plan-mcp
+npm ci
+npm test          # builds every package, then runs the tests; no engine needed
+```
+
+The servers run from the build output: `packages/knowledge/dist/index.js` and
+`packages/live/dist/index.js`. Rebuild (`npm run build`) after every pull or branch switch.
+
+### 3. Register the servers
+
+Use absolute paths. `-s user` makes them available in every Claude Code session, whatever folder it
+starts in; leave it out to register for the current folder only.
+
+```sh
+claude mcp add -s user stp-knowledge -- node /abs/path/sketch-thru-plan-mcp/packages/knowledge/dist/index.js
+
+# Live server, read-only
+claude mcp add -s user stp-live -e STP_URL=ws://localhost:9599 \
+  -- node /abs/path/sketch-thru-plan-mcp/packages/live/dist/index.js
+```
+
+To let the model change the scenario, add write mode, and optionally destructive calls and an
+action log (see [Write mode](#write-mode); destructive calls ask you to confirm each one):
+
+```sh
+claude mcp add -s user stp-live -e STP_URL=ws://localhost:9599 \
+  -e STP_WRITE=1 -e STP_DESTRUCTIVE=1 -e STP_ACTION_LOG=/abs/path/stp-actions.jsonl \
+  -- node /abs/path/sketch-thru-plan-mcp/packages/live/dist/index.js
+```
+
+Add `-e STP_SESSION=<session id>` to join the session of a running STP app and see its plan;
+without it the server starts its own session. All variables are in [Configuration](#configuration).
+On Windows, write the paths as `C:\\...` or `C:/...`.
+
+### 4. Check it works
+
+1. Start the STP engine.
+2. Start Claude Code (or run `/mcp` and reconnect `stp-live` if it was already open).
+3. `/mcp` lists both servers as connected.
+4. Ask "what is the STP live status?" - the model calls `live_status`, which reports the
+   connection, the session and whether a scenario is active.
+
+### 5. Run from a stable copy (recommended while developing)
+
+Claude Code runs whatever is in `dist` when it starts or reconnects a server. If you develop in
+the same checkout, a branch switch or a half-finished build changes the servers under you. Keep a
+second checkout only for running, as a git worktree pinned at a commit:
+
+```sh
+git worktree add --detach ../sketch-thru-plan-mcp-run <branch>
+cd ../sketch-thru-plan-mcp-run && npm ci && npm run build
+```
+
+Register the servers with paths into `sketch-thru-plan-mcp-run` (step 3). To move the run copy
+to newer work:
+
+```sh
+cd ../sketch-thru-plan-mcp-run
+git fetch && git checkout --detach <branch>    # or origin/<branch>
+npm ci && npm run build
+```
+
+then reconnect the servers with `/mcp`.
+
+### Troubleshooting
+
+| Symptom | Likely cause |
+|---|---|
+| A server shows as failed in `/mcp` | Not built, or a wrong path: check `dist/index.js` exists at the registered path. |
+| `live_status` reports no connection | The engine is not running, or `STP_URL` points elsewhere. The server connects lazily, so once the engine is up the next tool call connects; no restart needed. |
+| No write tools listed | `STP_WRITE=1` is not set. Destructive tools also need `STP_DESTRUCTIVE=1`. |
+| A destructive call is refused | The client does not support confirmation prompts (MCP elicitation), or the prompt was not answered in time. |
+| Changes to the code do not show | Rebuild, then reconnect the server with `/mcp`. |
+
 ## Knowledge server
 
 Tools (all read-only):

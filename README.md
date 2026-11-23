@@ -107,6 +107,15 @@ client when the model calls `SetRole` or `SetCurrentCoa`, and then the context s
   - Answers over 200 KB of JSON are truncated, with a note saying what was kept.
   - An empty answer (`null`, `[]`, an empty `object_set`) comes with a note on what it means, as
     does a call without a `poid` (the engine then answers for the whole session).
+- **`SearchSymbol`** (contract `x-layer: client`, read-only) - the symbols whose names or spoken phrases
+  match a typed text, best first. The engine never receives it: `stp-live` answers it itself, as the
+  SDKs do (same ranking), from the symbol index the STP WebSockets bridge serves over HTTP at
+  `http://<host>:<port>/symbol-index.json` - the `STP_URL` host and port (`https` for `wss://`). The
+  index is loaded on first use and kept; there is no setting for it. Name, description and schema come
+  from the contract entry (`clientLayerTools`); every other client- or transport-layer method stays
+  unlisted. No match, or a text of only stop words, is a success with `[]` and a note. An index that
+  cannot be read (an STP that does not serve it, not installed, unreachable, not valid) is an `isError`
+  `symbol index not available: <url> (<reason>)`, never an empty result; the next call tries again.
 - **In write mode, one tool per write method** (`x-stpSafety: write`) - `AddCoa`, `AddSymbol`,
   `AddTask`, `UpdateSymbol`, `SetCurrentCoa` and the rest - and with `STP_DESTRUCTIVE=1` one per
   destructive method (`DeleteSymbol`, `DeleteCoa`, `CreateNewScenario`, the imports...). Their

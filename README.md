@@ -92,6 +92,19 @@ the client that made it, so the context reports what reaches this server and oth
 observed"; name the COA to read with `STP_COA` or a tool's `poid`. In write mode the server is such a
 client when the model calls `SetRole` or `SetCurrentCoa`, and then the context shows its own switch.
 
+### Instructions: where symbol codes come from
+
+The server's MCP `instructions` (`src/routing.ts`, STP-1805) state the routing rule a model sees before it picks a
+tool: symbol codes come from the user's data or from STP (an existing object, `SearchSymbol`), never from the model.
+A symbol described in words goes to recognition (`SendSimulatedSpeechRecognition` with `SendPenDown` and
+`SendInk`), structured data with codes passes through as given (`AddSymbol`, or an import in destructive mode), and
+a mixed request does both. The instructions name only tools the mode lists. `eval/tool-choice-eval.json` holds
+paired cases that differ only in their input, each with the steering facts that must be in the instructions or the
+contract's descriptions; `test/tool-choice-eval.test.ts` checks them without a model call, against a floor that only
+goes up. Contract wording it still needs is proposed in `docs/proposals/STP-1805-contract-wording.md`. The knowledge
+server's instructions set the depth of a help answer: integrators get methods and events, end users get planning
+terms.
+
 ### Tools
 
 - **One tool per read method of the contract** (`x-stpSafety: read`, and dispatched by the engine):

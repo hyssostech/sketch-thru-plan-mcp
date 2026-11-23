@@ -34,6 +34,7 @@ import { SymbolIndexUnavailableError, SymbolSearch, symbolIndexUrlFor } from "./
 import { MAX_ANSWER_BYTES, capAnswer, stripPrologTerm } from "./payload.js";
 import type { WriteMode } from "./validate.js";
 import { createWriteCaller } from "./write.js";
+import { liveInstructions } from "./routing.js";
 
 export interface LiveServerOptions {
   config: LiveConfig;
@@ -210,23 +211,8 @@ export function createLiveServer(options: LiveServerOptions): LiveServer {
     return refusal(`${message}\n\n[STP ${p.endpoint}, session ${p.session ?? "(none yet)"}, at ${p.answeredAt}]`);
   };
 
-  const instructions =
-    mode === "off"
-      ? "Read-only view of a running Sketch-thru-Plan (STP) engine. The tools ask the engine (each answer names " +
-        "the endpoint and time); live_context and the stp-live://context resource hold what the engine reported " +
-        "recently, including the last unit added. No tool here changes the plan. Errors explain what failed - " +
-        "check live_status when one mentions the connection."
-      : "View and change a running Sketch-thru-Plan (STP) engine. The read tools ask the engine; live_context and " +
-        "the stp-live://context resource hold what it reported recently, including the last unit added - take poids " +
-        "from there. Write tools (readOnlyHint false) change the scenario: each call is checked first (params, an " +
-        "active scenario, every poid it names) and refused with the reason when a check fails; once sent, its " +
-        "result says whether the engine's events show it done (v10.outcome: done, partial, not_done, other, unknown " +
-        "or unverifiable) - read it before telling the user the change was made." +
-        (mode === "destructive"
-          ? " Destructive tools (destructiveHint true) also need the user's confirmation, which this server asks " +
-            "for itself on every call; you cannot confirm for the user."
-          : "") +
-        " Every write is logged in stp-live://actions.";
+  const listed = new Set([...tools, ...clientTools].map((t) => t.name).concat([LIVE_STATUS.name, LIVE_CONTEXT.name]));
+  const instructions = liveInstructions(mode, listed);
   const mcp = new McpServer(
     { name: "stp-mcp-live", version: VERSION },
     {

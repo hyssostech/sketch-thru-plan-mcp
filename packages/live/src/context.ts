@@ -15,6 +15,13 @@ import type { StpEvent } from "./connection.js";
 export const MAX_ENTITIES = 500;
 /** Recent events kept at most. */
 export const MAX_RECENT_EVENTS = 200;
+/** Batches (change sets) remembered: the open ones and the last finished ones. */
+export const MAX_BATCHES = 20;
+/** Object poids listed per batch; the count keeps going past it. */
+export const MAX_BATCH_POIDS = 50;
+/** Tasks whose history is kept, and entries kept per task (the oldest go first). */
+export const MAX_TASK_HISTORIES = 100;
+export const MAX_TASK_HISTORY_ENTRIES = 30;
 
 export type EntityKind = "symbol" | "task" | "coa" | "taskOrg" | "taskOrgUnit" | "taskOrgRelationship";
 
@@ -54,6 +61,39 @@ export interface RecentEvent {
   replay?: true;
   /** StpMessage text, recognized speech: short and worth seeing. */
   detail?: string;
+  /** The change set (BatchStarted) the event arrived in; absent outside one. */
+  batchId?: string;
+}
+
+/** A change set (STP-1265): the object events one bulk operation produced, which share a batchId. */
+export interface BatchInfo {
+  batchId: string;
+  kind?: string;
+  /** How many objects the requester expected to write; -1 when it did not say. */
+  expected?: number;
+  isOwn?: boolean;
+  /** "replay" for a join replaying resident objects locally, else "live". */
+  origin?: string;
+  startedAt: string;
+  /** Object events seen carrying this batchId. */
+  events: number;
+  /** The poids they touched (at most MAX_BATCH_POIDS). */
+  poids: string[];
+  /** Set by BatchEnded: completed, cancelled, failed, abandoned or expired. */
+  status?: string;
+  endedAt?: string;
+  /** The engine's count of object events it stamped (BatchEnded.informs); 0 when unknown. */
+  informs?: number;
+}
+
+/** One entry of a task's history or a comment (TaskEventAdded / TaskEventModified), as the engine sent it. */
+export interface TaskHistoryItem {
+  poid: string;
+  entry: Record<string, unknown>;
+  /** "added" until a TaskEventModified replaced it. */
+  lastEvent: "TaskEventAdded" | "TaskEventModified";
+  receivedAt: string;
+  batchId?: string;
 }
 
 /** A reference to the current COA or task org, or null when the engine reported none. */
@@ -106,6 +146,10 @@ export class LiveContext {
   private readonly lastAdded: Partial<Record<EntityKind, LastAdded>> = {};
   private current: { coa?: CurrentRef; role?: string; taskOrg?: CurrentRef } = {};
   private evicted = 0;
+  /** Batches by id, oldest first: the open ones and the last finished ones. */
+  private readonly batches = new Map<string, BatchInfo>();
+  /** Task poid -> its history entries seen (oldest first), least recently touched task first. */
+  private readonly taskHistory = new Map<string, TaskHistoryItem[]>();
   private since = new Date().toISOString();
   private listeners: ((changedUris: string[]) => void)[] = [];
   /** Poids deleted since this server joined, so a reference to one can say so (bounded like the entities). */
@@ -127,6 +171,8 @@ export class LiveContext {
     this.entities.clear();
     for (const k of Object.keys(this.lastAdded)) delete this.lastAdded[k as EntityKind];
     this.current = {};
+    this.batches.clear(); // an open batch cannot be known to be open after a reconnect
+    this.taskHistory.clear();
     this.evicted = 0;
     this.since = new Date().toISOString();
     this.emit([CONTEXT_URI]);
@@ -155,10 +201,13 @@ export class LiveContext {
     const changed = [CONTEXT_URI];
     let poid: string | undefined;
     let detail: string | undefined;
+    // Object events of a change set end with batchId; null or absent outside one.
+    const batchId = str(params.batchId);
 
     const mapping = EVENT_KINDS[event.name];
     if (mapping) {
       poid = this.applyEntityEvent(event, mapping, params, at);
+      if (batchId) this.noteBatchMember(batchId, poid, at);
       if (poid && (RESOURCE_KINDS as readonly string[]).includes(mapping.kind)) changed.push(entityUri(mapping.kind, poid));
     } else if (event.name === "CoaSwitched") {
       this.current.coa = refOf(params.coa);
@@ -175,12 +224,24 @@ export class LiveContext {
       detail = [str(params.level), str(params.message)].filter(Boolean).join(": ").slice(0, 300) || undefined;
     } else if (event.name === "SpeechRecognized" && Array.isArray(params.phrases)) {
       detail = params.phrases.filter((p) => typeof p === "string").join(" | ").slice(0, 300) || undefined;
+    } else if (event.name === "BatchStarted") {
+      detail = this.batchStarted(params, at);
+    } else if (event.name === "BatchEnded") {
+      detail = this.batchEnded(params, at);
+    } else if (event.name === "TaskEventAdded" || event.name === "TaskEventModified") {
+      const noted = this.noteTaskEvent(event.name, params, at, batchId);
+      poid = noted?.task;
+      detail = noted?.detail;
+      if (batchId) this.noteBatchMember(batchId, poid, at);
+      if (poid) changed.push(entityUri("task", poid));
     } else if (event.name === "NewScenario") {
       // Another client replaced the scenario: what this context holds no longer exists.
       this.entities.clear();
       this.deleted.clear();
       for (const k of Object.keys(this.lastAdded)) delete this.lastAdded[k as EntityKind];
       this.current = {};
+      this.batches.clear();
+      this.taskHistory.clear();
     }
 
     this.recent.push({
@@ -189,9 +250,110 @@ export class LiveContext {
       ...(poid ? { poid } : {}),
       ...(event.replay ? { replay: true as const } : {}),
       ...(detail ? { detail } : {}),
+      ...(batchId ? { batchId } : {}),
     });
     if (this.recent.length > this.caps.recentEvents) this.recent.splice(0, this.recent.length - this.caps.recentEvents);
     this.emit(changed);
+  }
+
+  private batchStarted(params: Json, at: string): string | undefined {
+    const batchId = str(params.batchId);
+    if (!batchId) return undefined;
+    const kind = str(params.kind);
+    const info: BatchInfo = {
+      batchId,
+      ...(kind ? { kind } : {}),
+      ...(typeof params.expected === "number" ? { expected: params.expected } : {}),
+      ...(typeof params.isOwn === "boolean" ? { isOwn: params.isOwn } : {}),
+      ...(str(params.origin) ? { origin: str(params.origin) } : {}),
+      startedAt: at,
+      events: 0,
+      poids: [],
+    };
+    this.batches.delete(batchId);
+    this.batches.set(batchId, info);
+    this.trimBatches();
+    return `${kind ?? "batch"} ${batchId} started`;
+  }
+
+  private batchEnded(params: Json, at: string): string | undefined {
+    const batchId = str(params.batchId);
+    if (!batchId) return undefined;
+    // An engine may end a batch this server never saw start (joined mid-batch): record it as ended.
+    let info = this.batches.get(batchId);
+    if (!info) {
+      info = { batchId, startedAt: at, events: 0, poids: [] };
+      this.batches.set(batchId, info);
+    }
+    if (str(params.kind) && !info.kind) info.kind = str(params.kind);
+    if (str(params.origin) && !info.origin) info.origin = str(params.origin);
+    if (typeof params.isOwn === "boolean" && info.isOwn === undefined) info.isOwn = params.isOwn;
+    info.status = str(params.status) ?? "completed";
+    info.endedAt = at;
+    if (typeof params.informs === "number") info.informs = params.informs;
+    this.trimBatches();
+    return `${info.kind ?? "batch"} ${batchId} ${info.status}`;
+  }
+
+  /** Counts an object event of a batch; a batch this server saw no start of is listed as open until it ends. */
+  private noteBatchMember(batchId: string, poid: string | undefined, at: string): void {
+    let info = this.batches.get(batchId);
+    if (!info) {
+      info = { batchId, startedAt: at, events: 0, poids: [] };
+      this.batches.set(batchId, info);
+      this.trimBatches();
+    }
+    info.events++;
+    if (poid && info.poids.length < MAX_BATCH_POIDS && !info.poids.includes(poid)) info.poids.push(poid);
+  }
+
+  /** Keeps every open batch and at most MAX_BATCHES finished ones (oldest finished go first). */
+  private trimBatches(): void {
+    const finished = [...this.batches.values()].filter((b) => b.status !== undefined);
+    for (const b of finished.slice(0, Math.max(0, finished.length - MAX_BATCHES))) this.batches.delete(b.batchId);
+    // A runaway of never-ended batches (lost BatchEnded) is bounded too: the oldest open one goes.
+    while (this.batches.size > MAX_BATCHES * 2) this.batches.delete(this.batches.keys().next().value!);
+  }
+
+  private noteTaskEvent(
+    name: "TaskEventAdded" | "TaskEventModified",
+    params: Json,
+    at: string,
+    batchId: string | undefined,
+  ): { task: string; detail: string } | undefined {
+    const entry = isObject(params.entry) ? params.entry : undefined;
+    const task = str(entry?.task);
+    const entryPoid = str(params.poid);
+    if (!entry || !task || !entryPoid) return undefined;
+    const item: TaskHistoryItem = {
+      poid: entryPoid,
+      entry,
+      lastEvent: name,
+      receivedAt: at,
+      ...(batchId ? { batchId } : {}),
+    };
+    const list = this.taskHistory.get(task) ?? [];
+    const i = list.findIndex((x) => x.poid === entryPoid);
+    if (i >= 0) list[i] = item;
+    else list.push(item);
+    if (list.length > MAX_TASK_HISTORY_ENTRIES) list.splice(0, list.length - MAX_TASK_HISTORY_ENTRIES);
+    this.taskHistory.delete(task); // most recently touched last
+    this.taskHistory.set(task, list);
+    while (this.taskHistory.size > MAX_TASK_HISTORIES) this.taskHistory.delete(this.taskHistory.keys().next().value!);
+    const kind = str(entry.kind) ?? "entry";
+    const text = str(entry.text);
+    const detail = (name === "TaskEventModified" ? `${kind} (modified)` : kind) + (text ? `: ${text}` : entry.deleted ? ": (deleted)" : "");
+    return { task, detail: detail.slice(0, 300) };
+  }
+
+  /** The history and comments the engine announced for a task since this server joined, oldest first. */
+  historyOf(taskPoid: string): TaskHistoryItem[] {
+    return [...(this.taskHistory.get(taskPoid) ?? [])];
+  }
+
+  /** The open batches, oldest first. */
+  openBatches(): BatchInfo[] {
+    return [...this.batches.values()].filter((b) => b.status === undefined);
   }
 
   private applyEntityEvent(
@@ -347,6 +509,11 @@ export class LiveContext {
       lastAdded: { ...this.lastAdded },
       counts: { ...counts, evicted: this.evicted },
       entities,
+      batches: {
+        open: this.openBatches().map((b) => ({ ...b, poids: [...b.poids] })),
+        recent: [...this.batches.values()].filter((b) => b.status !== undefined).reverse().map((b) => ({ ...b, poids: [...b.poids] })),
+      },
+      taskHistories: [...this.taskHistory.entries()].reverse().map(([task, items]) => ({ task, entries: items.length, latest: items[items.length - 1].entry.kind ?? null })),
       recentEvents: [...this.recent].reverse(),
       caps: { ...this.caps },
     };
@@ -363,6 +530,10 @@ export interface ContextSnapshot {
   lastAdded: Partial<Record<EntityKind, LastAdded>>;
   counts: Record<string, number>;
   entities: Record<string, { poid: string; summary: string; source: string }[]>;
+  /** Change sets (STP-1265): which object events arrived together, and which are still open. */
+  batches: { open: BatchInfo[]; recent: BatchInfo[] };
+  /** Tasks with history or comments seen; the entries are in the task resource, stp-live://task/<poid>. */
+  taskHistories: { task: string; entries: number; latest: unknown }[];
   recentEvents: RecentEvent[];
   caps: { entities: number; recentEvents: number };
 }

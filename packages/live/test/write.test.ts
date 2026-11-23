@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { ResourceUpdatedNotificationSchema, type ElicitRequest } from "@modelcontextprotocol/sdk/types.js";
 import { exclusionReason, generateTools, loadContract, safetyClass } from "stp-mcp-contract-tools";
+import { CLIENT_LAYER_METHODS } from "../src/server.js";
 import { call, callWrite, connectLive, FakeEngine, readActions, type ElicitAnswer, type Script } from "./fake-engine.js";
 
 /**
@@ -73,7 +74,7 @@ describe("write mode", () => {
     const { client } = await setup();
     const { tools } = await client.listTools();
     const expected = contract.methods.filter((m) => exclusionReason(m) === null && safetyClass(m) !== "destructive").map((m) => m.name);
-    expect(tools.map((t) => t.name).sort()).toEqual([...expected, "live_context", "live_status"].sort());
+    expect(tools.map((t) => t.name).sort()).toEqual([...expected, ...CLIENT_LAYER_METHODS, "live_context", "live_status"].sort());
     const addCoa = tools.find((t) => t.name === "AddCoa")!;
     expect(addCoa.annotations).toEqual(generated.get("AddCoa")!.annotations);
     expect(addCoa.annotations).toMatchObject({ readOnlyHint: false, destructiveHint: false });

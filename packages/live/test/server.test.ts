@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { ResourceUpdatedNotificationSchema } from "@modelcontextprotocol/sdk/types.js";
 import { exclusionReason, loadContract, loadPin, safetyClass, type Contract } from "stp-mcp-contract-tools";
+import { CLIENT_LAYER_METHODS } from "../src/server.js";
 import { call, connectLive, FakeEngine, type Script } from "./fake-engine.js";
 
 const contract = loadContract();
@@ -38,14 +39,14 @@ const symbolAdded = (poid: string, designator: string, extra: Record<string, unk
 });
 
 describe("tools", () => {
-  it("lists exactly the contract's read methods, plus live_status and live_context", async () => {
+  it("lists exactly the contract's read methods, the client-layer ones it answers itself, plus live_status and live_context", async () => {
     const { client } = await setup();
     const { tools } = await client.listTools();
     const expected = contract.methods
       .filter((m) => exclusionReason(m) === null && safetyClass(m) === "read")
       .map((m) => m.name);
     expect(expected.length).toBeGreaterThanOrEqual(15);
-    expect(tools.map((t) => t.name).sort()).toEqual([...expected, "live_context", "live_status"].sort());
+    expect(tools.map((t) => t.name).sort()).toEqual([...expected, ...CLIENT_LAYER_METHODS, "live_context", "live_status"].sort());
   });
 
   it("lists no write or destructive tool, and nothing the engine refuses", async () => {
@@ -58,7 +59,14 @@ describe("tools", () => {
     }
     const names = new Set(tools.map((t) => t.name));
     for (const m of contract.methods) {
-      if (safetyClass(m) !== "read" || exclusionReason(m) !== null) expect(names.has(m.name), m.name).toBe(false);
+      const answeredHere = (CLIENT_LAYER_METHODS as readonly string[]).includes(m.name);
+      if (!answeredHere && (safetyClass(m) !== "read" || exclusionReason(m) !== null)) expect(names.has(m.name), m.name).toBe(false);
+    }
+    // Only the client-layer methods this server implements are listed; every other client or transport one stays out.
+    for (const m of contract.methods) {
+      if (m["x-layer"] === "transport" || (m["x-layer"] === "client" && !(CLIENT_LAYER_METHODS as readonly string[]).includes(m.name))) {
+        expect(names.has(m.name), m.name).toBe(false);
+      }
     }
     for (const name of ["AddSymbol", "SetRole", "SetCurrentCoa", "DeleteCoa", "Register", "Request"]) expect(names.has(name)).toBe(false);
   });
@@ -321,5 +329,32 @@ describe("live context", () => {
     const { client } = await setup();
     expect(client.getServerCapabilities()?.resources).toMatchObject({ subscribe: true });
     await expect(client.subscribeResource({ uri: "stp-docs://guides/roles" })).rejects.toThrow(/only stp-live:\/\//);
+  });
+});
+
+describe("5.12 events through the server", () => {
+  it("serves a task's history in its resource and batches in the context", async () => {
+    const { client, live } = await setup();
+    await call(client, "live_status");
+    live.context.apply({ name: "BatchStarted", params: { batchId: "b1", kind: "load", expected: 1, isOwn: false, origin: "live" }, at: new Date(), replay: false });
+    live.context.apply({
+      name: "TaskAdded",
+      params: { poid: "t1", alternates: [{ fsTYPE: "task", poid: "t1", name: "Block" }], batchId: "b1" },
+      at: new Date(),
+      replay: false,
+    });
+    live.context.apply({
+      name: "TaskEventAdded",
+      params: { poid: "e1", entry: { task: "t1", kind: "comment", origin: "user", text: "check this" }, batchId: null },
+      at: new Date(),
+      replay: false,
+    });
+    const res = await client.readResource({ uri: "stp-live://task/t1" });
+    const doc = JSON.parse((res.contents[0] as { text: string }).text);
+    expect(doc.history).toHaveLength(1);
+    expect(doc.history[0]).toMatchObject({ poid: "e1", entry: { text: "check this" } });
+    const ctx = JSON.parse((await client.readResource({ uri: "stp-live://context" })).contents[0].text as string);
+    expect(ctx.batches.open[0]).toMatchObject({ batchId: "b1", events: 1 });
+    expect(ctx.taskHistories).toEqual([{ task: "t1", entries: 1, latest: "comment" }]);
   });
 });

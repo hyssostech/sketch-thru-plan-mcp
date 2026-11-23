@@ -1,5 +1,9 @@
 # STP-1805: proposed contract wording
 
+> **Status (STP-1808):** adopted upstream on sketch-thru-plan-sdk-js `claude/STP-1808-contract-wording`, with two
+> facts added: SearchSymbol's codes carry echelon 00, and AddSymbol converts a 2525C-only sidc to 2525D. The overlay
+> in the last section was ruled out, as were MCP-side routing rules. The eval scores 36/36 with the wording.
+
 Tool descriptions for STP methods come from the contract (`json-api/sketch-thru-plan-api.json` in
 hyssostech/sketch-thru-plan-sdk-js), pinned here at 0.9.11. This repo does not edit them (CLAUDE.md). These are
 the changes proposed upstream, so that a model that loads a tool reads the same routing rule that the stp-live

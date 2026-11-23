@@ -92,18 +92,14 @@ the client that made it, so the context reports what reaches this server and oth
 observed"; name the COA to read with `STP_COA` or a tool's `poid`. In write mode the server is such a
 client when the model calls `SetRole` or `SetCurrentCoa`, and then the context shows its own switch.
 
-### Instructions: where symbol codes come from
+### Tool choice: which methods a request should use
 
-The server's MCP `instructions` (`src/routing.ts`, STP-1805) state the routing rule a model sees before it picks a
-tool: symbol codes come from the user's data or from STP (an existing object, `SearchSymbol`), never from the model.
-A symbol described in words goes to recognition (`SendSimulatedSpeechRecognition` with `SendPenDown` and
-`SendInk`), structured data with codes passes through as given (`AddSymbol`, or an import in destructive mode), and
-a mixed request does both. The instructions name only tools the mode lists. `eval/tool-choice-eval.json` holds
-paired cases that differ only in their input, each with the steering facts that must be in the instructions or the
-contract's descriptions; `test/tool-choice-eval.test.ts` checks them without a model call, against a floor that only
-goes up. Contract wording it still needs is proposed in `docs/proposals/STP-1805-contract-wording.md`. The knowledge
-server's instructions set the depth of a help answer: integrators get methods and events, end users get planning
-terms.
+Routing by kind of input lives in the contract's descriptions, not in this server: `AddSymbol` is for a code from
+the user's data, a file or STP, passed as given; `SendSimulatedSpeechRecognition` with `SendPenDown` and `SendInk` is
+for a symbol or task described in words, and STP produces the code; `SearchSymbol` returns a symbol type's template.
+`eval/tool-choice-eval.json` holds at least one request per STP-1476 user story or use case, each naming the methods
+it should use and the description text that steers a model to them; `test/tool-choice-eval.test.ts` checks them
+without a model call, against a floor that only goes up. A gap is fixed in the contract upstream, then re-pinned.
 
 ### Tools
 

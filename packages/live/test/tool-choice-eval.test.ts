@@ -1,13 +1,15 @@
-// Tool-choice steering evaluation (STP-1805): eval/tool-choice-eval.json.
+// Tool-choice and story-coverage evaluation (STP-1805, STP-1808): eval/tool-choice-eval.json.
 //
-// Deterministic, no model call. A model picks a tool from what is in front of it before the call: the server
-// instructions (always) and the tool descriptions (once loaded). Each case names the tools its request should reach
-// and the steering facts that must be in that text; a fact is a set of case-insensitive regexes that must all
-// match one text. The live instructions are read from a real server per mode, through MCP, as a client sees them.
+// Deterministic, no model call. A model picks a tool from what is in front of it: the tool list and the tool
+// descriptions, and for help, the knowledge server's instructions. Each case is a request from one STP-1476 user
+// story or use case; it names the methods that request should use, and the steering facts that must be in that
+// text. A fact is a set of case-insensitive regexes that must all match one text. The live tool list and this repo's
+// own tool descriptions are read from a real server per mode, through MCP, as a client sees them.
 //
-// Facts owned by this repo (owner "mcp") must all hold. Facts owned by the contract (owner "contract") may fail:
-// those are gaps, each with a proposal in docs/proposals/STP-1805-contract-wording.md. PASS_FLOOR is the share of
-// cases whose facts all hold; it only goes up - raise it when a re-pin adopts a proposal, never lower it.
+// Routing is carried by the contract's descriptions (STP-1808 rulings): no MCP-side routing rules, routing resource
+// or description overlay. Facts owned by this repo (owner "mcp") must all hold. Facts owned by the contract (owner
+// "contract") may fail: those are gaps, to fix with wording upstream in the contract. PASS_FLOOR is the share of
+// cases whose facts all hold; it only goes up - raise it when a re-pin closes a gap, never lower it.
 import { readFileSync } from "node:fs";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
@@ -15,16 +17,17 @@ import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { clientLayerTools, generateTools, loadContract, type GeneratedTool } from "stp-mcp-contract-tools";
 import { createKnowledgeServer } from "stp-mcp-knowledge";
 import { CLIENT_LAYER_METHODS } from "../src/server.js";
-import { SYMBOL_ROUTES } from "../src/routing.js";
 import type { WriteMode } from "../src/validate.js";
 import { connectLive, FakeEngine } from "./fake-engine.js";
 
 /**
- * Measured 11/15 = 0.733 at contract 0.9.11 (STP-1805): every MCP-owned fact holds; the 4 cases short are the
- * contract gaps (AddSymbol, SendSimulatedSpeechRecognition and SearchSymbol wording) proposed upstream. The floor
- * is the measured score: a new case may start as a gap only if the floor still holds.
+ * Measured 36/36 = 1.0 at contract 0.9.11 with the STP-1808 wording (sketch-thru-plan-sdk-js
+ * claude/STP-1808-contract-wording). It was 11/15 = 0.733 before (STP-1805). The floor is the measured score.
  */
-const PASS_FLOOR = 0.73;
+const PASS_FLOOR = 1.0;
+
+/** The STP-1476 user stories and use cases. Each needs at least one case; a story is never dropped from here. */
+const STORIES = ["1a", "1b", "1c", "2.1", "2.2", "2.3", "2.4", "2.5", "2.6", "3", "4", "5", "6", "7", "8"];
 
 type Mode = WriteMode;
 interface Fact {
@@ -36,8 +39,9 @@ interface Fact {
 }
 interface Case {
   id: string;
-  pair: string;
-  input: "words" | "data" | "mixed" | "lookup" | "help";
+  story: string;
+  pair?: string;
+  input: "words" | "data" | "mixed" | "lookup" | "command" | "help";
   mode?: Mode;
   server?: "live" | "knowledge";
   audience?: string;
@@ -48,6 +52,7 @@ interface Case {
 }
 
 const evalSet = JSON.parse(readFileSync(new URL("../eval/tool-choice-eval.json", import.meta.url), "utf8")) as {
+  stories: Record<string, string>;
   facts: Record<string, Fact>;
   cases: Case[];
 };
@@ -57,9 +62,18 @@ const contractTools = new Map<string, GeneratedTool>(
 );
 const MODES: Mode[] = ["off", "write", "destructive"];
 
-const live = new Map<Mode, { instructions: string; tools: Set<string> }>();
-let knowledge: { instructions: string; tools: Set<string> };
+interface Surface {
+  instructions: string;
+  tools: Map<string, string>;
+}
+const live = new Map<Mode, Surface>();
+let knowledge: Surface;
 const closers: (() => Promise<void>)[] = [];
+
+const surfaceOf = async (client: Client): Promise<Surface> => {
+  const { tools } = await client.listTools();
+  return { instructions: client.getInstructions() ?? "", tools: new Map(tools.map((t) => [t.name, t.description ?? ""])) };
+};
 
 beforeAll(async () => {
   for (const mode of MODES) {
@@ -67,27 +81,26 @@ beforeAll(async () => {
     closers.push(() => engine.close());
     const { client, close } = await connectLive({ url: engine.url, write: mode !== "off", destructive: mode === "destructive" });
     closers.push(close);
-    const { tools } = await client.listTools();
-    live.set(mode, { instructions: client.getInstructions() ?? "", tools: new Set(tools.map((t) => t.name)) });
+    live.set(mode, await surfaceOf(client));
   }
   const [clientSide, serverSide] = InMemoryTransport.createLinkedPair();
   await createKnowledgeServer().connect(serverSide);
   const client = new Client({ name: "eval", version: "0" });
   await client.connect(clientSide);
   closers.push(() => client.close());
-  const { tools } = await client.listTools();
-  knowledge = { instructions: client.getInstructions() ?? "", tools: new Set(tools.map((t) => t.name)) };
+  knowledge = await surfaceOf(client);
 });
 
 afterAll(async () => {
   for (const c of closers.reverse()) await c();
 });
 
-/** The text a fact is checked against, for a case's mode. */
-function targetText(target: string, mode: Mode): string {
-  if (target === "live-instructions") return live.get(mode)!.instructions;
+/** The text a fact is checked against. A live tool is read in the destructive mode, which lists every tool. */
+function targetText(target: string): string {
   if (target === "knowledge-instructions") return knowledge.instructions;
   const [kind, name] = target.split(":");
+  if (kind === "live-tool") return live.get("destructive")!.tools.get(name) ?? "";
+  if (kind === "knowledge-tool") return knowledge.tools.get(name) ?? "";
   const method = contract.methods.find((m) => m.name === name);
   if (!method) throw new Error(`unknown method in fact target ${target}`);
   if (kind === "tool") return contractTools.get(name)?.description ?? "";
@@ -95,68 +108,79 @@ function targetText(target: string, mode: Mode): string {
   throw new Error(`unknown fact target ${target}`);
 }
 
-const holds = (fact: Fact, mode: Mode) => {
-  const text = targetText(fact.target, mode);
+const holds = (fact: Fact) => {
+  const text = targetText(fact.target);
   return fact.patterns.every((p) => new RegExp(p, "i").test(text));
 };
+/** The tool a fact's target describes, if any. */
+const targetTool = (fact: Fact) => (fact.target.includes(":") ? fact.target.split(":")[1] : undefined);
 
 const modeOf = (c: Case): Mode => c.mode ?? "off";
 const surface = (c: Case) => (c.server === "knowledge" ? knowledge : live.get(modeOf(c))!);
 
 describe("tool-choice evaluation", () => {
-  it("is a well-formed set of paired cases", () => {
+  it("is a well-formed set of cases; cases that share a pair differ in input or audience", () => {
     const { cases, facts } = evalSet;
     expect(new Set(cases.map((c) => c.id)).size).toBe(cases.length);
     const pairs = new Map<string, Case[]>();
-    for (const c of cases) pairs.set(c.pair, [...(pairs.get(c.pair) ?? []), c]);
+    for (const c of cases) if (c.pair) pairs.set(c.pair, [...(pairs.get(c.pair) ?? []), c]);
     for (const [pair, members] of pairs) {
       expect(members.length, `${pair}: a pair needs two cases`).toBeGreaterThanOrEqual(2);
       const routes = new Set(members.map((m) => `${m.input}/${m.audience ?? ""}`));
       expect(routes.size, `${pair}: paired cases must differ in their input or audience`).toBeGreaterThanOrEqual(2);
     }
     for (const c of cases) {
+      expect(evalSet.stories[c.story], `${c.id}: unknown story ${c.story}`).toBeDefined();
+      expect(c.use.length, `${c.id}: names no method`).toBeGreaterThan(0);
+      expect(c.facts.length, `${c.id}: has no steering fact`).toBeGreaterThan(0);
       for (const f of c.facts) expect(facts[f], `${c.id}: unknown fact ${f}`).toBeDefined();
       for (const t of c.avoid) expect(c.use, `${c.id}: ${t} both used and avoided`).not.toContain(t);
     }
     for (const [id, f] of Object.entries(facts)) {
       if (f.owner === "contract") expect(f.target, `${id}: a contract fact targets a contract text`).toMatch(/^(tool|edgeCases):/);
+      else expect(f.target, `${id}: an mcp fact targets this repo's text`).toMatch(/^(live-tool|knowledge-tool):|^knowledge-instructions$/);
       for (const p of f.patterns) expect(() => new RegExp(p, "i"), `${id}: bad pattern ${p}`).not.toThrow();
     }
   });
 
-  it("covers words, data and mixed input, and both help audiences", () => {
+  it("covers every STP-1476 user story and use case with at least one case", () => {
+    expect(Object.keys(evalSet.stories).sort()).toEqual([...STORIES].sort());
+    const covered = new Set(evalSet.cases.map((c) => c.story));
+    for (const s of STORIES) expect(covered.has(s), `story ${s} (${evalSet.stories[s]}) has no case`).toBe(true);
+  });
+
+  it("covers words, data, mixed and command input, lookups, and both help audiences", () => {
     const inputs = new Set(evalSet.cases.map((c) => c.input));
-    for (const i of ["words", "data", "mixed", "lookup", "help"]) expect(inputs.has(i as Case["input"]), i).toBe(true);
-    const audiences = new Set(evalSet.cases.map((c) => c.audience).filter(Boolean));
+    for (const i of ["words", "data", "mixed", "lookup", "command", "help"]) expect(inputs.has(i as Case["input"]), i).toBe(true);
+    const audiences = new Set(evalSet.cases.filter((c) => c.server === "knowledge").map((c) => c.audience));
     expect([...audiences].sort()).toEqual(["end-user", "integrator"]);
   });
 
-  it("routes only to tools the case's mode lists, and the instructions name every one", () => {
+  it("uses and avoids only tools that exist, and uses only tools the case's server and mode list", () => {
+    const known = (t: string) => contractTools.has(t) || live.get("destructive")!.tools.has(t) || knowledge.tools.has(t);
     for (const c of evalSet.cases) {
-      const s = surface(c);
+      for (const t of [...c.use, ...c.avoid]) expect(known(t), `${c.id}: ${t} is no tool`).toBe(true);
+      for (const t of c.use) expect(surface(c).tools.has(t), `${c.id}: ${t} is not listed in ${c.server ?? `mode ${modeOf(c)}`}`).toBe(true);
+    }
+  });
+
+  it("steers to every method a case uses: a fact on its description, or a steering text that names it", () => {
+    for (const c of evalSet.cases) {
+      const facts = c.facts.map((id) => evalSet.facts[id]);
       for (const t of c.use) {
-        expect(s.tools.has(t), `${c.id}: ${t} is not listed in mode ${modeOf(c)}`).toBe(true);
-        expect(s.instructions, `${c.id}: the instructions do not name ${t}`).toContain(t);
+        const steered = facts.some(
+          (f) => targetTool(f) === t || (f.target !== "knowledge-instructions" && new RegExp(`\\b${t}\\b`).test(targetText(f.target))),
+        );
+        expect(steered, `${c.id}: no fact of the case steers to ${t}`).toBe(true);
       }
     }
   });
 
-  it("names in the instructions no tool the mode does not list", () => {
-    const routed = new Set(SYMBOL_ROUTES.flatMap((r) => r.tools));
-    for (const t of routed) expect(contract.methods.some((m) => m.name === t), `${t}: not a contract method`).toBe(true);
-    for (const mode of MODES) {
-      const { instructions, tools } = live.get(mode)!;
-      for (const t of routed) {
-        if (!tools.has(t)) expect(instructions, `mode ${mode} names unlisted ${t}`).not.toMatch(new RegExp(`\\b${t}\\b`));
-      }
-    }
-  });
-
-  it("holds every fact this repo owns, in every case's mode", () => {
+  it("holds every fact this repo owns", () => {
     for (const c of evalSet.cases) {
       for (const id of c.facts) {
         const f = evalSet.facts[id];
-        if (f.owner === "mcp") expect(holds(f, modeOf(c)), `${c.id}: ${id} - ${f.claim}`).toBe(true);
+        if (f.owner === "mcp") expect(holds(f), `${c.id}: ${id} - ${f.claim}`).toBe(true);
       }
     }
   });
@@ -165,11 +189,11 @@ describe("tool-choice evaluation", () => {
     const lines: string[] = [];
     let passed = 0;
     for (const c of evalSet.cases) {
-      const missing = c.facts.filter((id) => !holds(evalSet.facts[id], modeOf(c)));
+      const missing = c.facts.filter((id) => !holds(evalSet.facts[id]));
       if (missing.length === 0) passed++;
       else
         lines.push(
-          `  GAP   ${c.id} (${c.input}): ${missing
+          `  GAP   ${c.id} (story ${c.story}, ${c.input}): ${missing
             .map((id) => `${id}${evalSet.facts[id].proposal ? ` [proposal: ${evalSet.facts[id].proposal}]` : ""}`)
             .join(", ")}`,
         );

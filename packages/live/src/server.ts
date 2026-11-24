@@ -12,6 +12,7 @@ import {
 import { AjvJsonSchemaValidator } from "@modelcontextprotocol/sdk/validation/ajv";
 import type { JsonSchemaType, JsonSchemaValidator } from "@modelcontextprotocol/sdk/validation";
 import {
+  clientLayerTools,
   exclusionReason,
   generateTools,
   loadContract,
@@ -29,6 +30,7 @@ import { ACTIONS_URI, ActionLog, MAX_ACTIONS } from "./actions.js";
 import { DEFAULT_V10_TIMEOUT_S, type LiveConfig } from "./config.js";
 import { StpConnection, StpError } from "./connection.js";
 import { CONTEXT_URI, LiveContext, MAX_ENTITIES, MAX_RECENT_EVENTS, RESOURCE_KINDS, entityUri, type EntityKind } from "./context.js";
+import { SymbolIndexUnavailableError, SymbolSearch, symbolIndexUrlFor } from "./symbolsearch.js";
 import { MAX_ANSWER_BYTES, capAnswer, stripPrologTerm } from "./payload.js";
 import type { WriteMode } from "./validate.js";
 import { createWriteCaller } from "./write.js";
@@ -50,7 +52,14 @@ export interface LiveServerOptions {
   settleMs?: number;
   /** Entries the action log keeps in memory (default 500). */
   actionLogCap?: number;
+  /** Where SearchSymbol reads the symbol index (default: the STP bridge's /symbol-index.json, from config.url). */
+  symbolIndexUrl?: string;
+  /** How SearchSymbol fetches the index (default: fetch with the request timeout). */
+  fetchFn?: (url: string) => Promise<{ ok: boolean; status: number; text(): Promise<string> }>;
 }
+
+/** The client-layer contract methods this server answers itself, read-only (the generator never lists them). */
+export const CLIENT_LAYER_METHODS = ["SearchSymbol"] as const;
 
 export interface LiveServer {
   mcp: McpServer;
@@ -164,11 +173,13 @@ export function createLiveServer(options: LiveServerOptions): LiveServer {
   const rulesPin = options.validationsPin ?? loadValidationsPin();
   const mode = writeModeOf(config);
   const tools = exposedTools(contract, mode);
+  const clientTools = clientLayerTools(contract, CLIENT_LAYER_METHODS);
+  const clientByName = new Map(clientTools.map((t) => [t.name, t]));
   const byName = new Map(tools.map((t) => [t.name, t]));
   const ajv = new AjvJsonSchemaValidator();
   // Every dispatched method gets a validator, so a write called by name is checked like a listed one.
   const validators = new Map<string, JsonSchemaValidator<unknown>>(
-    generateTools(contract).tools.map((t) => [t.name, ajv.getValidator(t.inputSchema as JsonSchemaType)]),
+    [...generateTools(contract).tools, ...clientTools].map((t) => [t.name, ajv.getValidator(t.inputSchema as JsonSchemaType)]),
   );
   const v10TimeoutS = config.v10TimeoutS ?? DEFAULT_V10_TIMEOUT_S;
   const actions = new ActionLog(config.actionLog, options.actionLogCap ?? MAX_ACTIONS);
@@ -266,7 +277,7 @@ export function createLiveServer(options: LiveServerOptions): LiveServer {
   // registerTool takes zod shapes). Arguments are validated against those schemas before any call.
 
   mcp.server.setRequestHandler(ListToolsRequestSchema, () => ({
-    tools: [...(tools as unknown as Tool[]), LIVE_STATUS, LIVE_CONTEXT],
+    tools: [...(tools as unknown as Tool[]), ...(clientTools as unknown as Tool[]), LIVE_STATUS, LIVE_CONTEXT],
   }));
 
   const callMethod = async (tool: GeneratedTool, args: Record<string, unknown>): Promise<CallToolResult> => {
@@ -319,6 +330,38 @@ export function createLiveServer(options: LiveServerOptions): LiveServer {
     });
   };
 
+  // SearchSymbol (x-layer: client) is answered here from the symbol index the STP bridge serves over HTTP;
+  // the engine never receives it. An index that cannot be read is a refusal, never an empty answer.
+  let symbolSearch: { url: string; search: SymbolSearch } | undefined;
+  const callSearchSymbol = async (tool: GeneratedTool, args: Record<string, unknown>): Promise<CallToolResult> => {
+    const check = validators.get(tool.name)!(args);
+    if (!check.valid) return explained(`Invalid arguments for ${tool.name}: ${check.errorMessage}. See the tool's input schema.`);
+    const url = options.symbolIndexUrl ?? symbolIndexUrlFor(config.url);
+    try {
+      if (url === undefined) {
+        throw new SymbolIndexUnavailableError(config.url, "the STP URL is not a ws:// or wss:// bridge URL, so the index URL cannot be derived");
+      }
+      if (symbolSearch?.url !== url) {
+        const fetchFn =
+          options.fetchFn ?? ((u: string) => fetch(u, { signal: AbortSignal.timeout(config.timeoutS * 1000) }));
+        symbolSearch = { url, search: await SymbolSearch.load(url, fetchFn) };
+      }
+      const results = symbolSearch.search.search(String(args.text), args.maxResults as number | undefined);
+      const { answer, truncated } = capAnswer(results, maxBytes);
+      return json({
+        answer,
+        ...(results.length === 0
+          ? { notes: ["No symbol matches, or the text is empty or only stop words (squad, platoon, the, ...): an empty result, not an error."] }
+          : {}),
+        ...(truncated ? { truncated } : {}),
+        provenance: { ...provenance(), symbolIndex: url },
+      });
+    } catch (e) {
+      // The contract's refusal text: symbol index not available: <source> (<reason>)
+      return refusal(e instanceof SymbolIndexUnavailableError ? e.message : `SearchSymbol failed: ${(e as Error).message}`);
+    }
+  };
+
   const callWrite = createWriteCaller({
     rules,
     connection,
@@ -363,6 +406,9 @@ export function createLiveServer(options: LiveServerOptions): LiveServer {
       return json(contextDocument());
     }
 
+    const clientTool = clientByName.get(name);
+    if (clientTool) return callSearchSymbol(clientTool, args);
+
     const tool = byName.get(name);
     if (tool && tool._meta["stp/safety"] === "read") return callMethod(tool, args);
 
@@ -376,7 +422,7 @@ export function createLiveServer(options: LiveServerOptions): LiveServer {
       return refusal(`There is no tool '${name}'; did you mean ${method.name}?`);
     }
     return refusal(
-      `There is no tool '${name}'. The tools are the STP ${mode === "off" ? "read " : ""}methods (${tools.map((t) => t.name).join(", ")}), ` +
+      `There is no tool '${name}'. The tools are the STP ${mode === "off" ? "read " : ""}methods (${[...tools, ...clientTools].map((t) => t.name).join(", ")}), ` +
         `live_status and live_context.`,
     );
   });
@@ -460,7 +506,11 @@ export function createLiveServer(options: LiveServerOptions): LiveServer {
             {
               uri: uri.href,
               mimeType: "application/json",
-              text: JSON.stringify({ ...entity, provenance: provenance() }, null, 2),
+              text: JSON.stringify(
+                { ...entity, ...(kind === "task" ? { history: context.historyOf(poid) } : {}), provenance: provenance() },
+                null,
+                2,
+              ),
             },
           ],
         };

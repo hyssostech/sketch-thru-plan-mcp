@@ -19,6 +19,7 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
+    "stp-mcp-knowledge": "0.1.0",
     "ws": "8.22.0"
   }
 }

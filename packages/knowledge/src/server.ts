@@ -83,6 +83,22 @@ function unknown(kind: string, name: string, items: { name: string }[], listTool
   return refusal(`The STP contract has no ${kind} named '${name}'.${hint} Use ${listTool} to see them all.`);
 }
 
+/**
+ * Server instructions (STP-1805): what the corpus is, how deep to answer for whom, and where symbol codes come from.
+ * The docs are written for integrators; an end user planning in STP needs the same facts in planning terms.
+ */
+export const KNOWLEDGE_INSTRUCTIONS =
+  "Sketch-thru-Plan (STP) developer documentation and the STP JSON-RPC API contract, offline. search_docs finds " +
+  "passages; read the stp-docs:// or stp-api:// resource before relying on a snippet; list_methods and get_method " +
+  "give a method's contract entry. Match the depth of the answer to the asker. An integrator (building on the SDK, " +
+  "the JSON-RPC bridge, the REST connector or a data feed) gets the methods, params, events and failure modes, " +
+  "with the source. An end user (a planner using the STP app) gets what to say, draw or click and what STP does in " +
+  "return, in planning terms - no JSON-RPC, payloads or method names unless asked; the docs are written for " +
+  "integrators, so translate. When unsure which, answer the user's question first and offer the integration " +
+  "detail. Symbol codes (2525/APP-6 SIDCs) come from the user's data or from STP (a running STP's SearchSymbol, an " +
+  "existing object), never from memory: in an answer, do not write out a code the sources do not give, and " +
+  "2525C codes map to 2525D, never the reverse.";
+
 export function createKnowledgeServer(options: KnowledgeServerOptions = {}): McpServer {
   const contract = options.contract ?? loadContract();
   const pin = options.pin ?? loadPin();
@@ -95,7 +111,7 @@ export function createKnowledgeServer(options: KnowledgeServerOptions = {}): Mcp
   const provenance = { contract: source, docs: docsSource };
   const index = new SearchIndex([...docs.pages.flatMap(chunkPage), ...contractChunks(contract)]);
 
-  const server = new McpServer({ name: "stp-mcp-knowledge", version: "0.1.0" });
+  const server = new McpServer({ name: "stp-mcp-knowledge", version: "0.1.0" }, { instructions: KNOWLEDGE_INSTRUCTIONS });
 
   // ---- Resources: one per docs page, contract method and contract event --------------------------
 

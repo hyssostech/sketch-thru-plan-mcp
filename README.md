@@ -92,6 +92,15 @@ the client that made it, so the context reports what reaches this server and oth
 observed"; name the COA to read with `STP_COA` or a tool's `poid`. In write mode the server is such a
 client when the model calls `SetRole` or `SetCurrentCoa`, and then the context shows its own switch.
 
+### Tool choice: which methods a request should use
+
+Routing by kind of input lives in the contract's descriptions, not in this server: `AddSymbol` is for a code from
+the user's data, a file or STP, passed as given; `SendSimulatedSpeechRecognition` with `SendPenDown` and `SendInk` is
+for a symbol or task described in words, and STP produces the code; `SearchSymbol` returns a symbol type's template.
+`eval/tool-choice-eval.json` holds at least one request per STP-1476 user story or use case, each naming the methods
+it should use and the description text that steers a model to them; `test/tool-choice-eval.test.ts` checks them
+without a model call, against a floor that only goes up. A gap is fixed in the contract upstream, then re-pinned.
+
 ### Tools
 
 - **One tool per read method of the contract** (`x-stpSafety: read`, and dispatched by the engine):
@@ -107,6 +116,15 @@ client when the model calls `SetRole` or `SetCurrentCoa`, and then the context s
   - Answers over 200 KB of JSON are truncated, with a note saying what was kept.
   - An empty answer (`null`, `[]`, an empty `object_set`) comes with a note on what it means, as
     does a call without a `poid` (the engine then answers for the whole session).
+- **`SearchSymbol`** (contract `x-layer: client`, read-only) - the symbols whose names or spoken phrases
+  match a typed text, best first. The engine never receives it: `stp-live` answers it itself, as the
+  SDKs do (same ranking), from the symbol index the STP WebSockets bridge serves over HTTP at
+  `http://<host>:<port>/symbol-index.json` - the `STP_URL` host and port (`https` for `wss://`). The
+  index is loaded on first use and kept; there is no setting for it. Name, description and schema come
+  from the contract entry (`clientLayerTools`); every other client- or transport-layer method stays
+  unlisted. No match, or a text of only stop words, is a success with `[]` and a note. An index that
+  cannot be read (an STP that does not serve it, not installed, unreachable, not valid) is an `isError`
+  `symbol index not available: <url> (<reason>)`, never an empty result; the next call tries again.
 - **In write mode, one tool per write method** (`x-stpSafety: write`) - `AddCoa`, `AddSymbol`,
   `AddTask`, `UpdateSymbol`, `SetCurrentCoa` and the rest - and with `STP_DESTRUCTIVE=1` one per
   destructive method (`DeleteSymbol`, `DeleteCoa`, `CreateNewScenario`, the imports...). Their

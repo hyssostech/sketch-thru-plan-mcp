@@ -171,3 +171,20 @@ export function generateTools(contract: Contract): GenerationResult {
   }
   return { contractVersion: contract.info.version, tools, excluded };
 }
+
+/**
+ * Tools for contract methods an MCP server answers itself (x-layer: client), such as SearchSymbol. The
+ * generator never lists them on its own (see exclusionReason: the engine would answer "No handler"); a
+ * server names the ones it implements, and the definition still comes from the contract entry. Throws
+ * for a name that is missing, not client-layer, or not a read method, so a typo or a contract change
+ * is a failure rather than a silently missing tool.
+ */
+export function clientLayerTools(contract: Contract, implemented: readonly string[]): GeneratedTool[] {
+  return implemented.map((name) => {
+    const method = contract.methods.find((m) => m.name === name);
+    if (!method) throw new Error(`${name}: not a method of contract ${contract.info.version}`);
+    if (method["x-layer"] !== "client") throw new Error(`${name}: not x-layer: client, so the engine answers it (use generateTools)`);
+    if (safetyClass(method) !== "read") throw new Error(`${name}: a client-layer tool must be read-only`);
+    return toolFromMethod(method, contract);
+  });
+}

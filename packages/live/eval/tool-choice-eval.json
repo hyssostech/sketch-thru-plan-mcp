@@ -1,0 +1,1056 @@
+{
+  "about": "Tool-choice and story-coverage evaluation (STP-1805, STP-1808, from STP-1476). Each case is a user request from one STP-1476 user story or use case (stories), with the kind of input it carries, the server and mode it needs, the methods a model should use and must avoid, and the steering facts that must be in front of the model for that choice. Every story has at least one case; cases that share a pair id differ in their input or audience and so in their route. The evaluation is deterministic, with no model call: a fact is a set of case-insensitive regular expressions that must all match one text - a contract tool's description or edge cases, a description of one of this repo's tools, or the knowledge server's instructions. Routing lives in the contract's descriptions, not in MCP-side rules or overlays (STP-1808 rulings). A case passes when all its facts hold. Facts owned by this repo (owner mcp) must always hold; facts owned by the contract (owner contract) that fail are gaps, to fix upstream in the contract (proposal: docs/proposals/STP-1805-contract-wording.md), and the floor in test/tool-choice-eval.test.ts only goes up.",
+  "stories": {
+    "1a": "Help: operator help",
+    "1b": "Help: developer help",
+    "1c": "Help: deployment troubleshooting",
+    "2.1": "Operating: language authoring",
+    "2.2": "Operating: situational queries",
+    "2.3": "Operating: editing existing objects",
+    "2.4": "Operating: tasking and planning",
+    "2.5": "Operating: mixed requests",
+    "2.6": "Operating: session and scenario management",
+    "3": "LLM-assisted code development",
+    "4": "Headless integration and data exchange",
+    "5": "Plan comprehension and analysis",
+    "6": "Orders to plan",
+    "7": "Event-driven monitoring",
+    "8": "Training and doctrinal questions"
+  },
+  "facts": {
+    "addsymbol-input-source": {
+      "owner": "contract",
+      "target": "tool:AddSymbol",
+      "claim": "AddSymbol is for a code from the user's data, a file or STP, and says not to compose one.",
+      "patterns": [
+        "user's data, a file or STP",
+        "do not compose"
+      ],
+      "proposal": "AddSymbol"
+    },
+    "addsymbol-as-given": {
+      "owner": "contract",
+      "target": "tool:AddSymbol",
+      "claim": "AddSymbol passes the code through as given.",
+      "patterns": [
+        "Pass that sidc as given"
+      ],
+      "proposal": "AddSymbol"
+    },
+    "addsymbol-names-recognition": {
+      "owner": "contract",
+      "target": "tool:AddSymbol",
+      "claim": "AddSymbol points a symbol described in words to recognition.",
+      "patterns": [
+        "described in words",
+        "SendSimulatedSpeechRecognition with SendPenDown and SendInk",
+        "STP produces the code"
+      ],
+      "proposal": "AddSymbol"
+    },
+    "addsymbol-c-to-d": {
+      "owner": "contract",
+      "target": "tool:AddSymbol",
+      "claim": "A 2525C-only code given to AddSymbol is converted to 2525D, C to D only.",
+      "patterns": [
+        "only in 2525C",
+        "converted to 2525D",
+        "C to D only"
+      ]
+    },
+    "simspeech-for-words": {
+      "owner": "contract",
+      "target": "tool:SendSimulatedSpeechRecognition",
+      "claim": "Simulated speech is the path for a symbol described in words, with SendPenDown and SendInk; STP produces the code.",
+      "patterns": [
+        "described in words",
+        "SendPenDown and SendInk",
+        "STP produces the code"
+      ],
+      "proposal": "SendSimulatedSpeechRecognition"
+    },
+    "simspeech-for-tasks": {
+      "owner": "contract",
+      "target": "tool:SendSimulatedSpeechRecognition",
+      "claim": "Simulated speech also serves a task described in words.",
+      "patterns": [
+        "symbol or task is described in words"
+      ],
+      "proposal": "SendSimulatedSpeechRecognition"
+    },
+    "simspeech-data-to-addsymbol": {
+      "owner": "contract",
+      "target": "tool:SendSimulatedSpeechRecognition",
+      "claim": "Simulated speech points a code already in the data to AddSymbol.",
+      "patterns": [
+        "already in the user's data, use AddSymbol"
+      ],
+      "proposal": "SendSimulatedSpeechRecognition"
+    },
+    "sendink-for-placement": {
+      "owner": "contract",
+      "target": "tool:SendInk",
+      "claim": "SendInk names both paths: speech with ink to recognize, AddSymbol for a fully specified symbol.",
+      "patterns": [
+        "SendSimulatedSpeechRecognition",
+        "AddSymbol"
+      ]
+    },
+    "recognizenow-ends-wait": {
+      "owner": "contract",
+      "target": "tool:RecognizeNow",
+      "claim": "RecognizeNow recognizes the strokes sent so far without waiting for the timeout.",
+      "patterns": [
+        "Recognize the strokes collected so far now"
+      ]
+    },
+    "searchsymbol-bridge-route": {
+      "owner": "contract",
+      "target": "tool:SearchSymbol",
+      "claim": "SearchSymbol names the bridge route a client without a local install loads the index from.",
+      "patterns": [
+        "/symbol-index\\.json"
+      ],
+      "proposal": "SearchSymbol"
+    },
+    "searchsymbol-templates-contract": {
+      "owner": "contract",
+      "target": "tool:SearchSymbol",
+      "claim": "SearchSymbol's codes are a symbol type's template (default affiliation, echelon 00), not a finished symbol.",
+      "patterns": [
+        "template",
+        "echelon 00",
+        "not a finished symbol"
+      ],
+      "proposal": "SearchSymbol"
+    },
+    "searchsymbol-empty-charlie": {
+      "owner": "contract",
+      "target": "tool:SearchSymbol",
+      "claim": "An empty charlieSidc means the symbol type has no 2525C code.",
+      "patterns": [
+        "charlieSidc where a 2525C code exists, empty otherwise"
+      ],
+      "proposal": "SearchSymbol"
+    },
+    "searchsymbol-edge-source": {
+      "owner": "contract",
+      "target": "edgeCases:SearchSymbol",
+      "claim": "SearchSymbol's refusal names its source, a path or a URL.",
+      "patterns": [
+        "symbol index not available: <source>",
+        "path or URL"
+      ],
+      "proposal": "SearchSymbol"
+    },
+    "import-objectset-as-given": {
+      "owner": "contract",
+      "target": "tool:ImportPlanDataFromObjectSet",
+      "claim": "Object-set imports take the objects as STP exported them.",
+      "patterns": [
+        "as GetScenarioObjectSet returned them"
+      ]
+    },
+    "importplandata-merge": {
+      "owner": "contract",
+      "target": "tool:ImportPlanData",
+      "claim": "ImportPlanData merges object_set text without discarding the scenario.",
+      "patterns": [
+        "Merge object_set",
+        "without discarding"
+      ]
+    },
+    "getscenario-whole": {
+      "owner": "contract",
+      "target": "tool:GetScenarioContent",
+      "claim": "GetScenarioContent returns the whole current scenario.",
+      "patterns": [
+        "Return the whole current scenario"
+      ]
+    },
+    "getscenarioobjectset-json": {
+      "owner": "contract",
+      "target": "tool:GetScenarioObjectSet",
+      "claim": "GetScenarioObjectSet returns the whole scenario as JSON objects.",
+      "patterns": [
+        "whole scenario as a JSON array"
+      ]
+    },
+    "getpoid-one": {
+      "owner": "contract",
+      "target": "tool:GetPoidObject",
+      "claim": "GetPoidObject returns one object by its poid.",
+      "patterns": [
+        "one object of any type",
+        "by its unique id"
+      ]
+    },
+    "updatesymbol-move": {
+      "owner": "contract",
+      "target": "tool:UpdateSymbol",
+      "claim": "UpdateSymbol changes an existing symbol, for example moves it.",
+      "patterns": [
+        "Change an existing symbol",
+        "move it"
+      ]
+    },
+    "deletesymbol-poid": {
+      "owner": "contract",
+      "target": "tool:DeleteSymbol",
+      "claim": "DeleteSymbol deletes a symbol by poid.",
+      "patterns": [
+        "Delete a symbol, identified by poid"
+      ]
+    },
+    "addtask-direct": {
+      "owner": "contract",
+      "target": "tool:AddTask",
+      "claim": "AddTask creates a task directly from known values, naming recognition as the other path.",
+      "patterns": [
+        "Create a task directly",
+        "without sketch or speech recognition",
+        "who to the executing unit's poid"
+      ]
+    },
+    "confirmtask": {
+      "owner": "contract",
+      "target": "tool:ConfirmTask",
+      "claim": "ConfirmTask confirms a task interpretation.",
+      "patterns": [
+        "Confirm a task interpretation"
+      ]
+    },
+    "autotasking": {
+      "owner": "contract",
+      "target": "tool:SetAutoTasking",
+      "claim": "SetAutoTasking makes STP infer tasks from the symbols placed.",
+      "patterns": [
+        "infers tasks from the symbols placed"
+      ]
+    },
+    "gettaskhistory": {
+      "owner": "contract",
+      "target": "tool:GetTaskHistory",
+      "claim": "GetTaskHistory returns what was done to a task, by whom.",
+      "patterns": [
+        "Return a task's history",
+        "by whom"
+      ]
+    },
+    "addtaskorg": {
+      "owner": "contract",
+      "target": "tool:AddTaskOrg",
+      "claim": "AddTaskOrg creates a task organization.",
+      "patterns": [
+        "Create a Task Organization"
+      ]
+    },
+    "addtaskorgunit": {
+      "owner": "contract",
+      "target": "tool:AddTaskOrgUnit",
+      "claim": "AddTaskOrgUnit adds a unit to a task organization.",
+      "patterns": [
+        "Add a unit to a Task Organization"
+      ]
+    },
+    "createnew": {
+      "owner": "contract",
+      "target": "tool:CreateNewScenario",
+      "claim": "CreateNewScenario starts an empty scenario, to plan from scratch.",
+      "patterns": [
+        "Start a new, empty scenario",
+        "plan from scratch"
+      ]
+    },
+    "loadnew": {
+      "owner": "contract",
+      "target": "tool:LoadNewScenario",
+      "claim": "LoadNewScenario replaces the scenario with saved content.",
+      "patterns": [
+        "Replace the whole scenario with saved"
+      ]
+    },
+    "join": {
+      "owner": "contract",
+      "target": "tool:JoinScenarioSession",
+      "claim": "JoinScenarioSession replays an existing scenario to a client that just connected.",
+      "patterns": [
+        "after connecting to a session whose scenario already exists"
+      ]
+    },
+    "setrole": {
+      "owner": "contract",
+      "target": "tool:SetRole",
+      "claim": "SetRole switches this client's role.",
+      "patterns": [
+        "Switch this client's role"
+      ]
+    },
+    "coa-limited": {
+      "owner": "contract",
+      "target": "tool:ImportCoaFromObjectSet",
+      "claim": "The COA calls say planning by COA is not supported in STP 5.12.",
+      "patterns": [
+        "planning by COA is not supported"
+      ]
+    },
+    "c2sim-convert": {
+      "owner": "contract",
+      "target": "tool:ConvertC2SIMContent",
+      "claim": "ConvertC2SIMContent turns a C2SIM document into STP text without loading it.",
+      "patterns": [
+        "Convert a C2SIM XML document",
+        "nothing is loaded into the scenario"
+      ]
+    },
+    "c2sim-export": {
+      "owner": "contract",
+      "target": "tool:GetC2SIMContent",
+      "claim": "GetC2SIMContent exports and points to PushC2SIMContent to send.",
+      "patterns": [
+        "Export the current scenario",
+        "use PushC2SIMContent to send"
+      ]
+    },
+    "c2sim-push": {
+      "owner": "contract",
+      "target": "tool:PushC2SIMContent",
+      "claim": "PushC2SIMContent sends a document to an external C2SIM server.",
+      "patterns": [
+        "EXTERNAL C2SIM server"
+      ]
+    },
+    "live-context-recent": {
+      "owner": "mcp",
+      "target": "live-tool:live_context",
+      "claim": "live_context holds the recent events and the last unit added.",
+      "patterns": [
+        "the last \\d+ events",
+        "lastAdded\\.symbol for 'the unit I just added'"
+      ]
+    },
+    "live-status-reachable": {
+      "owner": "mcp",
+      "target": "live-tool:live_status",
+      "claim": "live_status tells whether the engine is reachable right now.",
+      "patterns": [
+        "whether the engine is reachable right now",
+        "the last connection error"
+      ]
+    },
+    "search-docs-scope": {
+      "owner": "mcp",
+      "target": "knowledge-tool:search_docs",
+      "claim": "search_docs covers the guides, troubleshooting and C2SIM, with the contract.",
+      "patterns": [
+        "troubleshooting",
+        "C2SIM",
+        "every STP JSON-RPC method and event"
+      ]
+    },
+    "get-method-entry": {
+      "owner": "mcp",
+      "target": "knowledge-tool:get_method",
+      "claim": "get_method gives a method's full contract entry.",
+      "patterns": [
+        "Full contract entry",
+        "params with their JSON schemas"
+      ]
+    },
+    "list-methods-find": {
+      "owner": "mcp",
+      "target": "knowledge-tool:list_methods",
+      "claim": "list_methods is how to find the right call.",
+      "patterns": [
+        "find the right call"
+      ]
+    },
+    "audience-integrator": {
+      "owner": "mcp",
+      "target": "knowledge-instructions",
+      "claim": "An integrator gets methods, params, events and failure modes, with the source.",
+      "patterns": [
+        "An integrator",
+        "gets the methods, params, events and failure modes"
+      ]
+    },
+    "audience-end-user": {
+      "owner": "mcp",
+      "target": "knowledge-instructions",
+      "claim": "An end user gets what to say, draw or click, in planning terms, without JSON-RPC.",
+      "patterns": [
+        "An end user",
+        "what to say, draw or click",
+        "no JSON-RPC"
+      ]
+    },
+    "knowledge-code-source": {
+      "owner": "mcp",
+      "target": "knowledge-instructions",
+      "claim": "Help answers never write out a code the sources do not give.",
+      "patterns": [
+        "never from memory",
+        "do not write out a code the sources do not give",
+        "2525C codes map to 2525D, never the reverse"
+      ]
+    }
+  },
+  "cases": [
+    {
+      "id": "help-add-unit-end-user",
+      "story": "1a",
+      "pair": "help-add-unit",
+      "input": "help",
+      "server": "knowledge",
+      "audience": "end-user",
+      "request": "How do I add a unit to my plan?",
+      "use": [
+        "search_docs"
+      ],
+      "avoid": [],
+      "facts": [
+        "search-docs-scope",
+        "audience-end-user",
+        "knowledge-code-source"
+      ]
+    },
+    {
+      "id": "help-add-unit-integrator",
+      "story": "1b",
+      "pair": "help-add-unit",
+      "input": "help",
+      "server": "knowledge",
+      "audience": "integrator",
+      "request": "How do I add units from my C2 feed to STP through the API?",
+      "use": [
+        "search_docs",
+        "get_method"
+      ],
+      "avoid": [],
+      "facts": [
+        "search-docs-scope",
+        "get-method-entry",
+        "audience-integrator",
+        "knowledge-code-source"
+      ]
+    },
+    {
+      "id": "help-deploy-docs",
+      "story": "1c",
+      "pair": "deploy-connect",
+      "input": "help",
+      "server": "knowledge",
+      "audience": "end-user",
+      "request": "STP is installed but my client never connects - what should I check?",
+      "use": [
+        "search_docs"
+      ],
+      "avoid": [],
+      "facts": [
+        "search-docs-scope",
+        "audience-end-user"
+      ]
+    },
+    {
+      "id": "deploy-engine-reachable",
+      "story": "1c",
+      "pair": "deploy-connect",
+      "input": "lookup",
+      "mode": "off",
+      "request": "Is the STP engine reachable from here right now, and what was the last connection error?",
+      "use": [
+        "live_status"
+      ],
+      "avoid": [],
+      "facts": [
+        "live-status-reachable"
+      ]
+    },
+    {
+      "id": "place-recon-words",
+      "story": "2.1",
+      "pair": "place-unit",
+      "input": "words",
+      "mode": "write",
+      "request": "Place a recon platoon at 33.7518, -84.3882.",
+      "use": [
+        "SendSimulatedSpeechRecognition",
+        "SendPenDown",
+        "SendInk"
+      ],
+      "avoid": [
+        "AddSymbol"
+      ],
+      "facts": [
+        "addsymbol-input-source",
+        "addsymbol-names-recognition",
+        "simspeech-for-words",
+        "sendink-for-placement"
+      ]
+    },
+    {
+      "id": "place-recon-data",
+      "story": "4",
+      "pair": "place-unit",
+      "input": "data",
+      "mode": "write",
+      "request": "Add these units; SIDCs attached: SFGPUCR----D--- at 33.7518, -84.3882; SFGPUCI----E--- at 33.7490, -84.3880.",
+      "use": [
+        "AddSymbol"
+      ],
+      "avoid": [
+        "SendSimulatedSpeechRecognition",
+        "SendInk"
+      ],
+      "facts": [
+        "addsymbol-input-source",
+        "addsymbol-as-given",
+        "simspeech-data-to-addsymbol"
+      ]
+    },
+    {
+      "id": "objective-words",
+      "story": "2.1",
+      "pair": "place-graphic",
+      "input": "words",
+      "mode": "write",
+      "request": "Put objective B around the airport terminal.",
+      "use": [
+        "SendSimulatedSpeechRecognition",
+        "SendPenDown",
+        "SendInk",
+        "RecognizeNow"
+      ],
+      "avoid": [
+        "AddSymbol"
+      ],
+      "facts": [
+        "simspeech-for-words",
+        "sendink-for-placement",
+        "addsymbol-names-recognition",
+        "recognizenow-ends-wait"
+      ]
+    },
+    {
+      "id": "objective-data",
+      "story": "4",
+      "pair": "place-graphic",
+      "input": "data",
+      "mode": "write",
+      "request": "Add the objective from our overlay file: its SIDC, designator B and area corners are in the attached rows.",
+      "use": [
+        "AddSymbol"
+      ],
+      "avoid": [
+        "SendSimulatedSpeechRecognition"
+      ],
+      "facts": [
+        "addsymbol-input-source",
+        "addsymbol-as-given"
+      ]
+    },
+    {
+      "id": "map-whats-there",
+      "story": "2.2",
+      "pair": "where-is",
+      "input": "lookup",
+      "mode": "off",
+      "request": "What's on the map right now?",
+      "use": [
+        "GetScenarioContent",
+        "live_context"
+      ],
+      "avoid": [],
+      "facts": [
+        "getscenario-whole",
+        "live-context-recent"
+      ]
+    },
+    {
+      "id": "where-is-unit",
+      "story": "2.2",
+      "pair": "where-is",
+      "input": "lookup",
+      "mode": "off",
+      "audience": "integrator",
+      "request": "Where is company A? Its poid is in the last scenario read.",
+      "use": [
+        "GetPoidObject"
+      ],
+      "avoid": [
+        "SearchSymbol"
+      ],
+      "facts": [
+        "getpoid-one"
+      ]
+    },
+    {
+      "id": "code-of-existing",
+      "story": "2.2",
+      "input": "data",
+      "mode": "off",
+      "request": "What SIDC does the unit I just added carry?",
+      "use": [
+        "live_context",
+        "GetPoidObject"
+      ],
+      "avoid": [
+        "SearchSymbol"
+      ],
+      "facts": [
+        "live-context-recent",
+        "getpoid-one"
+      ]
+    },
+    {
+      "id": "move-unit",
+      "story": "2.3",
+      "pair": "edit-unit",
+      "input": "data",
+      "mode": "write",
+      "request": "Move company A (its poid from the scenario) 500 m north.",
+      "use": [
+        "UpdateSymbol"
+      ],
+      "avoid": [
+        "AddSymbol",
+        "DeleteSymbol"
+      ],
+      "facts": [
+        "updatesymbol-move"
+      ]
+    },
+    {
+      "id": "delete-unit",
+      "story": "2.3",
+      "pair": "edit-unit",
+      "input": "words",
+      "mode": "destructive",
+      "request": "Remove the hostile UAV designated 3 from the map.",
+      "use": [
+        "GetScenarioContent",
+        "DeleteSymbol"
+      ],
+      "avoid": [
+        "AddSymbol"
+      ],
+      "facts": [
+        "getscenario-whole",
+        "deletesymbol-poid"
+      ]
+    },
+    {
+      "id": "task-words",
+      "story": "2.4",
+      "pair": "task",
+      "input": "words",
+      "mode": "write",
+      "request": "Have company A attack objective B.",
+      "use": [
+        "SendSimulatedSpeechRecognition",
+        "SendPenDown",
+        "SendInk"
+      ],
+      "avoid": [
+        "AddSymbol"
+      ],
+      "facts": [
+        "simspeech-for-tasks",
+        "simspeech-for-words",
+        "addtask-direct"
+      ]
+    },
+    {
+      "id": "task-data",
+      "story": "2.4",
+      "pair": "task",
+      "input": "data",
+      "mode": "write",
+      "request": "Create the task from this record: who is poid idQAJHG657HCAMUDLWAA9VZWGV7, what ATTACK, tgs the objective's poid.",
+      "use": [
+        "AddTask",
+        "ConfirmTask"
+      ],
+      "avoid": [
+        "SendSimulatedSpeechRecognition"
+      ],
+      "facts": [
+        "addtask-direct",
+        "confirmtask"
+      ]
+    },
+    {
+      "id": "auto-tasking",
+      "story": "2.4",
+      "input": "words",
+      "mode": "write",
+      "request": "Let STP work out the tasks from the units I place.",
+      "use": [
+        "SetAutoTasking"
+      ],
+      "avoid": [],
+      "facts": [
+        "autotasking"
+      ]
+    },
+    {
+      "id": "build-task-org",
+      "story": "2.4",
+      "input": "data",
+      "mode": "write",
+      "request": "Set up a task organization for 1st Brigade with these battalions as its units.",
+      "use": [
+        "AddTaskOrg",
+        "AddTaskOrgUnit"
+      ],
+      "avoid": [],
+      "facts": [
+        "addtaskorg",
+        "addtaskorgunit"
+      ]
+    },
+    {
+      "id": "coa-objectset-data",
+      "story": "2.4",
+      "pair": "load-coa",
+      "input": "data",
+      "mode": "destructive",
+      "request": "Load this COA object set (exported with GetCoaObjectSet) into the scenario.",
+      "use": [
+        "ImportCoaFromObjectSet"
+      ],
+      "avoid": [
+        "AddSymbol",
+        "SendSimulatedSpeechRecognition"
+      ],
+      "facts": [
+        "coa-limited"
+      ]
+    },
+    {
+      "id": "coa-described-words",
+      "story": "2.4",
+      "pair": "load-coa",
+      "input": "words",
+      "mode": "destructive",
+      "request": "Build a COA with two infantry companies north of the river.",
+      "use": [
+        "SendSimulatedSpeechRecognition",
+        "SendPenDown",
+        "SendInk"
+      ],
+      "avoid": [
+        "AddSymbol",
+        "ImportCoaFromObjectSet"
+      ],
+      "facts": [
+        "simspeech-for-words",
+        "addsymbol-names-recognition",
+        "coa-limited"
+      ]
+    },
+    {
+      "id": "imported-attack-mixed",
+      "story": "2.5",
+      "pair": "task-imported-unit",
+      "input": "mixed",
+      "mode": "destructive",
+      "request": "Import these units from the feed (SIDCs attached), then have 1-23 IN attack Objective B.",
+      "use": [
+        "ImportPlanDataFromObjectSet",
+        "AddSymbol",
+        "SendSimulatedSpeechRecognition",
+        "SendPenDown",
+        "SendInk",
+        "GetScenarioContent"
+      ],
+      "avoid": [],
+      "facts": [
+        "import-objectset-as-given",
+        "addsymbol-as-given",
+        "simspeech-for-tasks",
+        "simspeech-for-words",
+        "getscenario-whole"
+      ]
+    },
+    {
+      "id": "imported-units-data",
+      "story": "4",
+      "pair": "task-imported-unit",
+      "input": "data",
+      "mode": "destructive",
+      "request": "Import these units from the feed, SIDCs attached, and nothing else.",
+      "use": [
+        "ImportPlanDataFromObjectSet",
+        "AddSymbol"
+      ],
+      "avoid": [
+        "SendSimulatedSpeechRecognition"
+      ],
+      "facts": [
+        "import-objectset-as-given",
+        "addsymbol-as-given"
+      ]
+    },
+    {
+      "id": "new-scenario",
+      "story": "2.6",
+      "pair": "scenario",
+      "input": "command",
+      "mode": "destructive",
+      "request": "Start a new plan from scratch called Exercise Lion.",
+      "use": [
+        "CreateNewScenario"
+      ],
+      "avoid": [
+        "LoadNewScenario"
+      ],
+      "facts": [
+        "createnew"
+      ]
+    },
+    {
+      "id": "load-saved-scenario",
+      "story": "2.6",
+      "pair": "scenario",
+      "input": "data",
+      "mode": "destructive",
+      "request": "Load the plan I saved yesterday (the object_set text attached).",
+      "use": [
+        "LoadNewScenario"
+      ],
+      "avoid": [
+        "CreateNewScenario"
+      ],
+      "facts": [
+        "loadnew"
+      ]
+    },
+    {
+      "id": "join-session",
+      "story": "2.6",
+      "input": "command",
+      "mode": "off",
+      "request": "I just connected to the shared session; catch me up on its scenario.",
+      "use": [
+        "JoinScenarioSession"
+      ],
+      "avoid": [],
+      "facts": [
+        "join"
+      ]
+    },
+    {
+      "id": "switch-role",
+      "story": "2.6",
+      "input": "command",
+      "mode": "write",
+      "request": "Switch me to the S2 role.",
+      "use": [
+        "SetRole"
+      ],
+      "avoid": [],
+      "facts": [
+        "setrole"
+      ]
+    },
+    {
+      "id": "code-dev-addsymbol",
+      "story": "3",
+      "input": "help",
+      "server": "knowledge",
+      "audience": "integrator",
+      "request": "Write C# that adds the units from our feed through the STP SDK, handling SymbolAdded.",
+      "use": [
+        "list_methods",
+        "get_method"
+      ],
+      "avoid": [],
+      "facts": [
+        "list-methods-find",
+        "get-method-entry",
+        "audience-integrator"
+      ]
+    },
+    {
+      "id": "c-only-feed",
+      "story": "4",
+      "pair": "c-only",
+      "input": "data",
+      "mode": "write",
+      "request": "Add our feed's 2525C-only units (SFGPUCI----E---) as given.",
+      "use": [
+        "AddSymbol"
+      ],
+      "avoid": [
+        "SendSimulatedSpeechRecognition"
+      ],
+      "facts": [
+        "addsymbol-as-given",
+        "addsymbol-c-to-d"
+      ]
+    },
+    {
+      "id": "code-2525c-of-d-only",
+      "story": "4",
+      "pair": "c-only",
+      "input": "lookup",
+      "mode": "off",
+      "request": "Give me the 2525C code for this symbol; STP only shows a 2525D one.",
+      "use": [
+        "SearchSymbol"
+      ],
+      "avoid": [],
+      "facts": [
+        "searchsymbol-empty-charlie",
+        "knowledge-code-source"
+      ]
+    },
+    {
+      "id": "c2sim-import",
+      "story": "4",
+      "pair": "c2sim",
+      "input": "data",
+      "mode": "destructive",
+      "request": "Bring this C2SIM Initialization document into the current plan.",
+      "use": [
+        "ConvertC2SIMContent",
+        "ImportPlanData"
+      ],
+      "avoid": [
+        "SendSimulatedSpeechRecognition",
+        "AddSymbol"
+      ],
+      "facts": [
+        "c2sim-convert",
+        "importplandata-merge"
+      ]
+    },
+    {
+      "id": "c2sim-export",
+      "story": "4",
+      "pair": "c2sim",
+      "input": "data",
+      "mode": "destructive",
+      "audience": "integrator",
+      "request": "Send our plan's units to the C2SIM server.",
+      "use": [
+        "GetC2SIMContent",
+        "PushC2SIMContent"
+      ],
+      "avoid": [],
+      "facts": [
+        "c2sim-export",
+        "c2sim-push"
+      ]
+    },
+    {
+      "id": "brief-plan",
+      "story": "5",
+      "pair": "analyze",
+      "input": "lookup",
+      "mode": "off",
+      "request": "Brief me on the current plan: units, objectives and who is tasked with what.",
+      "use": [
+        "GetScenarioContent"
+      ],
+      "avoid": [
+        "AddTask",
+        "SendSimulatedSpeechRecognition"
+      ],
+      "facts": [
+        "getscenario-whole"
+      ]
+    },
+    {
+      "id": "plan-gaps",
+      "story": "5",
+      "pair": "analyze",
+      "input": "lookup",
+      "mode": "off",
+      "audience": "integrator",
+      "request": "Which units have no task, and who last changed the attack task?",
+      "use": [
+        "GetScenarioObjectSet",
+        "GetTaskHistory"
+      ],
+      "avoid": [],
+      "facts": [
+        "getscenarioobjectset-json",
+        "gettaskhistory"
+      ]
+    },
+    {
+      "id": "orders-to-plan",
+      "story": "6",
+      "input": "words",
+      "mode": "write",
+      "request": "From this OPORD: 1-23 IN seizes objective B; A Co screens along PL Red. Put it on the map.",
+      "use": [
+        "SendSimulatedSpeechRecognition",
+        "SendPenDown",
+        "SendInk",
+        "RecognizeNow"
+      ],
+      "avoid": [
+        "AddSymbol"
+      ],
+      "facts": [
+        "simspeech-for-words",
+        "simspeech-for-tasks",
+        "recognizenow-ends-wait",
+        "addsymbol-names-recognition"
+      ]
+    },
+    {
+      "id": "monitor-enemy",
+      "story": "7",
+      "input": "lookup",
+      "mode": "off",
+      "request": "Tell me when an enemy unit appears near objective B.",
+      "use": [
+        "live_context"
+      ],
+      "avoid": [],
+      "facts": [
+        "live-context-recent"
+      ]
+    },
+    {
+      "id": "code-lookup",
+      "story": "8",
+      "pair": "symbol-question",
+      "input": "lookup",
+      "mode": "off",
+      "request": "What SIDC does STP use for a recon platoon?",
+      "use": [
+        "SearchSymbol"
+      ],
+      "avoid": [],
+      "facts": [
+        "searchsymbol-bridge-route",
+        "searchsymbol-templates-contract",
+        "searchsymbol-edge-source",
+        "knowledge-code-source"
+      ]
+    },
+    {
+      "id": "doctrine-question",
+      "story": "8",
+      "pair": "symbol-question",
+      "input": "help",
+      "server": "knowledge",
+      "audience": "end-user",
+      "request": "What does a screen task mean, and how do I draw one in STP?",
+      "use": [
+        "search_docs"
+      ],
+      "avoid": [],
+      "facts": [
+        "search-docs-scope",
+        "audience-end-user",
+        "knowledge-code-source"
+      ]
+    }
+  ]
+}
